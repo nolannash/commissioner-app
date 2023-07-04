@@ -2,15 +2,33 @@ from sqlalchemy.orm import validates
 from sqlalchemy_serializer import SerializerMixin
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.ext.associationproxy import association_proxy
+from werkzeug.utils import secure_filename
 from config import db, bcrypt
 
 from datetime import datetime
 import re
+import os
+
+UPLOAD_FOLDER = './UPLOAD_FOLDER'
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
+
+# Function to check if a file has an allowed extension
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+# Function to save the uploaded file
+def save_file(file):
+    if file and allowed_file(file.filename):
+        filename = secure_filename(file.filename)
+        file.save(os.path.join(UPLOAD_FOLDER, filename))
+        return filename
+    return None
 
 #! TODO: --> enable image upload for logo + profile pic etc.
 #! --> relationships and associations
 #! --> figure out how the heck the form is going to work --> save choices as number based variables?
 #! --> serialize
+#! --> establish place for photos to be stored --> ask matteo for links about that?
 
 class User(db.Model, SerializerMixin):
     __tablename__ = 'users'
@@ -18,12 +36,13 @@ class User(db.Model, SerializerMixin):
     id = db.Column(db.INTEGER, primary_key=True)
     username = db.Column(db.VARCHAR(20), unique=True, nullable=False)
     email = db.Column(db.VARCHAR, unique=True, nullable=False)
+    profile_photo = db.Column(db.VARCHAR)  # File path to profile photo
     _password_hash = db.Column(db.STRING)
-    
+
     # Relationships and associations
-    
+
     # Serializations
-    
+
     # Validations
     @validates("username")
     def validate_username(self, key, username):
@@ -66,12 +85,14 @@ class Seller(db.Model, SerializerMixin):
     id = db.Column(db.INTEGER, primary_key=True)
     shopname = db.Column(db.VARCHAR(25), unique=True, nullable=False)
     email = db.Column(db.VARCHAR, unique=True, nullable=False)
+    logo_banner = db.Column(db.VARCHAR)  # File path to logo banner
+    profile_photo = db.Column(db.VARCHAR)  # File path to profile photo
     _password_hash = db.Column(db.STRING)
-    
+
     # Relationships and associations
-    
+
     # Serializations
-    
+
     # Validations
     @validates("shopname")
     def validate_shopname(self, key, shopname):
@@ -117,9 +138,9 @@ class Item(db.Model, SerializerMixin):
     rollover_period = db.Column(db.INTEGER, nullable=False)
     
     # Relationships and associations
-    
+    orders = db.relationship("Order", back_populates="item")
     # Serializations
-    
+
     # Validations
 
 class Order(db.Model, SerializerMixin):
@@ -130,10 +151,12 @@ class Order(db.Model, SerializerMixin):
     user_id = db.Column(db.INTEGER, db.ForeignKey('users.id'))
     item_id = db.Column(db.INTEGER, db.ForeignKey('items.id'))
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
-    
+
     # Relationships and associations
     item = db.relationship("Item", back_populates="orders")
 
     # Serializations
-    
+
     # Validations
+
+
