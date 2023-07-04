@@ -1,4 +1,7 @@
 from sqlalchemy.orm import validates
+from sqlalchemy.orm import relationship
+from sqlalchemy.event import listens_for
+from flask_mail import Message
 from sqlalchemy_serializer import SerializerMixin
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.ext.associationproxy import association_proxy
@@ -36,8 +39,11 @@ class User(db.Model, SerializerMixin):
     id = db.Column(db.INTEGER, primary_key=True)
     username = db.Column(db.VARCHAR(20), unique=True, nullable=False)
     email = db.Column(db.VARCHAR, unique=True, nullable=False)
-    profile_photo = db.Column(db.VARCHAR)  # File path to profile photo
     _password_hash = db.Column(db.STRING)
+    
+    profile_photo = db.Column(db.VARCHAR)  # File path to profile photo
+    favorites = db.relationship('Favorite', back_populates='user')
+    email_notifications = db.Column(db.Boolean, default=False)
 
     # Relationships and associations
 
@@ -85,9 +91,12 @@ class Seller(db.Model, SerializerMixin):
     id = db.Column(db.INTEGER, primary_key=True)
     shopname = db.Column(db.VARCHAR(25), unique=True, nullable=False)
     email = db.Column(db.VARCHAR, unique=True, nullable=False)
+    _password_hash = db.Column(db.STRING)
+    
     logo_banner = db.Column(db.VARCHAR)  # File path to logo banner
     profile_photo = db.Column(db.VARCHAR)  # File path to profile photo
-    _password_hash = db.Column(db.STRING)
+    items = db.relationship('Item', back_populates='seller')
+    email_notifications = db.Column(db.Boolean, default=True)
 
     # Relationships and associations
 
@@ -133,12 +142,14 @@ class Item(db.Model, SerializerMixin):
     __tablename__ = 'items'
 
     id = db.Column(db.INTEGER, primary_key=True)
-    seller_id = db.Column(db.INTEGER, db.ForeignKey('sellers.id'))
+    seller_id = db.Column(db.Integer, db.ForeignKey('seller.id'))
+
     batch_size = db.Column(db.INTEGER, nullable=False)
     rollover_period = db.Column(db.INTEGER, nullable=False)
     
     # Relationships and associations
     orders = db.relationship("Order", back_populates="item")
+    seller = db.relationship('Seller', back_populates='items')
     # Serializations
 
     # Validations
