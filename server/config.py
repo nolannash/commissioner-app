@@ -5,6 +5,7 @@ from flask_restful import Api
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 from sqlalchemy import MetaData
+from flask_mail import Mail, Message
 import os
 
 app = Flask(__name__)
@@ -21,11 +22,17 @@ metadata = MetaData(naming_convention={
 db = SQLAlchemy(metadata=metadata)
 migrate = Migrate(app, db,render_as_batch=True)
 db.init_app(app)
-
-render_as_batch=True
-
 bcrypt = Bcrypt(app)
 
 api = Api(app)
 
 CORS(app)
+
+app.config['MAIL_SERVER'] = 'your_mail_server'
+app.config['MAIL_PORT'] = 587  # or the appropriate port number
+app.config['MAIL_USE_TLS'] = True
+app.config['MAIL_USERNAME'] = 'your_username'
+app.config['MAIL_PASSWORD'] = 'your_password'
+app.config['MAIL_DEFAULT_SENDER'] = 'your_email@example.com'
+
+mail = Mail(app)
