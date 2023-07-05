@@ -124,7 +124,9 @@ class Item(db.Model, SerializerMixin):
     id = db.Column(db.INTEGER, primary_key=True)
     seller_id = db.Column(db.Integer, db.ForeignKey('sellers.id'))
     batch_size = db.Column(db.INTEGER, nullable=False)
-    rollover_period = db.Column(db.INTEGER, nullable=False)
+    rollover_period = db.Column(db.INTEGER, nullable=True)
+    last_rollover = db.Column(db.DateTime, nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     seller = db.relationship('Seller', back_populates='items')
     orders = db.relationship("Order", back_populates="item")

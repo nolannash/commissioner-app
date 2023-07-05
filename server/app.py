@@ -1,7 +1,7 @@
 from flask import request, make_response
 from flask_restful import Resource
 from flask_jwt_extended import jwt_required, create_access_token, get_jwt_identity, unset_jwt_cookies
-
+from datetime import datetime, timedelta
 import re
 
 from config import app, db, api, jwt
@@ -130,13 +130,28 @@ class Items(Resource):
         if not seller:
             return {'message': 'Seller not found'}, 404
 
-        item = Item(seller=seller, **data)
-        try:
-            db.session.add(item)
-            db.session.commit()
-            return {'message': 'Item created successfully'}, 201
-        except ValueError as e:
-            return {'message': str(e)}, 400
+        user_id = data.get('user_id')
+        user = User.query.get(user_id)
+        if not user:
+            return {'message': 'User not found'}, 404
+        item_id = data.get('item_id')
+        item = Item.query.get(item_id)
+        if not item:
+            return {'message': 'Item not found'}, 404
+
+        # Check if a rollover is required based on the rollover period
+        if item.rollover_period:
+            current_time = datetime.now()
+            if item.last_rollover is None or (current_time - item.last_rollover) >= timedelta(days=item.rollover_period):
+                # Reset the order count and update the last rollover timestamp
+                item.order_count = 0
+                item.last_rollover = current_time
+                db.session.commit()
+
+        # Check if the batch size is exceeded
+        if item.batch_size and item.order_count >= item.batch_size:
+            return {'message': 'Commissions are closed for now.'}, 400
+
 
     def patch(self, item_id):
         item = Item.query.get(item_id)
