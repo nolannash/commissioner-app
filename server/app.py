@@ -1,4 +1,4 @@
-from flask import request, make_response
+from flask import request, make_response, jsonify
 from flask_restful import Resource
 from flask_jwt_extended import jwt_required, create_access_token, get_jwt_identity, unset_jwt_cookies
 from datetime import datetime, timedelta
@@ -378,4 +378,4 @@ api.add_resource(FormItems, '/form-items', '/form-items/<int:form_item_id>')
 
 
 if __name__ == '__main__':
-    app.run(port=5555, debug=True)
+    app.run(port=5555, debug=True, use_debugger=True,use_reloader=False)
