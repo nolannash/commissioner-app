@@ -3,6 +3,8 @@ from flask_mail import Message
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import relationship, validates
 from sqlalchemy_serializer import SerializerMixin
+from werkzeug.utils import secure_filename
+
 from config import db, bcrypt, mail
 from datetime import datetime
 import re
@@ -29,7 +31,7 @@ class User(db.Model, SerializerMixin):
     id = db.Column(db.INTEGER, primary_key=True)
     username = db.Column(db.VARCHAR(20), unique=True, nullable=False)
     email = db.Column(db.VARCHAR, unique=True, nullable=False)
-    _password_hash = db.Column(db.STRING)
+    _password_hash = db.Column(db.String)
     profile_photo = db.Column(db.VARCHAR)  # File path to profile photo
     email_notifications = db.Column(db.Boolean, default=False)
 
@@ -76,7 +78,7 @@ class Seller(db.Model, SerializerMixin):
     id = db.Column(db.INTEGER, primary_key=True)
     shopname = db.Column(db.VARCHAR(25), unique=True, nullable=False)
     email = db.Column(db.VARCHAR, unique=True, nullable=False)
-    _password_hash = db.Column(db.STRING)
+    _password_hash = db.Column(db.String)
     logo_banner = db.Column(db.VARCHAR)  # the ~varchar~ is the file path to the photo
     profile_photo = db.Column(db.VARCHAR)  
     email_notifications = db.Column(db.Boolean, default=True)
