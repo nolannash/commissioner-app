@@ -128,6 +128,7 @@ class Item(db.Model, SerializerMixin):
 
     seller = db.relationship('Seller', back_populates='items')
     orders = db.relationship("Order", back_populates="item")
+    form_items = db.relationship("FormItem", back_populates="item", cascade="all, delete-orphan")
 
     def __repr__(self):
         return f"<Item {self.id}>"
@@ -146,7 +147,7 @@ class Order(db.Model, SerializerMixin):
     def __repr__(self):
         return f"<Order {self.id}>"
 
-class Favorite(db.Model):
+class Favorite(db.Model, SerializerMixin):
     __tablename__ = 'favorites'
 
     id = db.Column(db.Integer, primary_key=True)
@@ -177,3 +178,16 @@ class Favorite(db.Model):
 
     def __repr__(self):
         return f"<Favorite {self.id}>"
+
+class FormItem(db.Model):
+    __tablename__ = 'form_items'
+
+    id = db.Column(db.Integer, primary_key=True)
+    item_id = db.Column(db.Integer, db.ForeignKey('items.id'))
+    component_type = db.Column(db.String, nullable=False)
+    options = db.Column(db.String)
+
+    item = db.relationship('Item', back_populates='form_items')
+
+    def __repr__(self):
+        return f"<FormItem {self.id}>"
