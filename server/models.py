@@ -1,9 +1,15 @@
 from flask import current_app
 from flask_mail import Message
+
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import relationship, validates
 from sqlalchemy_serializer import SerializerMixin
+
+from werkzeug.utils import secure_filename
+
 from config import db, bcrypt, mail
+
+
 from datetime import datetime
 import re
 import os
@@ -16,6 +22,7 @@ def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 # Function to save the uploaded file
+# do I need to implement more specific storage for files? probably not rn for small scale but would for large
 def save_file(file):
     if file and allowed_file(file.filename):
         filename = secure_filename(file.filename)
@@ -181,7 +188,7 @@ class Favorite(db.Model, SerializerMixin):
     def __repr__(self):
         return f"<Favorite {self.id}>"
 
-class FormItem(db.Model):
+class FormItem(db.Model, SerializerMixin):
     __tablename__ = 'form_items'
 
     id = db.Column(db.Integer, primary_key=True)
@@ -193,3 +200,6 @@ class FormItem(db.Model):
 
     def __repr__(self):
         return f"<FormItem {self.id}>"
+
+class OrderChat(db.Model, SerializerMixin):
+    pass
