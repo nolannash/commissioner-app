@@ -15,8 +15,7 @@ class Users(Resource):
         if not user_id:
             users = User.query.all()
             return make_response([user.to_dict() for user in users], 200)
-        user = User.query.get(user_id)
-        if user:
+        if user := User.query.get(user_id):
             return make_response(user.to_dict(), 200)
         else:
             return make_response({'error': 'User Not Found'}, 404)
@@ -51,8 +50,7 @@ class Users(Resource):
 
     @jwt_required()  # Require authentication for deleting user-related routes
     def delete(self, user_id):
-        user = User.query.get(user_id)
-        if user:
+        if user := User.query.get(user_id):
             db.session.delete(user)
             db.session.commit()
             return {'message': 'User deleted successfully'}
@@ -103,8 +101,7 @@ class Sellers(Resource):
 
     @jwt_required()
     def delete(self, seller_id):
-        seller = Seller.query.get(seller_id)
-        if seller:
+        if seller := Seller.query.get(seller_id):
             db.session.delete(seller)
             db.session.commit()
             return {'message': 'Seller deleted successfully'}
@@ -169,8 +166,7 @@ class Items(Resource):
             return {'message': 'Item not found'}, 404
 
     def delete(self, item_id):
-        item = Item.query.get(item_id)
-        if item:
+        if item := Item.query.get(item_id):
             db.session.delete(item)
             db.session.commit()
             return {'message': 'Item deleted successfully'}
@@ -216,8 +212,7 @@ class Orders(Resource):
             return {'message': str(e)}, 400
 
     def delete(self, order_id):
-        order = Order.query.get(order_id)
-        if order:
+        if order := Order.query.get(order_id):
             db.session.delete(order)
             db.session.commit()
             return {'message': 'Order deleted successfully'}
@@ -264,8 +259,7 @@ class Favorites(Resource):
             return {'message': str(e)}, 400
 
     def delete(self, favorite_id):
-        favorite = Favorite.query.get(favorite_id)
-        if favorite:
+        if favorite := Favorite.query.get(favorite_id):
             db.session.delete(favorite)
             db.session.commit()
             return {'message': 'Favorite deleted successfully'}
@@ -301,22 +295,19 @@ class FormItems(Resource):
             return {'message': str(e)}, 400
 
     def patch(self, form_item_id):
-        form_item = FormItem.query.get(form_item_id)
-        if form_item:
-            data = request.get_json()
-            try:
-                form_item.component_type = data.get('component_type', form_item.component_type)
-                form_item.options = data.get('options', form_item.options)
-                db.session.commit()
-                return {'message': 'Form Item updated successfully'}
-            except ValueError as e:
-                return {'message': str(e)}, 400
-        else:
+        if not (form_item := FormItem.query.get(form_item_id)):
             return {'message': 'Form Item not found'}, 404
+        data = request.get_json()
+        try:
+            form_item.component_type = data.get('component_type', form_item.component_type)
+            form_item.options = data.get('options', form_item.options)
+            db.session.commit()
+            return {'message': 'Form Item updated successfully'}
+        except ValueError as e:
+            return {'message': str(e)}, 400
 
     def delete(self, form_item_id):
-        form_item = FormItem.query.get(form_item_id)
-        if form_item:
+        if form_item := FormItem.query.get(form_item_id):
             db.session.delete(form_item)
             db.session.commit()
             return {'message': 'Form Item deleted successfully'}
@@ -327,16 +318,12 @@ class Profile(Resource):
     @jwt_required()
     def get(self):
         user_id = get_jwt_identity()
-        user = User.query.get(user_id)
-
-        if user:
+        if user := User.query.get(user_id):
             return {'profile': user.to_dict()}, 200
+        if seller := Seller.query.get(user_id):
+            return {'profile': seller.to_dict()}, 200
         else:
-            seller = Seller.query.get(user_id)
-            if seller:
-                return {'profile': seller.to_dict()}, 200
-            else:
-                return {'message': 'Profile not found'}, 404
+            return {'message': 'Profile not found'}, 404
 
 @app.route('/login', methods=['POST'])
 def login():
