@@ -4,13 +4,11 @@ from flask_jwt_extended import jwt_required, create_access_token, get_jwt_identi
 from datetime import datetime, timedelta
 import re
 
-
 from config import app, db, api, jwt
 from models import User, Seller, Item, Order, Favorite, FormItem, save_file
 
-
 class Users(Resource):
-    @jwt_required()  # Require authentication for accessing user-related routes
+    @jwt_required()
     def get(self, user_id=None):
         if not user_id:
             users = User.query.all()
@@ -20,18 +18,7 @@ class Users(Resource):
         else:
             return make_response({'error': 'User Not Found'}, 404)
 
-    # def post(self):
-    #     data = request.get_json()
-    #     user = User(**data)
-    #     try:
-    #         user.password_hash = data['password']
-    #         db.session.add(user)
-    #         db.session.commit()
-    #         return make_response(user.to_dict(), 201)
-    #     except Exception as e:
-    #         return make_response({'error': str(e)}, 400)
-
-    @jwt_required()  # Require authentication for updating user-related routes
+    @jwt_required()
     def patch(self, user_id):
         user = db.session.get(User,user_id)
         if user:
@@ -48,7 +35,7 @@ class Users(Resource):
         else:
             return make_response({'error': 'User Not Found'}, 404)
 
-    @jwt_required()  # Require authentication for deleting user-related routes
+    @jwt_required()
     def delete(self, user_id):
         if user := db.session.get(User,user_id):
             db.session.delete(user)
@@ -80,9 +67,8 @@ class LoginUser(Resource):
             access_token = create_access_token(identity=user.id)
             return {'access_token': access_token}, 200
         else:
-            return {'message': 'Invalid email or password'}, 401
+            return make_response({'message': 'Invalid email or password'}, 401)
 
-# Seller resource
 class Sellers(Resource):
     @jwt_required()
     def get(self, seller_id=None):
@@ -95,17 +81,6 @@ class Sellers(Resource):
         else:
             sellers = Seller.query.all()
             return [seller.to_dict() for seller in sellers]
-
-    # def post(self):
-    #     data = request.get_json()
-    #     seller = Seller(**data)
-    #     try:
-    #         seller.password_hash = data['password']
-    #         db.session.add(seller)
-    #         db.session.commit()
-    #         return {'message': 'Seller created successfully'}, 201
-    #     except ValueError as e:
-    #         return {'message': str(e)}, 400
 
     @jwt_required()
     def patch(self, seller_id):
@@ -158,7 +133,6 @@ class LoginSeller(Resource):
         else:
             return {'message': 'Invalid email or password'}, 401
 
-
 class Items(Resource):
     def get(self, item_id=None):
         if item_id:
@@ -174,16 +148,17 @@ class Items(Resource):
     def post(self):
         data = request.get_json()
         seller_id = data.get('seller_id')
-        seller = db.session.get(Seller,seller_id)
+        seller = db.session.get(Seller, seller_id)
         if not seller:
             return {'message': 'Seller not found'}, 404
 
         user_id = data.get('user_id')
-        user = db.session.get(User,user_id)
+        user = db.session.get(User, user_id)
         if not user:
             return {'message': 'User not found'}, 404
+
         item_id = data.get('item_id')
-        item = db.session.get(Item,item_id)
+        item = db.session.get(Item, item_id)
         if not item:
             return {'message': 'Item not found'}, 404
 
@@ -194,11 +169,20 @@ class Items(Resource):
                 # Reset the order count and update the last rollover timestamp
                 item.order_count = 0
                 item.last_rollover = current_time
-                db.session.commit()
 
         # Check if the batch size is exceeded
         if item.batch_size and item.order_count >= item.batch_size:
             return {'message': 'Commissions are closed for now.'}, 400
+
+        # Create the order
+        order = Order(seller=seller, user=user, item=item)
+        try:
+            db.session.add(order)
+            item.order_count += 1
+            db.session.commit()
+            return {'message': 'Order created successfully'}, 201
+        except ValueError as e:
+            return {'message': str(e)}, 400
 
 
     def patch(self, item_id):
@@ -219,10 +203,9 @@ class Items(Resource):
         if item := db.session.get(Item,item_id):
             db.session.delete(item)
             db.session.commit()
-            return {'message': 'Item deleted successfully'}
+            return {'message': 'Item deleted successfully'}, 204
         else:
             return {'message': 'Item not found'}, 404
-
 
 class Orders(Resource):
     def get(self, order_id=None):
@@ -269,7 +252,6 @@ class Orders(Resource):
         else:
             return {'message': 'Order not found'}, 404
 
-
 class Favorites(Resource):
     def get(self, favorite_id=None):
         if favorite_id:
@@ -312,10 +294,9 @@ class Favorites(Resource):
         if favorite := db.session.get(Favorite,favorite_id):
             db.session.delete(favorite)
             db.session.commit()
-            return {'message': 'Favorite deleted successfully'}
+            return {'message': 'Removed From Favorites'}, 204
         else:
-            return {'message': 'Favorite not found'}, 404
-
+            return {'message': 'Page Not Found'}, 404
 
 class FormItems(Resource):
     def get(self, form_item_id=None):
@@ -364,6 +345,23 @@ class FormItems(Resource):
         else:
             return {'message': 'Form Item not found'}, 404
 
+class Profile(Resource):
+    @jwt_required()
+    def get(self):
+        user_id = get_jwt_identity()
+        user = User.query.get(user_id)
+
+        if user:
+            return {'profile': user.to_dict()}, 200
+        else:
+            seller = Seller.query.get(user_id)
+            if seller:
+                return {'profile': seller.to_dict()}, 200
+            else:
+                return {'message': 'Profile not found'}, 404
+
+
+#not routing these restfully because they work for both users and sellers
 @app.route('/login', methods=['POST'])
 def login():
     data = request.get_json()
