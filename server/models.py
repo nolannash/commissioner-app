@@ -73,6 +73,16 @@ class User(db.Model, SerializerMixin):
     def authenticate(self, password):
         return bcrypt.check_password_hash(self._password_hash, password.encode("utf-8"))
 
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'username': self.username,
+            'email': self.email,
+            'profile_photo': self.profile_photo,
+            'email_notifications': self.email_notifications,
+            'favorites': [favorite.to_dict() for favorite in self.favorites]
+        }
+
     def __repr__(self):
         return f"<User {self.id}>"
 
@@ -121,6 +131,17 @@ class Seller(db.Model, SerializerMixin):
     def authenticate(self, password):
         return bcrypt.check_password_hash(self._password_hash, password.encode("utf-8"))
 
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'shopname': self.shopname,
+            'email': self.email,
+            'logo_banner': self.logo_banner,
+            'profile_photo': self.profile_photo,
+            'email_notifications': self.email_notifications,
+            'items': [item.to_dict() for item in self.items]
+        }
+
     def __repr__(self):
         return f"<Seller {self.id}>"
 
@@ -139,6 +160,20 @@ class Item(db.Model, SerializerMixin):
     orders = db.relationship("Order", back_populates="item")
     form_items = db.relationship("FormItem", back_populates="item", cascade="all, delete-orphan")
 
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'seller_id': self.seller_id,
+            'batch_size': self.batch_size,
+            'rollover_period': self.rollover_period,
+            'last_rollover': self.last_rollover,
+            'created_at': self.created_at,
+            'order_count': self.order_count,
+            'seller': self.seller.to_dict(),
+            'orders': [order.to_dict() for order in self.orders],
+            'form_items': [form_item.to_dict() for form_item in self.form_items]
+        }
+
     def __repr__(self):
         return f"<Item {self.id}>"
 
@@ -153,6 +188,16 @@ class Order(db.Model, SerializerMixin):
 
     item = db.relationship("Item", back_populates="orders")
 
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'seller_id': self.seller_id,
+            'user_id': self.user_id,
+            'item_id': self.item_id,
+            'created_at': self.created_at,
+            'item': self.item.to_dict()
+        }
+
     def __repr__(self):
         return f"<Order {self.id}>"
 
@@ -166,7 +211,7 @@ class Favorite(db.Model, SerializerMixin):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     user = db.relationship('User', back_populates='favorites')
-    shop = db.relationship('Seller', back_populates='favorites')
+
     item = db.relationship("Item", backref="favorites")
 
     def notify_new_item(self, item):
@@ -185,6 +230,17 @@ class Favorite(db.Model, SerializerMixin):
             msg.body = f"The item '{item.name}' is now available in shop '{self.shop.shopname}'"
             mail.send(msg)
 
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'shop_id': self.shop_id,
+            'item_id': self.item_id,
+            'created_at': self.created_at,
+            'user': self.user.to_dict(),
+            'item': self.item.to_dict()
+        }
+
     def __repr__(self):
         return f"<Favorite {self.id}>"
 
@@ -197,6 +253,15 @@ class FormItem(db.Model, SerializerMixin):
     options = db.Column(db.String)
 
     item = db.relationship('Item', back_populates='form_items')
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'item_id': self.item_id,
+            'component_type': self.component_type,
+            'options': self.options,
+            'item': self.item.to_dict()
+        }
 
     def __repr__(self):
         return f"<FormItem {self.id}>"

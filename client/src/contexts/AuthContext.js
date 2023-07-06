@@ -1,33 +1,59 @@
-import React from 'react';
+import React, { createContext, useState } from 'react';
 
-export const AuthContext = React.createContext();
+const AuthContext = createContext();
 
-const initialState = {
-    isLoggedIn: false,
-    user: null,
-};
+const AuthProvider = ({ children }) => {
+    const [token, setToken] = useState(null);
 
-export const AuthProvider = ({ children }) => {
-    const [state, setState] = React.useState(initialState);
+    const handleSignUp = async (userType, userData) => {
+    try {
+        const response = await fetch(`/api/signup/${userType}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(userData),
+    });
 
-    const signUp = async (userData) => {
-    // Make API request to sign up endpoint
-    // Update state with user data and set isLoggedIn to true
-};
-
-    const login = async (credentials) => {
-    // Make API request to login endpoint
-    // Update state with user data and set isLoggedIn to true
-};
-
-    const logout = () => {
-    // Make API request to logout endpoint
-    // Clear user data from state and set isLoggedIn to false
+        if (response.ok) {
+        const data = await response.json();
+        setToken(data.access_token);
+        } else {
+        throw new Error('Sign up failed');
+        }
+    } catch (error) {
+        console.error(error);
+    }
     };
 
+    const handleLogin = async (credentials) => {
+    try {
+        const response = await fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(credentials),
+        });
+
+        if (response.ok) {
+        const data = await response.json();
+        setToken(data.access_token);
+        } else {
+        throw new Error('Login failed');
+        }
+    } catch (error) {
+        console.error(error);
+    }
+    };
+
+    const handleLogout = () => {
+    setToken(null);
+    };
+
+
+
     return (
-        <AuthContext.Provider value={{ state, signUp, login, logout }}>
-            {children}
+        <AuthContext.Provider value={{ token, signUp: handleSignUp, login: handleLogin, logout: handleLogout }}>
+        {children}
         </AuthContext.Provider>
     );
-};
+    };
+
+export { AuthContext, AuthProvider };
