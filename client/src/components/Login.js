@@ -4,7 +4,7 @@ import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
 import { Button, TextField, Typography } from '@mui/material';
 
-const LoginPage = () => {
+export default function LoginPage () {
     const { login } = React.useContext(AuthContext);
 
     const handleLogin = async (values) => {
@@ -81,5 +81,3 @@ const LoginPage = () => {
     </div>
     );
 };
-
-export default LoginPage;

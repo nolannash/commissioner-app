@@ -20,20 +20,18 @@ class Users(Resource):
 
     @jwt_required()
     def patch(self, user_id):
-        user = db.session.get(User,user_id)
-        if user:
-            data = request.get_json()
-            try:
-                user.username = data.get('username', user.username)
-                user.email = data.get('email', user.email)
-                user.password_hash = data.get('password', user.password_hash)
-                user.email_notifications = data.get('email_notifications', user.email_notifications)
-                db.session.commit()
-                return make_response(user.to_dict(), 200)
-            except Exception as e:
-                return make_response({'error': str(e)}, 400)
-        else:
+        if not (user := db.session.get(User, user_id)):
             return make_response({'error': 'User Not Found'}, 404)
+        data = request.get_json()
+        try:
+            user.username = data.get('username', user.username)
+            user.email = data.get('email', user.email)
+            user.password_hash = data.get('password', user.password_hash)
+            user.email_notifications = data.get('email_notifications', user.email_notifications)
+            db.session.commit()
+            return make_response(user.to_dict(), 200)
+        except Exception as e:
+            return make_response({'error': str(e)}, 400)
 
     @jwt_required()
     def delete(self, user_id):
@@ -46,10 +44,15 @@ class Users(Resource):
 
 class SignupUser(Resource):
     def post(self):
-        data = request.get_json()
-        user = User(**data)
+
         try:
-            user.password_hash = data['password']
+            data = request.get_json()
+            user = User(
+            username = data['username'],
+            email = data['email'],
+            password_hash = data['password']
+            )
+
             db.session.add(user)
             db.session.commit()
             return make_response(user.to_dict(), 201)
@@ -73,31 +76,28 @@ class Sellers(Resource):
     @jwt_required()
     def get(self, seller_id=None):
         if seller_id:
-            seller = db.session.get(Seller,seller_id)
-            if seller:
-                return seller.to_dict()
-            else:
-                return {'message': 'Seller not found'}, 404
-        else:
-            sellers = Seller.query.all()
-            return [seller.to_dict() for seller in sellers]
+            return (
+                seller.to_dict()
+                if (seller := db.session.get(Seller, seller_id))
+                else ({'message': 'Seller not found'}, 404)
+            )
+        sellers = Seller.query.all()
+        return [seller.to_dict() for seller in sellers]
 
     @jwt_required()
     def patch(self, seller_id):
-        seller = db.session.get(Seller,seller_id)
-        if seller:
-            data = request.get_json()
-            try:
-                seller.shopname = data.get('shopname', seller.shopname)
-                seller.email = data.get('email', seller.email)
-                seller.password_hash = data.get('password', seller.password_hash)
-                seller.email_notifications = data.get('email_notifications', seller.email_notifications)
-                db.session.commit()
-                return {'message': 'Seller updated successfully'}
-            except ValueError as e:
-                return {'message': str(e)}, 400
-        else:
+        if not (seller := db.session.get(Seller, seller_id)):
             return {'message': 'Seller not found'}, 404
+        data = request.get_json()
+        try:
+            seller.shopname = data.get('shopname', seller.shopname)
+            seller.email = data.get('email', seller.email)
+            seller.password_hash = data.get('password', seller.password_hash)
+            seller.email_notifications = data.get('email_notifications', seller.email_notifications)
+            db.session.commit()
+            return {'message': 'Seller updated successfully'}
+        except ValueError as e:
+            return {'message': str(e)}, 400
 
     @jwt_required()
     def delete(self, seller_id):
@@ -111,9 +111,13 @@ class Sellers(Resource):
 class SignupSeller(Resource):
     def post(self):
         data = request.get_json()
-        seller = Seller(**data)
+        seller = Seller(
+            shopname=data['shopname'],
+            email=data['email']
+        )
+        seller.password_hash = data['password']
+
         try:
-            seller.password_hash = data['password']
             db.session.add(seller)
             db.session.commit()
             return {'message': 'Seller created successfully'}, 201
@@ -136,14 +140,13 @@ class LoginSeller(Resource):
 class Items(Resource):
     def get(self, item_id=None):
         if item_id:
-            item = db.session.get(Item,item_id)
-            if item:
-                return item.to_dict()
-            else:
-                return {'message': 'Item not found'}, 404
-        else:
-            items = Item.query.all()
-            return [item.to_dict() for item in items]
+            return (
+                item.to_dict()
+                if (item := db.session.get(Item, item_id))
+                else ({'message': 'Item not found'}, 404)
+            )
+        items = Item.query.all()
+        return [item.to_dict() for item in items]
 
     def post(self):
         data = request.get_json()
@@ -186,18 +189,16 @@ class Items(Resource):
 
 
     def patch(self, item_id):
-        item = db.session.get(Item,item_id)
-        if item:
-            data = request.get_json()
-            try:
-                item.batch_size = data.get('batch_size', item.batch_size)
-                item.rollover_period = data.get('rollover_period', item.rollover_period)
-                db.session.commit()
-                return {'message': 'Item updated successfully'}
-            except ValueError as e:
-                return {'message': str(e)}, 400
-        else:
+        if not (item := db.session.get(Item, item_id)):
             return {'message': 'Item not found'}, 404
+        data = request.get_json()
+        try:
+            item.batch_size = data.get('batch_size', item.batch_size)
+            item.rollover_period = data.get('rollover_period', item.rollover_period)
+            db.session.commit()
+            return {'message': 'Item updated successfully'}
+        except ValueError as e:
+            return {'message': str(e)}, 400
 
     def delete(self, item_id):
         if item := db.session.get(Item,item_id):
@@ -210,14 +211,13 @@ class Items(Resource):
 class Orders(Resource):
     def get(self, order_id=None):
         if order_id:
-            order = db.session.get(Order,order_id)
-            if order:
-                return order.to_dict()
-            else:
-                return {'message': 'Order not found'}, 404
-        else:
-            orders = Order.query.all()
-            return [order.to_dict() for order in orders]
+            return (
+                order.to_dict()
+                if (order := db.session.get(Order, order_id))
+                else ({'message': 'Order not found'}, 404)
+            )
+        orders = Order.query.all()
+        return [order.to_dict() for order in orders]
 
     def post(self):
         data = request.get_json()
@@ -255,14 +255,13 @@ class Orders(Resource):
 class Favorites(Resource):
     def get(self, favorite_id=None):
         if favorite_id:
-            favorite = db.session.get(Favorite,favorite_id)
-            if favorite:
-                return favorite.to_dict()
-            else:
-                return {'message': 'Favorite not found'}, 404
-        else:
-            favorites = Favorite.query.all()
-            return [favorite.to_dict() for favorite in favorites]
+            return (
+                favorite.to_dict()
+                if (favorite := db.session.get(Favorite, favorite_id))
+                else ({'message': 'Favorite not found'}, 404)
+            )
+        favorites = Favorite.query.all()
+        return [favorite.to_dict() for favorite in favorites]
 
     def post(self):
         data = request.get_json()
@@ -301,14 +300,13 @@ class Favorites(Resource):
 class FormItems(Resource):
     def get(self, form_item_id=None):
         if form_item_id:
-            form_item = db.session.get(FormItem,form_item_id)
-            if form_item:
-                return form_item.to_dict()
-            else:
-                return {'message': 'Form Item not found'}, 404
-        else:
-            form_items = FormItem.query.all()
-            return [form_item.to_dict() for form_item in form_items]
+            return (
+                form_item.to_dict()
+                if (form_item := db.session.get(FormItem, form_item_id))
+                else ({'message': 'Form Item not found'}, 404)
+            )
+        form_items = FormItem.query.all()
+        return [form_item.to_dict() for form_item in form_items]
 
     def post(self):
         data = request.get_json()
@@ -353,11 +351,11 @@ class Logout(Resource):
         return response, 200
 
 api.add_resource(Users, '/users', '/users/<int:user_id>')
-api.add_resource(SignupUser, '/signup/user')
+api.add_resource(SignupUser, '/signup/user','/signup/user')
 api.add_resource(LoginUser, '/login/user')
 
 api.add_resource(Sellers, '/sellers', '/sellers/<int:seller_id>')
-api.add_resource(SignupSeller, '/signup/seller')
+api.add_resource(SignupSeller, '/signup/seller','/signup/seller')
 api.add_resource(LoginSeller, '/login/seller')
 
 api.add_resource(Logout, '/logout')

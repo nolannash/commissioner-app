@@ -1,74 +1,90 @@
-import React from 'react';
-import { AuthContext } from '../contexts/AuthContext';
-import { Formik, Form, Field, ErrorMessage } from 'formik';
-import * as Yup from 'yup';
-import { Button, TextField, Typography, FormControl, FormControlLabel, RadioGroup, Radio } from '@mui/material';
+import React, { useContext, useState, useEffect } from "react";
+import { AuthContext } from "../contexts/AuthContext";
+import { Formik, Form, Field, ErrorMessage } from "formik";
+import * as Yup from "yup";
+import { Button, TextField, Typography } from "@mui/material";
+import { useRouteMatch } from "react-router-dom";
 
-function SignUpPage () {
-    const { signUp } = React.useContext(AuthContext);
-    const [userType, setUserType] = React.useState('user');
+export default function SignUpPage() {
+    const { signUp } = useContext(AuthContext);
+    const match = useRouteMatch("/signup/:userType");
+    const routeUserType = match ? match.params.userType : null;
+    const [userType, setUserType] = useState(routeUserType || "user");
+
+    useEffect(() => {
+    if (routeUserType) {
+        setUserType(routeUserType);
+    }
+    }, [routeUserType]);
 
     const handleSignUp = async (values) => {
-    try {
-        const response = await fetch(`/signup/${userType}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(values),
-        });
+    const { confirmPassword, ...signupData } = values; 
 
-        if (response.ok) {
-        const data = await response.json();
-        signUp(data);
-        } else {
-        throw new Error('Sign up failed');
-        }
+    try {
+        await signUp(userType, signupData);
     } catch (error) {
-      // Handle sign up error
+        console.error(error);
+      // Handle the error, show an error message, or perform other actions
     }
     };
 
     const validationSchema = Yup.object().shape({
     email: Yup.string()
-        .email('Invalid email address')
-        .required('Email is required'),
+        .email("Invalid email address")
+        .required("Email is required"),
     password: Yup.string()
-        .required('Password is required'),
+        .min(8, "Password must be at least 8 characters long")
+        .matches(/^\S+$/, "Password cannot contain spaces")
+        .matches(/[A-Z]/, "Password must have an uppercase letter")
+        .matches(/[a-z]/, "Password must have a lowercase letter")
+        .matches(/[0-9]/, "Password must contain at least 1 number")
+        .matches(
+        /[^a-zA-Z0-9]/,
+        "Password must have at least one special character"
+        )
+        .required("Please enter a password"),
     confirmPassword: Yup.string()
-        .oneOf([Yup.ref('password'), null], 'Passwords must match')
-        .required('Confirm Password is required'),
+        .oneOf([Yup.ref("password"), null], "Passwords must match")
+        .required("Please confirm your password"),
     username: Yup.string()
-        .required('Username is required'),
-    shopname: Yup.string()
-        .when('userType', {
-        is: 'seller',
-        then: Yup.string().required('Shop Name is required'),
-        }),
+        .min(2, "Username cannot be less than 2 characters")
+        .max(20, "Username cannot be greater than 20 characters")
+        .matches(
+        /^[a-zA-Z0-9]*$/,
+        "Username must be only letters and numbers with no spaces"
+        )
+        .required("Please enter a username between 2 and 20 characters"),
+    shopname: Yup.string().when("userType", {
+        is: "seller",
+        then: Yup.string()
+        .min(2, "Shop Name must be between 2 and 20 characters")
+        .max(20, "Shop Name must be between 2 and 20 characters")
+        .matches(
+            /^[a-zA-Z0-9]*$/,
+            "Shop Name must be only letters and numbers with no spaces"
+        )
+        .required("A shop name between 2 and 20 characters is required"),
+    }),
     });
 
     return (
-    <div>
-        <Typography variant="h4" component="h1" gutterBottom>
-        Sign Up Page
-        </Typography>
-        <FormControl component="fieldset">
-        <RadioGroup
-            row
-            aria-label="userType"
-            name="userType"
-            value={userType}
-            onChange={(e) => setUserType(e.target.value)}
-        >
-            <FormControlLabel value="user" control={<Radio />} label="User" />
-            <FormControlLabel value="seller" control={<Radio />} label="Seller" />
-        </RadioGroup>
-        </FormControl>
-        <Formik
-        initialValues={{ email: '', password: '', confirmPassword: '', username: '', shopname: '' }}
-        validationSchema={validationSchema}
-        onSubmit={handleSignUp}
-        >
-        {({ touched, errors }) => (
-            <Form>
+        <div>
+            <Typography variant="h4" component="h1" gutterBottom>
+            Sign Up Page
+            </Typography>
+            <Formik
+            initialValues={{
+                email: "",
+                password: "",
+                confirmPassword: "",
+                username: "",
+                shopname: "",
+            }}
+            validationSchema={validationSchema}
+            onSubmit={handleSignUp}
+            >
+            {({ touched, errors }) => (
+                <Form>
             <div>
                 <Field
                 as={TextField}
@@ -105,8 +121,8 @@ function SignUpPage () {
                 fullWidth
                 error={touched.confirmPassword && errors.confirmPassword}
                 helperText={touched.confirmPassword && errors.confirmPassword}
-            />
-            <ErrorMessage name="confirmPassword" component="div" />
+                />
+                <ErrorMessage name="confirmPassword" component="div" />
             </div>
             <div>
                 <Field
@@ -118,12 +134,12 @@ function SignUpPage () {
                 fullWidth
                 error={touched.username && errors.username}
                 helperText={touched.username && errors.username}
-            />
-            <ErrorMessage name="username" component="div" />
+                />
+                <ErrorMessage name="username" component="div" />
             </div>
-            {userType === 'seller' && (
+            {userType === "seller" && (
                 <div>
-                <Field
+                    <Field
                     as={TextField}
                     type="text"
                     name="shopname"
@@ -144,6 +160,4 @@ function SignUpPage () {
         </Formik>
     </div>
     );
-};
-
-export default SignUpPage;
+}
