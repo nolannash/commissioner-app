@@ -69,6 +69,19 @@ class SignupUser(Resource):
         except Exception as e:
             return make_response({'error': str(e)}, 400)
 
+class LoginUser(Resource):
+    def post(self):
+        data = request.get_json()
+        email = data.get('email')
+        password = data.get('password')
+
+        user = User.query.filter_by(email=email).first()
+        if user and user.verify_password(password):
+            access_token = create_access_token(identity=user.id)
+            return {'access_token': access_token}, 200
+        else:
+            return {'message': 'Invalid email or password'}, 401
+
 # Seller resource
 class Sellers(Resource):
     @jwt_required()
@@ -131,6 +144,20 @@ class SignupSeller(Resource):
             return {'message': 'Seller created successfully'}, 201
         except ValueError as e:
             return {'message': str(e)}, 400
+
+class LoginSeller(Resource):
+    def post(self):
+        data = request.get_json()
+        email = data.get('email')
+        password = data.get('password')
+
+        seller = Seller.query.filter_by(email=email).first()
+        if seller and seller.verify_password(password):
+            access_token = create_access_token(identity=seller.id)
+            return {'access_token': access_token}, 200
+        else:
+            return {'message': 'Invalid email or password'}, 401
+
 
 class Items(Resource):
     def get(self, item_id=None):
@@ -359,17 +386,23 @@ def login():
     else:
         return jsonify({'message': 'Invalid credentials'}), 401
 
-@app.route('/logout', methods=['POST'])
-@jwt_required()
-def logout():
-    response = jsonify({'message': 'Logout successful'})
-    unset_jwt_cookies(response)
-    return response, 200
+class Logout(Resource):
+    @jwt_required()
+    def logout():
+        response = jsonify({'message': 'Logout successful'})
+        unset_jwt_cookies(response)
+        return response, 200
 
 api.add_resource(Users, '/users', '/users/<int:user_id>')
+api.add_resource(SignupUser, '/signup/user')
+api.add_resource(LoginUser, '/login/user')
+
 api.add_resource(Sellers, '/sellers', '/sellers/<int:seller_id>')
 api.add_resource(SignupSeller, '/signup/seller')
-api.add_resource(SignupUser, '/signup/user')
+api.add_resource(LoginSeller, '/login/seller')
+
+api.add_resource(Logout, '/logout')
+
 api.add_resource(Items, '/items', '/items/<int:item_id>')
 api.add_resource(Orders, '/orders', '/orders/<int:order_id>')
 api.add_resource(Favorites, '/favorites', '/favorites/<int:favorite_id>')
