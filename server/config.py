@@ -21,7 +21,7 @@ metadata = MetaData(naming_convention={
 })
 
 db = SQLAlchemy(metadata=metadata)
-migrate = Migrate(app, db,render_as_batch=True)
+migrate = Migrate(app, db,render_as_batch=False)
 db.init_app(app)
 bcrypt = Bcrypt(app)
 

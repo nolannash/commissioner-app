@@ -111,7 +111,6 @@ class Sellers(Resource):
         else:
             return {'message': 'Seller not found'}, 404
 
-
 class Items(Resource):
     def get(self, item_id=None):
         if item_id:
@@ -177,7 +176,6 @@ class Items(Resource):
         else:
             return {'message': 'Item not found'}, 404
 
-
 class Orders(Resource):
     def get(self, order_id=None):
         if order_id:
@@ -223,7 +221,6 @@ class Orders(Resource):
             return {'message': 'Order deleted successfully'}
         else:
             return {'message': 'Order not found'}, 404
-
 
 class Favorites(Resource):
     def get(self, favorite_id=None):
@@ -271,7 +268,6 @@ class Favorites(Resource):
             return {'message': 'Favorite deleted successfully'}
         else:
             return {'message': 'Favorite not found'}, 404
-
 
 class FormItems(Resource):
     def get(self, form_item_id=None):
@@ -338,6 +334,8 @@ class Profile(Resource):
             else:
                 return {'message': 'Profile not found'}, 404
 
+
+#not routing these restfully because they work for both users and sellers
 @app.route('/login', methods=['POST'])
 def login():
     data = request.get_json()

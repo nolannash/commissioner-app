@@ -200,5 +200,5 @@ class FormItem(db.Model, SerializerMixin):
     def __repr__(self):
         return f"<FormItem {self.id}>"
 
-class OrderChat(db.Model, SerializerMixin):
-    pass
+# class OrderChat(db.Model, SerializerMixin):
+#     pass
