@@ -16,6 +16,9 @@ app.secret_key = os.environ.get('SECRET_KEY', 'dev')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.json.compact = False
 
+UPLOAD_FOLDER = './UPLOAD_FOLDER'
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
 metadata = MetaData(naming_convention={
     "fk": "fk_%(table_name)s_%(column_0_name)s_%(referred_table_name)s",
 })

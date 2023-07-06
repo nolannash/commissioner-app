@@ -186,7 +186,7 @@ class Items(Resource):
 
 
     def patch(self, item_id):
-        item = Item.query.get(item_id)
+        item = db.session.get(Item,item_id)
         if item:
             data = request.get_json()
             try:
@@ -200,8 +200,7 @@ class Items(Resource):
             return {'message': 'Item not found'}, 404
 
     def delete(self, item_id):
-        item = Item.query.get(item_id)
-        if item:
+        if item := db.session.get(Item,item_id):
             db.session.delete(item)
             db.session.commit()
             return {'message': 'Item deleted successfully'}, 204
@@ -211,7 +210,7 @@ class Items(Resource):
 class Orders(Resource):
     def get(self, order_id=None):
         if order_id:
-            order = Order.query.get(order_id)
+            order = db.session.get(Order,order_id)
             if order:
                 return order.to_dict()
             else:
@@ -223,17 +222,17 @@ class Orders(Resource):
     def post(self):
         data = request.get_json()
         seller_id = data.get('seller_id')
-        seller = Seller.query.get(seller_id)
+        seller = db.session.get(Seller,seller_id)
         if not seller:
             return {'message': 'Seller not found'}, 404
 
         user_id = data.get('user_id')
-        user = User.query.get(user_id)
+        user = db.session.get(User,user_id)
         if not user:
             return {'message': 'User not found'}, 404
 
         item_id = data.get('item_id')
-        item = Item.query.get(item_id)
+        item = db.session.get(Item,item_id)
         if not item:
             return {'message': 'Item not found'}, 404
 
@@ -246,8 +245,7 @@ class Orders(Resource):
             return {'message': str(e)}, 400
 
     def delete(self, order_id):
-        order = Order.query.get(order_id)
-        if order:
+        if order := db.session.get(Order,order_id):
             db.session.delete(order)
             db.session.commit()
             return {'message': 'Order deleted successfully'}
@@ -257,7 +255,7 @@ class Orders(Resource):
 class Favorites(Resource):
     def get(self, favorite_id=None):
         if favorite_id:
-            favorite = Favorite.query.get(favorite_id)
+            favorite = db.session.get(Favorite,favorite_id)
             if favorite:
                 return favorite.to_dict()
             else:
@@ -269,17 +267,17 @@ class Favorites(Resource):
     def post(self):
         data = request.get_json()
         user_id = data.get('user_id')
-        user = User.query.get(user_id)
+        user = db.session.get(User,user_id)
         if not user:
             return {'message': 'User not found'}, 404
 
         shop_id = data.get('shop_id')
-        shop = Seller.query.get(shop_id)
+        shop = db.session.get(Seller,shop_id)
         if not shop:
             return {'message': 'Shop not found'}, 404
 
         item_id = data.get('item_id')
-        item = Item.query.get(item_id)
+        item = db.session.get(Item,item_id)
         if not item:
             return {'message': 'Item not found'}, 404
 
@@ -293,8 +291,7 @@ class Favorites(Resource):
             return {'message': str(e)}, 400
 
     def delete(self, favorite_id):
-        favorite = Favorite.query.get(favorite_id)
-        if favorite:
+        if favorite := db.session.get(Favorite,favorite_id):
             db.session.delete(favorite)
             db.session.commit()
             return {'message': 'Removed From Favorites'}, 204
@@ -304,7 +301,7 @@ class Favorites(Resource):
 class FormItems(Resource):
     def get(self, form_item_id=None):
         if form_item_id:
-            form_item = FormItem.query.get(form_item_id)
+            form_item = db.session.get(FormItem,form_item_id)
             if form_item:
                 return form_item.to_dict()
             else:
@@ -316,7 +313,7 @@ class FormItems(Resource):
     def post(self):
         data = request.get_json()
         item_id = data.get('item_id')
-        item = Item.query.get(item_id)
+        item = db.session.get(FormItem,item_id)
         if not item:
             return {'message': 'Item not found'}, 404
 
@@ -329,22 +326,19 @@ class FormItems(Resource):
             return {'message': str(e)}, 400
 
     def patch(self, form_item_id):
-        form_item = FormItem.query.get(form_item_id)
-        if form_item:
-            data = request.get_json()
-            try:
-                form_item.component_type = data.get('component_type', form_item.component_type)
-                form_item.options = data.get('options', form_item.options)
-                db.session.commit()
-                return {'message': 'Form Item updated successfully'}
-            except ValueError as e:
-                return {'message': str(e)}, 400
-        else:
+        if not (form_item := db.session.get(FormItem,form_item_id)):
             return {'message': 'Form Item not found'}, 404
+        data = request.get_json()
+        try:
+            form_item.component_type = data.get('component_type', form_item.component_type)
+            form_item.options = data.get('options', form_item.options)
+            db.session.commit()
+            return {'message': 'Form Item updated successfully'}
+        except ValueError as e:
+            return {'message': str(e)}, 400
 
     def delete(self, form_item_id):
-        form_item = FormItem.query.get(form_item_id)
-        if form_item:
+        if form_item := db.session.get(FormItem,form_item_id):
             db.session.delete(form_item)
             db.session.commit()
             return {'message': 'Form Item deleted successfully'}
@@ -390,16 +384,23 @@ def login():
     else:
         return jsonify({'message': 'Invalid credentials'}), 401
 
-@app.route('/logout', methods=['POST'])
-@jwt_required()
-def logout():
-    response = jsonify({'message': 'Logout successful'})
-    unset_jwt_cookies(response)
-    return response, 200
+class Logout(Resource):
+    @jwt_required()
+    def logout():
+        response = jsonify({'message': 'Logout successful'})
+        unset_jwt_cookies(response)
+        return response, 200
 
 api.add_resource(Users, '/users', '/users/<int:user_id>')
+api.add_resource(SignupUser, '/signup/user')
+api.add_resource(LoginUser, '/login/user')
+
 api.add_resource(Sellers, '/sellers', '/sellers/<int:seller_id>')
-api.add_resource(Profile, '/profile')
+api.add_resource(SignupSeller, '/signup/seller')
+api.add_resource(LoginSeller, '/login/seller')
+
+api.add_resource(Logout, '/logout')
+
 api.add_resource(Items, '/items', '/items/<int:item_id>')
 api.add_resource(Orders, '/orders', '/orders/<int:order_id>')
 api.add_resource(Favorites, '/favorites', '/favorites/<int:favorite_id>')
