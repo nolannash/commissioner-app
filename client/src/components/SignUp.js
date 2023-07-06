@@ -70,7 +70,7 @@ export default function SignUpPage() {
     return (
         <div>
             <Typography variant="h4" component="h1" gutterBottom>
-            Sign Up Page
+            Enter Account Information Below
             </Typography>
             <Formik
             initialValues={{

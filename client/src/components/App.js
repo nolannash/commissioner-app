@@ -1,21 +1,31 @@
-import React from 'react';
-import { BrowserRouter as Router, Switch, Route } from 'react-router-dom';
+import React, { useContext } from 'react';
+import { BrowserRouter as Router, Switch, Route, Redirect } from 'react-router-dom';
 import LoginPage from './Login';
-import HomePage from './HomePage';
 import SignUpPage from './SignUp';
-import { AuthProvider } from '../contexts/AuthContext';
+import { AuthContext } from '../contexts/AuthContext';
+import LandingPage from './LandingPage';
+import HomePage from './HomePage';
 
 const App = () => {
+  const { userType } = useContext(AuthContext);
+
   return (
-    <AuthProvider>
-      <Router>
-        <Switch>
-          <Route exact path="/" component={HomePage} />
-          <Route path="/login" component={LoginPage} />
-          <Route path="/signup" component={SignUpPage} />
-        </Switch>
-      </Router>
-    </AuthProvider>
+    <Router>
+      <Switch>
+        <Route exact path="/">
+          <LandingPage />
+        </Route>
+        <Route path="/login">
+          {userType ? <Redirect to="/" /> : <LoginPage />}
+        </Route>
+        <Route path="/signup">
+          {userType ? <Redirect to="/" /> : <SignUpPage />}
+        </Route>
+        <Route>
+          <HomePage /> {/* Fallback route for unknown paths */}
+        </Route>
+      </Switch>
+    </Router>
   );
 };
 
