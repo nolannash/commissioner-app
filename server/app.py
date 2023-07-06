@@ -8,20 +8,19 @@ from config import app, db, api, jwt
 from models import User, Seller, Item, Order, Favorite, FormItem, save_file
 
 class Users(Resource):
-    @jwt_required() 
+    @jwt_required()
     def get(self, user_id=None):
         if not user_id:
             users = User.query.all()
             return make_response([user.to_dict() for user in users], 200)
-        user = User.query.get(user_id)
-        if user:
+        if user := db.session.get(User,user_id):
             return make_response(user.to_dict(), 200)
         else:
             return make_response({'error': 'User Not Found'}, 404)
 
     @jwt_required()
     def patch(self, user_id):
-        user = User.query.get(user_id)
+        user = db.session.get(User,user_id)
         if user:
             data = request.get_json()
             try:
@@ -38,8 +37,7 @@ class Users(Resource):
 
     @jwt_required()
     def delete(self, user_id):
-        user = User.query.get(user_id)
-        if user:
+        if user := db.session.get(User,user_id):
             db.session.delete(user)
             db.session.commit()
             return {'message': 'User deleted successfully'}
@@ -75,7 +73,7 @@ class Sellers(Resource):
     @jwt_required()
     def get(self, seller_id=None):
         if seller_id:
-            seller = Seller.query.get(seller_id)
+            seller = db.session.get(Seller,seller_id)
             if seller:
                 return seller.to_dict()
             else:
@@ -86,7 +84,7 @@ class Sellers(Resource):
 
     @jwt_required()
     def patch(self, seller_id):
-        seller = Seller.query.get(seller_id)
+        seller = db.session.get(Seller,seller_id)
         if seller:
             data = request.get_json()
             try:
@@ -103,8 +101,7 @@ class Sellers(Resource):
 
     @jwt_required()
     def delete(self, seller_id):
-        seller = Seller.query.get(seller_id)
-        if seller:
+        if seller := db.session.get(Seller,seller_id):
             db.session.delete(seller)
             db.session.commit()
             return {'message': 'Seller deleted successfully'}
@@ -139,7 +136,7 @@ class LoginSeller(Resource):
 class Items(Resource):
     def get(self, item_id=None):
         if item_id:
-            item = Item.query.get(item_id)
+            item = db.session.get(Item,item_id)
             if item:
                 return item.to_dict()
             else:
@@ -151,16 +148,17 @@ class Items(Resource):
     def post(self):
         data = request.get_json()
         seller_id = data.get('seller_id')
-        seller = Seller.query.get(seller_id)
+        seller = db.session.get(Seller, seller_id)
         if not seller:
             return {'message': 'Seller not found'}, 404
 
         user_id = data.get('user_id')
-        user = User.query.get(user_id)
+        user = db.session.get(User, user_id)
         if not user:
             return {'message': 'User not found'}, 404
+
         item_id = data.get('item_id')
-        item = Item.query.get(item_id)
+        item = db.session.get(Item, item_id)
         if not item:
             return {'message': 'Item not found'}, 404
 
@@ -171,11 +169,20 @@ class Items(Resource):
                 # Reset the order count and update the last rollover timestamp
                 item.order_count = 0
                 item.last_rollover = current_time
-                db.session.commit()
 
         # Check if the batch size is exceeded
         if item.batch_size and item.order_count >= item.batch_size:
-            return {'message': 'Commissions are closed for now. Please try again later'}, 400
+            return {'message': 'Commissions are closed for now.'}, 400
+
+        # Create the order
+        order = Order(seller=seller, user=user, item=item)
+        try:
+            db.session.add(order)
+            item.order_count += 1
+            db.session.commit()
+            return {'message': 'Order created successfully'}, 201
+        except ValueError as e:
+            return {'message': str(e)}, 400
 
 
     def patch(self, item_id):

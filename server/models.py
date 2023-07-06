@@ -133,6 +133,7 @@ class Item(db.Model, SerializerMixin):
     rollover_period = db.Column(db.INTEGER, nullable=True)
     last_rollover = db.Column(db.DateTime, nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    order_count = db.Column(db.Integer, nullable=False, default=0)
 
     seller = db.relationship('Seller', back_populates='items')
     orders = db.relationship("Order", back_populates="item")
