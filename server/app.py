@@ -4,13 +4,11 @@ from flask_jwt_extended import jwt_required, create_access_token, get_jwt_identi
 from datetime import datetime, timedelta
 import re
 
-
 from config import app, db, api, jwt
 from models import User, Seller, Item, Order, Favorite, FormItem, save_file
 
-
 class Users(Resource):
-    @jwt_required()  # Require authentication for accessing user-related routes
+    @jwt_required() 
     def get(self, user_id=None):
         if not user_id:
             users = User.query.all()
@@ -21,18 +19,7 @@ class Users(Resource):
         else:
             return make_response({'error': 'User Not Found'}, 404)
 
-    def post(self):
-        data = request.get_json()
-        user = User(**data)
-        try:
-            user.password_hash = data['password']
-            db.session.add(user)
-            db.session.commit()
-            return make_response(user.to_dict(), 201)
-        except Exception as e:
-            return make_response({'error': str(e)}, 400)
-
-    @jwt_required()  # Require authentication for updating user-related routes
+    @jwt_required()
     def patch(self, user_id):
         user = User.query.get(user_id)
         if user:
@@ -49,7 +36,7 @@ class Users(Resource):
         else:
             return make_response({'error': 'User Not Found'}, 404)
 
-    @jwt_required()  # Require authentication for deleting user-related routes
+    @jwt_required()
     def delete(self, user_id):
         user = User.query.get(user_id)
         if user:
@@ -59,7 +46,31 @@ class Users(Resource):
         else:
             return {'message': 'User not found'}, 404
 
-# Seller resource
+class SignupUser(Resource):
+    def post(self):
+        data = request.get_json()
+        user = User(**data)
+        try:
+            user.password_hash = data['password']
+            db.session.add(user)
+            db.session.commit()
+            return make_response(user.to_dict(), 201)
+        except Exception as e:
+            return make_response({'error': str(e)}, 400)
+
+class LoginUser(Resource):
+    def post(self):
+        data = request.get_json()
+        email = data.get('email')
+        password = data.get('password')
+
+        user = User.query.filter_by(email=email).first()
+        if user and user.verify_password(password):
+            access_token = create_access_token(identity=user.id)
+            return {'access_token': access_token}, 200
+        else:
+            return make_response({'message': 'Invalid email or password'}, 401)
+
 class Sellers(Resource):
     @jwt_required()
     def get(self, seller_id=None):
@@ -72,17 +83,6 @@ class Sellers(Resource):
         else:
             sellers = Seller.query.all()
             return [seller.to_dict() for seller in sellers]
-
-    def post(self):
-        data = request.get_json()
-        seller = Seller(**data)
-        try:
-            seller.password_hash = data['password']
-            db.session.add(seller)
-            db.session.commit()
-            return {'message': 'Seller created successfully'}, 201
-        except ValueError as e:
-            return {'message': str(e)}, 400
 
     @jwt_required()
     def patch(self, seller_id):
@@ -110,6 +110,31 @@ class Sellers(Resource):
             return {'message': 'Seller deleted successfully'}
         else:
             return {'message': 'Seller not found'}, 404
+
+class SignupSeller(Resource):
+    def post(self):
+        data = request.get_json()
+        seller = Seller(**data)
+        try:
+            seller.password_hash = data['password']
+            db.session.add(seller)
+            db.session.commit()
+            return {'message': 'Seller created successfully'}, 201
+        except ValueError as e:
+            return {'message': str(e)}, 400
+
+class LoginSeller(Resource):
+    def post(self):
+        data = request.get_json()
+        email = data.get('email')
+        password = data.get('password')
+
+        seller = Seller.query.filter_by(email=email).first()
+        if seller and seller.verify_password(password):
+            access_token = create_access_token(identity=seller.id)
+            return {'access_token': access_token}, 200
+        else:
+            return {'message': 'Invalid email or password'}, 401
 
 class Items(Resource):
     def get(self, item_id=None):
@@ -150,7 +175,7 @@ class Items(Resource):
 
         # Check if the batch size is exceeded
         if item.batch_size and item.order_count >= item.batch_size:
-            return {'message': 'Commissions are closed for now.'}, 400
+            return {'message': 'Commissions are closed for now. Please try again later'}, 400
 
 
     def patch(self, item_id):
@@ -172,7 +197,7 @@ class Items(Resource):
         if item:
             db.session.delete(item)
             db.session.commit()
-            return {'message': 'Item deleted successfully'}
+            return {'message': 'Item deleted successfully'}, 204
         else:
             return {'message': 'Item not found'}, 404
 
@@ -265,9 +290,9 @@ class Favorites(Resource):
         if favorite:
             db.session.delete(favorite)
             db.session.commit()
-            return {'message': 'Favorite deleted successfully'}
+            return {'message': 'Removed From Favorites'}, 204
         else:
-            return {'message': 'Favorite not found'}, 404
+            return {'message': 'Page Not Found'}, 404
 
 class FormItems(Resource):
     def get(self, form_item_id=None):

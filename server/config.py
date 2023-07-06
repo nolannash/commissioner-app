@@ -5,7 +5,7 @@ from flask_restful import Api
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 from sqlalchemy import MetaData
-from flask_mail import Mail, Message
+from flask_mail import Mail
 from flask_jwt_extended import JWTManager
 import os
 
