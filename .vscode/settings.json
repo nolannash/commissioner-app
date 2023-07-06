@@ -27,5 +27,6 @@
         "titleBar.inactiveBackground": "#f0fb7c99",
         "titleBar.inactiveForeground": "#15202b99"
     },
-    "peacock.color": "#f0fb7c"
+    "peacock.color": "#f0fb7c",
+    "darkSynthwave84.brightness": 1
 }

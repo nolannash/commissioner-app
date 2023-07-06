@@ -345,45 +345,6 @@ class FormItems(Resource):
         else:
             return {'message': 'Form Item not found'}, 404
 
-class Profile(Resource):
-    @jwt_required()
-    def get(self):
-        user_id = get_jwt_identity()
-        user = User.query.get(user_id)
-
-        if user:
-            return {'profile': user.to_dict()}, 200
-        else:
-            seller = Seller.query.get(user_id)
-            if seller:
-                return {'profile': seller.to_dict()}, 200
-            else:
-                return {'message': 'Profile not found'}, 404
-
-
-#not routing these restfully because they work for both users and sellers
-@app.route('/login', methods=['POST'])
-def login():
-    data = request.get_json()
-    email = data.get('email')
-    password = data.get('password')
-    user_type = data.get('user_type')
-
-    if user_type == 'user':
-        user = User.query.filter_by(email=email).first()
-    elif user_type == 'seller':
-        user = Seller.query.filter_by(email=email).first()
-    else:
-        return jsonify({'message': 'Invalid user type'}), 400
-
-    if user and user.authenticate(password):
-        access_token = create_access_token(identity=user.id)
-        response = jsonify({'message': 'Login successful'})
-        response.set_cookie('access_token', access_token, httponly=True)
-        return response, 200
-    else:
-        return jsonify({'message': 'Invalid credentials'}), 401
-
 class Logout(Resource):
     @jwt_required()
     def logout():
