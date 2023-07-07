@@ -46,15 +46,10 @@ class Users(Resource):
 
 class SignupUser(Resource):
     def post(self):
-
+        data = request.get_json()
+        user = User(**data)
         try:
-            data = request.get_json()
-            user = User(
-            username = data['username'],
-            email = data['email'],
-            password_hash = data['password']
-            )
-# Set the password hash using the setter method
+            user.password_hash = data['password']
             db.session.add(user)
             db.session.commit()
             return make_response(user.to_dict(), 201)
