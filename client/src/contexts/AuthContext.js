@@ -1,61 +1,103 @@
 import React, { createContext, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 
 const AuthContext = createContext();
 
 const AuthProvider = ({ children }) => {
-    const [token, setToken] = useState(null);
+  const [user, setUser] = useState(null);
+  const location = useLocation();
 
-    const handleSignUp = async (userType, userData) => {
+  const determineUserType = () => {
+    const { pathname } = location;
+
+    if (pathname.startsWith('/signup/seller') || pathname.startsWith('/login/seller')) {
+      return 'seller';
+    } else if (pathname.startsWith('/signup/user') || pathname.startsWith('/login/user')) {
+      return 'user';
+    } else {
+      return null;
+    }
+  };
+
+  const handleSignUp = async (userData) => {
+    const userType = determineUserType();
+
     try {
-        const response = await fetch(`/signup/${userType}`, {
+      const response = await fetch(`/signup/${userType}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(userData),
-        });
+      });
 
-        if (response.ok) {
+      if (response.ok) {
         const data = await response.json();
-        setToken(data.access_token);
-        } else {
-        throw new Error('Sign up failed');
-        }
+        setUser({ type: userType, token: data.access_token });
+      } else {
+        const errorData = await response.json();
+        throw new Error(errorData.message);
+      }
     } catch (error) {
-        console.error(error);
-      throw error; // Rethrow the error to handle it in the component
+      console.error(error);
+      throw error;
     }
-    };
+  };
 
-    const handleLogin = async (credentials) => {
+  const handleLogin = async (credentials) => {
+    const userType = determineUserType();
+
     try {
-        const response = await fetch('/login/seller', {
+      const response = await fetch(`/login/${userType}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(credentials),
-        });
+      });
 
-        if (response.ok) {
+      if (response.ok) {
         const data = await response.json();
-        setToken(data.access_token);
-        } else {
-        throw new Error('Login failed');
-        }
+        setUser({ type: userType, token: data.access_token });
+      } else {
+        const errorData = await response.json();
+        throw new Error(errorData.message);
+      }
     } catch (error) {
-        console.error(error);
-      throw error; // Rethrow the error to handle it in the component
+      console.error(error);
+      throw error;
     }
-    };
+  };
 
-    const handleLogout = () => {
-    setToken(null);
-    };
+  const handleLogout = async () => {
+    try {
+      const response = await fetch('/logout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
 
-    return (
+      if (response.ok) {
+        setUser(null);
+      } else {
+        const errorData = await response.json();
+        throw new Error(errorData.message);
+      }
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  };
+
+  return (
     <AuthContext.Provider
-        value={{ token, signUp: handleSignUp, login: handleLogin, logout: handleLogout }}
+      value={{
+        user,
+        userType: user ? user.type : determineUserType(),
+        signUp: handleSignUp,
+        login: handleLogin,
+        logout: handleLogout,
+      }}
     >
-        {children}
+      {children}
     </AuthContext.Provider>
-    );
+  );
 };
 
 export { AuthContext, AuthProvider };
+

@@ -44,20 +44,20 @@ class Users(Resource):
 
 class SignupUser(Resource):
     def post(self):
+        data = request.get_json()
+        username = data.get('username')
+        email = data.get('email')
+        password = data.get('password')
 
-        try:
-            data = request.get_json()
-            user = User(
-            username = data['username'],
-            email = data['email'],
-            password_hash = data['password']
-            )
+        if user := User.query.filter_by(email=email).first():
+            return make_response({'message': 'An account with that email already exists'}, 400)
 
-            db.session.add(user)
-            db.session.commit()
-            return make_response(user.to_dict(), 201)
-        except Exception as e:
-            return make_response({'error': str(e)}, 400)
+        new_user = User(username=username, email=email, password=password)
+        db.session.add(new_user)
+        db.session.commit()
+
+        access_token = create_access_token(identity=new_user.id)
+        return {'access_token': access_token}, 201
 
 class LoginUser(Resource):
     def post(self):
@@ -66,11 +66,12 @@ class LoginUser(Resource):
         password = data.get('password')
 
         user = User.query.filter_by(email=email).first()
-        if user and user.verify_password(password):
+        if user and user.authenticate(password):
             access_token = create_access_token(identity=user.id)
             return {'access_token': access_token}, 200
         else:
             return make_response({'message': 'Invalid email or password'}, 401)
+
 
 class Sellers(Resource):
     @jwt_required()
@@ -111,18 +112,23 @@ class Sellers(Resource):
 class SignupSeller(Resource):
     def post(self):
         data = request.get_json()
-        seller = Seller(
-            shopname=data['shopname'],
-            email=data['email']
-        )
-        seller.password_hash = data['password']
+        shopname = data.get('shopname')
+        email = data.get('email')
+        password = data.get('password')
 
-        try:
-            db.session.add(seller)
-            db.session.commit()
-            return {'message': 'Seller created successfully'}, 201
-        except ValueError as e:
-            return {'message': str(e)}, 400
+        seller = Seller.query.filter_by(email=email).first()
+        if seller:
+            return make_response({'message': 'Email already exists'}, 400)
+
+        new_seller = Seller(shopname=shopname, email=email)
+        new_seller.password_hash = password
+
+        db.session.add(new_seller)
+        db.session.commit()
+
+        access_token = create_access_token(identity=new_seller.id)
+        return {'access_token': access_token}, 201
+
 
 class LoginSeller(Resource):
     def post(self):
@@ -131,11 +137,12 @@ class LoginSeller(Resource):
         password = data.get('password')
 
         seller = Seller.query.filter_by(email=email).first()
-        if seller and seller.verify_password(password):
+        if seller and seller.authenticate(password):
             access_token = create_access_token(identity=seller.id)
             return {'access_token': access_token}, 200
         else:
-            return {'message': 'Invalid email or password'}, 401
+            return make_response({'message': 'Invalid email or password'}, 401)
+
 
 class Items(Resource):
     def get(self, item_id=None):
@@ -345,18 +352,18 @@ class FormItems(Resource):
 
 class Logout(Resource):
     @jwt_required()
-    def logout():
+    def logout(self):
         response = jsonify({'message': 'Logout successful'})
         unset_jwt_cookies(response)
         return response, 200
 
 api.add_resource(Users, '/users', '/users/<int:user_id>')
 api.add_resource(SignupUser, '/signup/user','/signup/user')
-api.add_resource(LoginUser, '/login/user')
+api.add_resource(LoginUser, '/login/user','/login/user')
 
 api.add_resource(Sellers, '/sellers', '/sellers/<int:seller_id>')
 api.add_resource(SignupSeller, '/signup/seller','/signup/seller')
-api.add_resource(LoginSeller, '/login/seller')
+api.add_resource(LoginSeller, '/login/seller','/login/seller')
 
 api.add_resource(Logout, '/logout')
 
