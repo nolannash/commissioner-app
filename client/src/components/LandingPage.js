@@ -30,7 +30,7 @@ const LandingPage = () => {
             component={Link}
             to="/signup/seller"
             variant="contained"
-            sx={{ width: '100%', padding: '8px' }}
+            sx={{ width: '100%', padding: '8px' , position:"relative"}}
           >
             Sign up as Seller
           </Button>
@@ -40,14 +40,14 @@ const LandingPage = () => {
             component={Link}
             to="/signup/user"
             variant="contained"
-            sx={{ width: '100%', padding: '8px' }}
+            sx={{ width: '100%', padding: '8px',position:"relative" }}
           >
             Sign up as User
           </Button>
         </Grid>
       </Grid>
 
-      <Typography variant="body1" component="p" gutterBottom>
+      <Typography variant="body1" component="p" sx={{text_align:'center'}} gutterBottom>
         Already have an account? Login below:
       </Typography>
 

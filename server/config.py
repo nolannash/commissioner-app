@@ -7,12 +7,13 @@ from flask_cors import CORS
 from sqlalchemy import MetaData
 from flask_mail import Mail
 from flask_jwt_extended import JWTManager
+from datetime import timedelta
 import os
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///app.db'
 
-app.secret_key = os.environ.get('SECRET_KEY', 'dev')
+app.secret_key = os.environ.get('JWT_SECRET_KEY', 'dev')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.json.compact = False
 
@@ -32,9 +33,10 @@ api = Api(app)
 
 CORS(app)
 
-jwt = JWTManager()
-app.config['JWT_SECRET_KEY'] = 'your_secret_key'
+jwt = JWTManager(app)
+app.config['JWT_SECRET_KEY'] = os.environ.get('JWT_SECRET_KEY', 'dev')
 jwt.init_app(app)
+app.config['JWT_ACCESS_TOKEN_EXPIRES']= timedelta(minutes=10)
 
 app.config['MAIL_SERVER'] = 'your_mail_server'
 app.config['MAIL_PORT'] = 587  # or the appropriate port number

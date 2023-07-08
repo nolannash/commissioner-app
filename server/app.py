@@ -1,10 +1,10 @@
 from flask import request, make_response, jsonify
 from flask_restful import Resource
-from flask_jwt_extended import jwt_required, create_access_token, get_jwt_identity, unset_jwt_cookies
+from flask_jwt_extended import jwt_required, create_access_token, get_jwt_identity, set_access_cookies, set_refresh_cookies, unset_jwt_cookies
 from datetime import datetime, timedelta
 import re
 
-from config import app, db, api, jwt
+from config import app, db, api
 from models import User, Seller, Item, Order, Favorite, FormItem, save_file
 
 from werkzeug.routing import BaseConverter
@@ -57,6 +57,8 @@ class Users(Resource):
         else:
             return {'message': 'User not found'}, 404
 
+
+
 class SignupUser(Resource):
     def post(self):
         try:
@@ -66,8 +68,10 @@ class SignupUser(Resource):
             db.session.add(new_user)
             db.session.commit()
 
-            access_token = create_access_token(identity=new_user.id)
-            return {'access_token': access_token, 'user': new_user.to_dict()}, 201
+            token = create_access_token(identity=new_user.id)
+            refr_token = create_access_token(identity=new_user.id)
+            
+            return {'access_token': token,'refresh_token':refr_token, 'user': new_user.to_dict()}, 201
         except Exception as e:
             return make_response({'error': str(e)}, 400)
 
@@ -75,12 +79,13 @@ class LoginUser(Resource):
     def post(self):
         data = request.get_json()
         email = data.get('email')
-        password = data.get('password')
+        password_hash = data.get('password')
 
         user = User.query.filter_by(email=email).first()
-        if user and user.authenticate(password):
+        if user and user.authenticate(password_hash):
             access_token = create_access_token(identity=user.id)
-            return {'access_token': access_token, 'user': user.to_dict()}, 200
+            refr_token = create_access_token(identity=user.id)
+            return {'access_token': access_token,'refresh_token':refr_token, 'user': user.to_dict()}, 200
         else:
             return make_response({'message': 'Invalid email or password'}, 401)
 
@@ -126,14 +131,14 @@ class SignupSeller(Resource):
         data = request.get_json()
         shopname = data.get('shopname')
         email = data.get('email')
-        password = data.get('password')
+        password_hash = data.get('password')
 
         seller = Seller.query.filter_by(email=email).first()
         if seller:
             return make_response({'message': 'An account with that Email already exists'}, 400)
 
         new_seller = Seller(shopname=shopname, email=email)
-        new_seller.password_hash = password
+        new_seller.password_hash = password_hash
 
         db.session.add(new_seller)
         db.session.commit()

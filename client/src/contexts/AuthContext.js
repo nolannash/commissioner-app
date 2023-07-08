@@ -31,6 +31,8 @@ const AuthProvider = ({ children }) => {
 
       if (response.ok) {
         const data = await response.json();
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('refresh_token', data.ref_token);
         setUser(data.user);
       } else {
         const errorData = await response.json();
@@ -54,6 +56,8 @@ const AuthProvider = ({ children }) => {
 
       if (response.ok) {
         const data = await response.json();
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('refresh_token', data.ref_token);
         setUser(data.user);
       } else {
         const errorData = await response.json();
