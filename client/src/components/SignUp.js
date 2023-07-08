@@ -6,7 +6,7 @@ import { Button, TextField, Typography } from '@mui/material';
 import {  useHistory, useLocation } from 'react-router-dom';
 
 export default function SignUpPage() {
-    const { signUp, userType } = useContext(AuthContext);
+    const { signUp } = useContext(AuthContext);
     const history = useHistory();
     const location = useLocation();
 
@@ -25,16 +25,12 @@ export default function SignUpPage() {
 
     const handleSignUp = async (values) => {
     const { confirmPassword, ...signupData } = values;
-
     try {
-        // debugger
-        console.log(signupData)
         await signUp(determineUserType(),signupData);
-        history.push('/');
+        (determineUserType()==='user'?history.push('/'):history.push('/sellerProfile'));
     } catch (error) {
         console.error(error);
-        console.log(signupData)
-      // Handle the error, show an error message, or perform other actions
+        throw error;
     }
     };
 
@@ -123,20 +119,20 @@ export default function SignUpPage() {
                 />
                 <ErrorMessage name="confirmPassword" component="div" />
             </div>
-            <div>
-                <Field
-                as={TextField}
-                type="text"
-                name="username"
-                label="Username"
-                variant="outlined"
-                fullWidth
-                error={touched.username && errors.username}
-                helperText={touched.username && errors.username}
-                />
-                <ErrorMessage name="username" component="div" />
-            </div>
-            {userType === 'seller' && (
+            {determineUserType() ==='user' &&(<div>
+                    <Field
+                    as={TextField}
+                    type="text"
+                    name="username"
+                    label="Username"
+                    variant="outlined"
+                    fullWidth
+                    error={touched.username && errors.username}
+                    helperText={touched.username && errors.username}
+                    />
+                    <ErrorMessage name="username" component="div" />
+                </div>)}
+            {determineUserType() === 'seller' && (
                 <div>
                 <Field
                     as={TextField}

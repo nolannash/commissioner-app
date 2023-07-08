@@ -1,21 +1,35 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext } from 'react';
 import { AuthContext } from '../contexts/AuthContext';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
 import { Button, TextField, Typography } from '@mui/material';
-import { useHistory } from 'react-router-dom';
+// import {Button} from '@mui/meterial/styles';
+import { useHistory, useLocation } from 'react-router-dom';
 
 export default function LoginPage() {
-    const { login, userType } = useContext(AuthContext);
+    const { login } = useContext(AuthContext);
     const history = useHistory()
+    const location = useLocation();
+
+    const determineUserType = () => {
+    const { pathname } = location;
+
+    if (pathname.includes('/signup/seller') || pathname.includes('/login/seller')) {
+        return 'seller';
+    } else if (pathname.includes('/signup/user') || pathname.includes('/login/user')) {
+        return 'user';
+    } else {
+        return 'none';
+    }
+    };
 
     const handleLogin = async (values) => {
     try {
-        await login(userType, values);
-        history.push('/home');
+        await login(determineUserType(), values);
+        (determineUserType()==='user'?history.push('/'):history.push('/sellerProfile'));
     } catch (error) {
         console.error(error);
-      // Handle the error, show an error message, or perform other actions
+        throw(error);
     }
     };
 
@@ -65,7 +79,7 @@ export default function LoginPage() {
                 />
                 <ErrorMessage name="password" component="div" />
             </div>
-            <Button type="submit" variant="contained" color="primary">
+            <Button color='inherit' variant="contained" >
                 Login
             </Button>
             </Form>

@@ -5,6 +5,7 @@ import LoginPage from './Login';
 import SignUpPage from './SignUp';
 import LandingPage from './LandingPage';
 import HomePage from './HomePage';
+import SellerProfile from './SellerProfile';
 
 
 const App = () => {
@@ -23,6 +24,9 @@ const App = () => {
           </Route>
           <Route path="/landing">
             <LandingPage />
+          </Route>
+          <Route path='/sellerProfile'>
+            <></>
           </Route>
         </Switch>
       </Router>

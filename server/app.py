@@ -9,18 +9,6 @@ from models import User, Seller, Item, Order, Favorite, FormItem, save_file
 
 from werkzeug.routing import BaseConverter
 
-# Custom URL converter for user type
-class UserTypeConverter(BaseConverter):
-    def to_python(self, value):
-        if value in ['user', 'seller']:
-            return value
-        return None
-
-    def to_url(self, value):
-        return value
-
-# Register the custom URL converter
-app.url_map.converters['usertype'] = UserTypeConverter
 
 class Users(Resource):
     @jwt_required()
@@ -60,7 +48,7 @@ class Users(Resource):
 @app.route("/signup/user",methods=["POST"])
 def signupuser():
     data = request.get_json()
-    print(data);
+
     try: 
         user=User(username=data['username'],email=data['email'],password_hash=data['password'])
         db.session.add(user)
@@ -76,23 +64,6 @@ def signupuser():
         return make_response({'error':str(e)},400)
 
 
-# DO I need to use the restful or the other?
-
-# class SignupUser(Resource):
-#     def post(self):
-#         try:
-#             data = request.get_json(force=True)
-
-#             new_user = User(username=data['username'], email=data['email'], password_hash=data['password'])
-#             db.session.add(new_user)
-#             db.session.commit()
-
-#             token = create_access_token(identity=new_user.id)
-#             refr_token = create_access_token(identity=new_user.id)
-            
-#             return {'access_token': token,'refresh_token':refr_token, 'user': new_user.to_dict()}, 201
-#         except Exception as e:
-#             return make_response({'error': str(e)}, 400)
 
 class LoginUser(Resource):
     def post(self):
@@ -102,9 +73,12 @@ class LoginUser(Resource):
 
         user = User.query.filter_by(email=email).first()
         if user and user.authenticate(password_hash):
-            access_token = create_access_token(identity=user.id)
-            refr_token = create_access_token(identity=user.id)
-            return {'access_token': access_token,'refresh_token':refr_token, 'user': user.to_dict()}, 200
+            token = create_access_token(identity=user.id)
+            refresh_token=create_access_token(identity=user.id)
+            response = make_response({'user':user.to_dict()},201)
+            set_access_cookies(response,token)
+            set_refresh_cookies(response,refresh_token)
+            return response
         else:
             return make_response({'message': 'Invalid email or password'}, 401)
 
@@ -145,25 +119,23 @@ class Sellers(Resource):
         else:
             return {'message': 'Seller not found'}, 404
 
-class SignupSeller(Resource):
-    def post(self):
-        data = request.get_json()
-        shopname = data.get('shopname')
-        email = data.get('email')
-        password_hash = data.get('password')
+@app.route("/signup/seller",methods=["POST"])
+def signupseller():
+    data = request.get_json()
 
-        seller = Seller.query.filter_by(email=email).first()
-        if seller:
-            return make_response({'message': 'An account with that Email already exists'}, 400)
-
-        new_seller = Seller(shopname=shopname, email=email)
-        new_seller.password_hash = password_hash
-
-        db.session.add(new_seller)
+    try: 
+        seller=Seller(shopname=data['username'],email=data['email'],password_hash=data['password'])
+        db.session.add(seller)
         db.session.commit()
+        token = create_access_token(identity=seller.id)
+        refresh_token=create_access_token(identity=seller.id)
+        response = make_response({'user':seller.to_dict()},201)
+        set_access_cookies(response,token)
+        set_refresh_cookies(response,refresh_token)
+        return response
 
-        access_token = create_access_token(identity=new_seller.id)
-        return {'access_token': access_token, 'seller': new_seller.to_dict()}, 201
+    except Exception as e:
+        return make_response({'error':str(e)},400)
 
 
 class LoginSeller(Resource):
@@ -405,11 +377,10 @@ class Logout(Resource):
         return response, 200
 
 api.add_resource(Users, '/users', '/users/<int:user_id>')
-# api.add_resource(SignupUser, '/signup/user')
+
 api.add_resource(LoginUser, '/login/user')
 
 api.add_resource(Sellers, '/sellers', '/sellers/<int:seller_id>')
-api.add_resource(SignupSeller, '/signup/seller','/signup/seller')
 api.add_resource(LoginSeller, '/login/seller','/login/seller')
 
 api.add_resource(Logout, '/logout')

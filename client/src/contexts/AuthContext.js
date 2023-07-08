@@ -1,27 +1,14 @@
 import React, { createContext, useState } from 'react';
-import { useLocation } from 'react-router-dom';
+import Cookies from 'js-cookie';
 
 const AuthContext = createContext();
 
 const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  // const location = useLocation();
 
-  // const determineUserType = () => {
-  //   const { pathname } = location;
-
-  //   if (pathname.includes('/signup/seller') || pathname.includes('/login/seller')) {
-  //     return 'seller';
-  //   } else if (pathname.includes('/signup/user') || pathname.includes('/login/user')) {
-  //     return 'user';
-  //   } else {
-  //     return 'none';
-  //   }
-  // };
 
   const handleSignUp = async (userType,userData) => {
-    // const userType = determineUserType();
-    debugger
+
     try {
       const response = await fetch(`/signup/${userType}`, {
         method: 'POST',
@@ -31,8 +18,8 @@ const AuthProvider = ({ children }) => {
 
       if (response.ok) {
         const data = await response.json();
-        // localStorage.setItem('token', data.token);
-        // localStorage.setItem('refresh_token', data.ref_token);
+        Cookies.set('token', data.token);
+        Cookies.set('refresh_token', data.ref_token);
         setUser(data.user);
       } else {
         const errorData = await response.json();
@@ -45,8 +32,6 @@ const AuthProvider = ({ children }) => {
   };
 
   const handleLogin = async (userType,credentials) => {
-    // const userType = determineUserType();
-
     try {
       const response = await fetch(`/login/${userType}`, {
         method: 'POST',
@@ -56,8 +41,8 @@ const AuthProvider = ({ children }) => {
 
       if (response.ok) {
         const data = await response.json();
-        localStorage.setItem('token', data.token);
-        localStorage.setItem('refresh_token', data.ref_token);
+        Cookies.set('token', data.token);
+        Cookies.set('refresh_token', data.ref_token);
         setUser(data.user);
       } else {
         const errorData = await response.json();
@@ -75,8 +60,10 @@ const AuthProvider = ({ children }) => {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
       });
-
+  
       if (response.ok) {
+        Cookies.remove('token');
+        Cookies.remove('refresh_token');
         setUser(null);
       } else {
         const errorData = await response.json();
@@ -87,12 +74,10 @@ const AuthProvider = ({ children }) => {
       throw error;
     }
   };
-
   return (
     <AuthContext.Provider
       value={{
         user,
-        // userType: determineUserType(),
         signUp: handleSignUp,
         login: handleLogin,
         logout: handleLogout,
