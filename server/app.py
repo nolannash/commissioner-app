@@ -385,6 +385,16 @@ class FormItems(Resource):
         else:
             return {'message': 'Form Item not found'}, 404
 
+class Recent(Resource):
+    def get(self):
+        recent_shops = Seller.query.order_by(Seller.created_at.desc()).limit(10).all()
+        recent_items = Item.query.order_by(Item.created_at.desc()).limit(10).all()
+
+        recent_shops_data = [shop.to_dict() for shop in recent_shops]
+        recent_items_data = [item.to_dict() for item in recent_items]
+
+        return {'recent_shops': recent_shops_data, 'recent_items': recent_items_data}
+
 class Logout(Resource):
     @jwt_required()
     def logout(self):
@@ -396,7 +406,7 @@ api.add_resource(Users, '/users', '/users/<int:user_id>')
 
 
 api.add_resource(Sellers, '/sellers', '/sellers/<int:seller_id>')
-
+api.add_resource(Recent, '/recent')
 api.add_resource(Logout, '/logout')
 
 api.add_resource(Items, '/items', '/items/<int:item_id>')

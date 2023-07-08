@@ -89,6 +89,7 @@ class Seller(db.Model, SerializerMixin):
     logo_banner = db.Column(db.VARCHAR)  # the ~varchar~ is the file path to the photo
     profile_photo = db.Column(db.VARCHAR)  
     email_notifications = db.Column(db.Boolean, default=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
 
     items = db.relationship('Item', back_populates='seller')

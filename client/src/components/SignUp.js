@@ -77,6 +77,7 @@ export default function SignUpPage() {
         }}
         validationSchema={validationSchema}
         onSubmit={(values) => handleSignUp(values)}
+        debugger
         >
         {({ touched, errors, handleSubmit }) => (
             <Form onSubmit={handleSubmit}>
@@ -147,9 +148,9 @@ export default function SignUpPage() {
                 <ErrorMessage name="shopname" component="div" />
                 </div>
             )}
-            <Button variant="contained" type='submit'>
+                <Button variant="contained" type='submit'>
                 Sign Up
-            </Button>
+                </Button>
             </Form>
         )}
         </Formik>

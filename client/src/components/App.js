@@ -1,6 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Switch, Route } from 'react-router-dom';
 import { AuthProvider } from '../contexts/AuthContext';
+import { CssBaseline } from '@mui/material';
 import LoginPage from './Login';
 import SignUpPage from './SignUp';
 import LandingPage from './LandingPage';
@@ -11,6 +12,7 @@ import SellerProfile from './SellerProfile';
 const App = () => {
   return (
     <AuthProvider> 
+      <CssBaseline/>
       <Router>
         <Switch>
           <Route exact path="/">
@@ -26,7 +28,7 @@ const App = () => {
             <LandingPage />
           </Route>
           <Route path='/sellerProfile'>
-            <></>
+            <SellerProfile></SellerProfile>
           </Route>
         </Switch>
       </Router>

@@ -3,7 +3,6 @@ import { AuthContext } from '../contexts/AuthContext';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
 import { Button, TextField, Typography } from '@mui/material';
-
 import { useHistory, useLocation } from 'react-router-dom';
 
 export default function LoginPage() {
@@ -26,6 +25,7 @@ export default function LoginPage() {
     const handleLogin = async (values) => {
     try {
         await login(determineUserType(), values);
+        console.log(values);
         (determineUserType()==='user'?history.push('/'):history.push('/sellerProfile'));
     } catch (error) {
         console.error(error);
@@ -82,7 +82,7 @@ export default function LoginPage() {
             <Button variant="contained" type='submit'>
                 Login
             </Button>
-            </Form>
+        </Form>
         )}
         </Formik>
     </div>

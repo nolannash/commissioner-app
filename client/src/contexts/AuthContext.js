@@ -46,6 +46,7 @@ const AuthProvider = ({ children }) => {
         cookies.set('token', data.token);
         cookies.set('refresh_token', data.refresh_token);
         setUser(data.user);
+
       } else {
         const errorData = await response.json();
         console.log(errorData)
