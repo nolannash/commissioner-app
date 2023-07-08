@@ -57,23 +57,42 @@ class Users(Resource):
         else:
             return {'message': 'User not found'}, 404
 
+@app.route("/signup/user",methods=["POST"])
+def signupuser():
+    data = request.get_json()
+    print(data);
+    try: 
+        user=User(username=data['username'],email=data['email'],password_hash=data['password'])
+        db.session.add(user)
+        db.session.commit()
+        token = create_access_token(identity=user.id)
+        refresh_token=create_access_token(identity=user.id)
+        response = make_response({'user':user.to_dict()},201)
+        set_access_cookies(response,token)
+        set_refresh_cookies(response,refresh_token)
+        return response
+
+    except Exception as e:
+        return make_response({'error':str(e)},400)
 
 
-class SignupUser(Resource):
-    def post(self):
-        try:
-            data = request.get_json(force=True)
+# DO I need to use the restful or the other?
 
-            new_user = User(username=data['username'], email=data['email'], password_hash=data['password'])
-            db.session.add(new_user)
-            db.session.commit()
+# class SignupUser(Resource):
+#     def post(self):
+#         try:
+#             data = request.get_json(force=True)
 
-            token = create_access_token(identity=new_user.id)
-            refr_token = create_access_token(identity=new_user.id)
+#             new_user = User(username=data['username'], email=data['email'], password_hash=data['password'])
+#             db.session.add(new_user)
+#             db.session.commit()
+
+#             token = create_access_token(identity=new_user.id)
+#             refr_token = create_access_token(identity=new_user.id)
             
-            return {'access_token': token,'refresh_token':refr_token, 'user': new_user.to_dict()}, 201
-        except Exception as e:
-            return make_response({'error': str(e)}, 400)
+#             return {'access_token': token,'refresh_token':refr_token, 'user': new_user.to_dict()}, 201
+#         except Exception as e:
+#             return make_response({'error': str(e)}, 400)
 
 class LoginUser(Resource):
     def post(self):
@@ -145,7 +164,6 @@ class SignupSeller(Resource):
 
         access_token = create_access_token(identity=new_seller.id)
         return {'access_token': access_token, 'seller': new_seller.to_dict()}, 201
-
 
 
 class LoginSeller(Resource):
@@ -387,8 +405,8 @@ class Logout(Resource):
         return response, 200
 
 api.add_resource(Users, '/users', '/users/<int:user_id>')
-api.add_resource(SignupUser, '/signup/user','/signup/user')
-api.add_resource(LoginUser, '/login/user','/login/user')
+# api.add_resource(SignupUser, '/signup/user')
+api.add_resource(LoginUser, '/login/user')
 
 api.add_resource(Sellers, '/sellers', '/sellers/<int:seller_id>')
 api.add_resource(SignupSeller, '/signup/seller','/signup/seller')

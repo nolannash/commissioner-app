@@ -3,20 +3,34 @@ import { AuthContext } from '../contexts/AuthContext';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
 import { Button, TextField, Typography } from '@mui/material';
-import {  useHistory } from 'react-router-dom';
+import {  useHistory, useLocation } from 'react-router-dom';
 
 export default function SignUpPage() {
     const { signUp, userType } = useContext(AuthContext);
     const history = useHistory();
+    const location = useLocation();
 
+    const determineUserType = () => {
+        const { pathname } = location;
+
+        if (pathname.includes('/signup/seller') || pathname.includes('/login/seller')) {
+        return 'seller';
+        } else if (pathname.includes('/signup/user') || pathname.includes('/login/user')) {
+        return 'user';
+        } else {
+        return 'none';
+        }
+    };
 
 
     const handleSignUp = async (values) => {
     const { confirmPassword, ...signupData } = values;
 
     try {
-        await signUp(userType, signupData);
-        history.push('/home');
+        // debugger
+        console.log(signupData)
+        await signUp(determineUserType(),signupData);
+        history.push('/');
     } catch (error) {
         console.error(error);
         console.log(signupData)

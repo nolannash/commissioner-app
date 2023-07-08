@@ -5,23 +5,23 @@ const AuthContext = createContext();
 
 const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const location = useLocation();
+  // const location = useLocation();
 
-  const determineUserType = () => {
-    const { pathname } = location;
+  // const determineUserType = () => {
+  //   const { pathname } = location;
 
-    if (pathname.includes('/signup/seller') || pathname.includes('/login/seller')) {
-      return 'seller';
-    } else if (pathname.includes('/signup/user') || pathname.includes('/login/user')) {
-      return 'user';
-    } else {
-      return 'none';
-    }
-  };
+  //   if (pathname.includes('/signup/seller') || pathname.includes('/login/seller')) {
+  //     return 'seller';
+  //   } else if (pathname.includes('/signup/user') || pathname.includes('/login/user')) {
+  //     return 'user';
+  //   } else {
+  //     return 'none';
+  //   }
+  // };
 
-  const handleSignUp = async (userData) => {
-    const userType = determineUserType();
-
+  const handleSignUp = async (userType,userData) => {
+    // const userType = determineUserType();
+    debugger
     try {
       const response = await fetch(`/signup/${userType}`, {
         method: 'POST',
@@ -31,8 +31,8 @@ const AuthProvider = ({ children }) => {
 
       if (response.ok) {
         const data = await response.json();
-        localStorage.setItem('token', data.token);
-        localStorage.setItem('refresh_token', data.ref_token);
+        // localStorage.setItem('token', data.token);
+        // localStorage.setItem('refresh_token', data.ref_token);
         setUser(data.user);
       } else {
         const errorData = await response.json();
@@ -44,8 +44,8 @@ const AuthProvider = ({ children }) => {
     }
   };
 
-  const handleLogin = async (credentials) => {
-    const userType = determineUserType();
+  const handleLogin = async (userType,credentials) => {
+    // const userType = determineUserType();
 
     try {
       const response = await fetch(`/login/${userType}`, {
@@ -92,7 +92,7 @@ const AuthProvider = ({ children }) => {
     <AuthContext.Provider
       value={{
         user,
-        userType: determineUserType(),
+        // userType: determineUserType(),
         signUp: handleSignUp,
         login: handleLogin,
         logout: handleLogout,

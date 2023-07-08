@@ -35,7 +35,9 @@ CORS(app)
 
 jwt = JWTManager(app)
 app.config['JWT_SECRET_KEY'] = os.environ.get('JWT_SECRET_KEY', 'dev')
-jwt.init_app(app)
+
+app.config["JWT_TOKEN_LOCATION"] = ["headers", "cookies"]
+
 app.config['JWT_ACCESS_TOKEN_EXPIRES']= timedelta(minutes=10)
 
 app.config['MAIL_SERVER'] = 'your_mail_server'
