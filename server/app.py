@@ -28,14 +28,14 @@ class Users(Resource):
         if not user_id:
             users = User.query.all()
             return make_response([user.to_dict() for user in users], 200)
-        if user := db.session.get(User,user_id):
+        if user := User.query.get(user_id):
             return make_response(user.to_dict(), 200)
         else:
             return make_response({'error': 'User Not Found'}, 404)
 
     @jwt_required()
     def patch(self, user_id):
-        if not (user := db.session.get(User, user_id)):
+        if not (user := User.query.get(user_id)):
             return make_response({'error': 'User Not Found'}, 404)
         data = request.get_json()
         try:
@@ -50,7 +50,7 @@ class Users(Resource):
 
     @jwt_required()
     def delete(self, user_id):
-        if user := db.session.get(User,user_id):
+        if user := User.query.get(user_id):
             db.session.delete(user)
             db.session.commit()
             return {'message': 'User deleted successfully'}
@@ -59,20 +59,17 @@ class Users(Resource):
 
 class SignupUser(Resource):
     def post(self):
-        data = request.get_json()
-        username = data.get('username')
-        email = data.get('email')
-        password = data.get('password')
+        try:
+            data = request.get_json(force=True)
 
-        if user := User.query.filter_by(email=email).first():
-            return make_response({'message': 'An account with that email already exists'}, 400)
+            new_user = User(username=data['username'], email=data['email'], password_hash=data['password'])
+            db.session.add(new_user)
+            db.session.commit()
 
-        new_user = User(username=username, email=email, password=password)
-        db.session.add(new_user)
-        db.session.commit()
-
-        access_token = create_access_token(identity=new_user.id)
-        return {'access_token': access_token}, 201
+            access_token = create_access_token(identity=new_user.id)
+            return {'access_token': access_token, 'user': new_user.to_dict()}, 201
+        except Exception as e:
+            return make_response({'error': str(e)}, 400)
 
 class LoginUser(Resource):
     def post(self):
@@ -83,7 +80,7 @@ class LoginUser(Resource):
         user = User.query.filter_by(email=email).first()
         if user and user.authenticate(password):
             access_token = create_access_token(identity=user.id)
-            return {'access_token': access_token}, 200
+            return {'access_token': access_token, 'user': user.to_dict()}, 200
         else:
             return make_response({'message': 'Invalid email or password'}, 401)
 
@@ -94,7 +91,7 @@ class Sellers(Resource):
         if seller_id:
             return (
                 seller.to_dict()
-                if (seller := db.session.get(Seller, seller_id))
+                if (seller := Seller.query.get(seller_id))
                 else ({'message': 'Seller not found'}, 404)
             )
         sellers = Seller.query.all()
@@ -102,7 +99,7 @@ class Sellers(Resource):
 
     @jwt_required()
     def patch(self, seller_id):
-        if not (seller := db.session.get(Seller, seller_id)):
+        if not (seller := Seller.query.get(seller_id)):
             return {'message': 'Seller not found'}, 404
         data = request.get_json()
         try:
@@ -117,7 +114,7 @@ class Sellers(Resource):
 
     @jwt_required()
     def delete(self, seller_id):
-        if seller := db.session.get(Seller,seller_id):
+        if seller := Seller.query.all(seller_id):
             db.session.delete(seller)
             db.session.commit()
             return {'message': 'Seller deleted successfully'}
@@ -133,7 +130,7 @@ class SignupSeller(Resource):
 
         seller = Seller.query.filter_by(email=email).first()
         if seller:
-            return make_response({'message': 'Email already exists'}, 400)
+            return make_response({'message': 'An account with that Email already exists'}, 400)
 
         new_seller = Seller(shopname=shopname, email=email)
         new_seller.password_hash = password
@@ -142,7 +139,8 @@ class SignupSeller(Resource):
         db.session.commit()
 
         access_token = create_access_token(identity=new_seller.id)
-        return {'access_token': access_token}, 201
+        return {'access_token': access_token, 'seller': new_seller.to_dict()}, 201
+
 
 
 class LoginSeller(Resource):
@@ -154,7 +152,7 @@ class LoginSeller(Resource):
         seller = Seller.query.filter_by(email=email).first()
         if seller and seller.authenticate(password):
             access_token = create_access_token(identity=seller.id)
-            return {'access_token': access_token}, 200
+            return {'access_token': access_token, 'seller': seller.to_dict()}, 200
         else:
             return make_response({'message': 'Invalid email or password'}, 401)
 
@@ -164,7 +162,7 @@ class Items(Resource):
         if item_id:
             return (
                 item.to_dict()
-                if (item := db.session.get(Item, item_id))
+                if (item := Item.query.get(item_id))
                 else ({'message': 'Item not found'}, 404)
             )
         items = Item.query.all()
@@ -211,7 +209,7 @@ class Items(Resource):
 
 
     def patch(self, item_id):
-        if not (item := db.session.get(Item, item_id)):
+        if not (item := Item.query.get(item_id)):
             return {'message': 'Item not found'}, 404
         data = request.get_json()
         try:
@@ -235,7 +233,7 @@ class Orders(Resource):
         if order_id:
             return (
                 order.to_dict()
-                if (order := db.session.get(Order, order_id))
+                if (order := Order.query.get(order_id))
                 else ({'message': 'Order not found'}, 404)
             )
         orders = Order.query.all()
@@ -279,7 +277,7 @@ class Favorites(Resource):
         if favorite_id:
             return (
                 favorite.to_dict()
-                if (favorite := db.session.get(Favorite, favorite_id))
+                if (favorite := Favorite.query.get(favorite_id))
                 else ({'message': 'Favorite not found'}, 404)
             )
         favorites = Favorite.query.all()
@@ -307,7 +305,7 @@ class Favorites(Resource):
             db.session.add(favorite)
             db.session.commit()
             favorite.notify_new_item(item)
-            return {'message': 'Favorite created successfully'}, 201
+            return {'message': 'Succsessfully added to Favorites!'}, 201
         except ValueError as e:
             return {'message': str(e)}, 400
 
@@ -319,15 +317,26 @@ class Favorites(Resource):
         else:
             return {'message': 'Page Not Found'}, 404
 
+class UserFavorites(Resource):
+    def get(self, user_id, favorite_id):
+        if favorite_id:
+            return (
+                favorite.to_dict()
+                if (favorite := db.session.get(Favorite, favorite_id))
+                else ({'message': 'Favorite not found'}, 404)
+            )
+        favorites = Favorite.query.filter_by(user_id=favorite.user_id)
+        return [favorite.to_dict() for favorite in favorites]
+
 class FormItems(Resource):
     def get(self, form_item_id=None):
         if form_item_id:
             return (
                 form_item.to_dict()
-                if (form_item := db.session.get(FormItem, form_item_id))
+                if (form_item := Item.query.get(form_item_id))
                 else ({'message': 'Form Item not found'}, 404)
             )
-        form_items = FormItem.query.all()
+        form_items = FormItem.query.get()
         return [form_item.to_dict() for form_item in form_items]
 
     def post(self):

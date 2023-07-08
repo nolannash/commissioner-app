@@ -34,7 +34,7 @@ class User(db.Model, SerializerMixin):
 
     id = db.Column(db.INTEGER, primary_key=True)
     username = db.Column(db.VARCHAR(20), unique=True, nullable=False)
-    email = db.Column(db.VARCHAR, unique=True, nullable=False)
+    email = db.Column(db.String, unique=True, nullable=False)
     _password_hash = db.Column(db.String)
     profile_photo = db.Column(db.VARCHAR)  # File path to profile photo
     email_notifications = db.Column(db.Boolean, default=False)
@@ -91,7 +91,7 @@ class Seller(db.Model, SerializerMixin):
 
     id = db.Column(db.INTEGER, primary_key=True)
     shopname = db.Column(db.VARCHAR(25), unique=True, nullable=False)
-    email = db.Column(db.VARCHAR, unique=True, nullable=False)
+    email = db.Column(db.String, unique=True, nullable=False)
     _password_hash = db.Column(db.String)
     logo_banner = db.Column(db.VARCHAR)  # the ~varchar~ is the file path to the photo
     profile_photo = db.Column(db.VARCHAR)  

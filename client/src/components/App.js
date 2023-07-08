@@ -5,11 +5,11 @@ import LoginPage from './Login';
 import SignUpPage from './SignUp';
 import LandingPage from './LandingPage';
 import HomePage from './HomePage';
-// import PrivateRoute from './PrivateRoute';
+
 
 const App = () => {
   return (
-    <AuthProvider> {/* Wrap the entire app with AuthProvider */}
+    <AuthProvider> 
       <Router>
         <Switch>
           <Route exact path="/">
@@ -18,7 +18,7 @@ const App = () => {
           <Route path="/login">
             <LoginPage />
           </Route>
-          <Route path="/signup">
+          <Route path="/signup/">
             <SignUpPage />
           </Route>
           <Route path="/landing">

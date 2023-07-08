@@ -39,9 +39,7 @@ const HomePage = () => {
             Commissioner
             </Typography>
             <div>
-            <div>
-                <SearchIcon />
-            </div>
+            <SearchIcon />
             <InputBase
                 placeholder="Search..."
                 value={searchText}
@@ -50,7 +48,7 @@ const HomePage = () => {
             </div>
             {user ? (
             <>
-            <Link to ={'/profile'}>
+            <Link to ={'/UserProfile'}>
             <Button>Profile</Button>
             </Link>
             <LogoutButton onLogout={handleLogout} />
@@ -67,6 +65,7 @@ const HomePage = () => {
         <ul>
             <li>Generic Item List Goes Here</li>
             <li>"New Items" item list goes here</li>
+            {user ? <li>favorites (items/shops) go here</li>:<></>}
         </ul>
         </div>
     </div>

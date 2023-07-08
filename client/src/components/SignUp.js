@@ -19,6 +19,7 @@ export default function SignUpPage() {
         history.push('/home');
     } catch (error) {
         console.error(error);
+        console.log(signupData)
       // Handle the error, show an error message, or perform other actions
     }
     };

@@ -21,7 +21,7 @@ const LandingPage = () => {
       }}
     >
       <Typography variant="h4" component="h1" gutterBottom>
-        Welcome to the Landing Page
+        Welcome to Commissioner
       </Typography>
 
       <Grid container spacing={2}>

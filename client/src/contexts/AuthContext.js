@@ -15,7 +15,7 @@ const AuthProvider = ({ children }) => {
     } else if (pathname.includes('/signup/user') || pathname.includes('/login/user')) {
       return 'user';
     } else {
-      return 'user';
+      return 'none';
     }
   };
 
@@ -31,7 +31,7 @@ const AuthProvider = ({ children }) => {
 
       if (response.ok) {
         const data = await response.json();
-        setUser({ type: userType, token: data.access_token });
+        setUser(data.user);
       } else {
         const errorData = await response.json();
         throw new Error(errorData.message);
@@ -54,7 +54,7 @@ const AuthProvider = ({ children }) => {
 
       if (response.ok) {
         const data = await response.json();
-        setUser({ type: userType, token: data.access_token });
+        setUser(data.user);
       } else {
         const errorData = await response.json();
         throw new Error(errorData.message);
@@ -88,7 +88,7 @@ const AuthProvider = ({ children }) => {
     <AuthContext.Provider
       value={{
         user,
-        userType: user ? user.type : determineUserType(),
+        userType: determineUserType(),
         signUp: handleSignUp,
         login: handleLogin,
         logout: handleLogout,
@@ -100,4 +100,3 @@ const AuthProvider = ({ children }) => {
 };
 
 export { AuthContext, AuthProvider };
-
