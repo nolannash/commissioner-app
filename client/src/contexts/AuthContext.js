@@ -19,7 +19,8 @@ const AuthProvider = ({ children }) => {
       if (response.ok) {
         const data = await response.json();
         Cookies.set('token', data.token);
-        Cookies.set('refresh_token', data.ref_token);
+        Cookies.set('refresh_token', data.refresh_token);
+        console.log(data)
         setUser(data.user);
       } else {
         const errorData = await response.json();
@@ -42,7 +43,7 @@ const AuthProvider = ({ children }) => {
       if (response.ok) {
         const data = await response.json();
         Cookies.set('token', data.token);
-        Cookies.set('refresh_token', data.ref_token);
+        Cookies.set('refresh_token', data.refresh_token);
         setUser(data.user);
       } else {
         const errorData = await response.json();

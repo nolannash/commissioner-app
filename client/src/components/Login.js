@@ -3,7 +3,7 @@ import { AuthContext } from '../contexts/AuthContext';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
 import { Button, TextField, Typography } from '@mui/material';
-// import {Button} from '@mui/meterial/styles';
+
 import { useHistory, useLocation } from 'react-router-dom';
 
 export default function LoginPage() {
@@ -79,7 +79,7 @@ export default function LoginPage() {
                 />
                 <ErrorMessage name="password" component="div" />
             </div>
-            <Button color='inherit' variant="contained" >
+            <Button variant="contained" onClick={()=>handleLogin()}>
                 Login
             </Button>
             </Form>

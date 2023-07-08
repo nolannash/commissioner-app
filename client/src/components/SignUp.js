@@ -147,7 +147,7 @@ export default function SignUpPage() {
                 <ErrorMessage name="shopname" component="div" />
                 </div>
             )}
-            <Button type="submit" variant="contained" color="primary">
+            <Button variant="contained" onClick={()=>handleSignUp()}>
                 Sign Up
             </Button>
             </Form>

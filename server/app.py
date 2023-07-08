@@ -63,24 +63,29 @@ def signupuser():
     except Exception as e:
         return make_response({'error':str(e)},400)
 
-
-
-class LoginUser(Resource):
-    def post(self):
-        data = request.get_json()
-        email = data.get('email')
-        password_hash = data.get('password')
-
-        user = User.query.filter_by(email=email).first()
-        if user and user.authenticate(password_hash):
+@app.route('/login/user',methods={'POST'})
+def login_user():
+    data = request.get_json()
+    if user := User.query.filter_by((email=data['email'])).first():
+        if user.authenticate(data.get('password_hash','')):
             token = create_access_token(identity=user.id)
             refresh_token=create_access_token(identity=user.id)
             response = make_response({'user':user.to_dict()},201)
             set_access_cookies(response,token)
             set_refresh_cookies(response,refresh_token)
             return response
-        else:
-            return make_response({'message': 'Invalid email or password'}, 401)
+        return make_response({'error':'Invalid Username or Password'})
+
+@app.route('/refresh_token', methods=['POST'])
+@jwt_required(refresh=True)
+def refresh_token():
+    id_ = get_jwt_identity()
+    user = db.session.get(User, id_)
+    # Generate a new access token
+    new_access_token = create_access_token(identity=id_)
+    response = make_response({"user": user.to_dict()}, 200)
+    set_access_cookies(response, new_access_token)
+    return response
 
 
 class Sellers(Resource):
@@ -124,7 +129,7 @@ def signupseller():
     data = request.get_json()
 
     try: 
-        seller=Seller(shopname=data['username'],email=data['email'],password_hash=data['password'])
+        seller=Seller(shopname=data['shopname'],email=data['email'],password_hash=data['password'])
         db.session.add(seller)
         db.session.commit()
         token = create_access_token(identity=seller.id)
