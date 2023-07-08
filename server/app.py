@@ -66,8 +66,9 @@ def signupuser():
 @app.route('/login/user',methods={'POST'})
 def login_user():
     data = request.get_json()
-    if user := User.query.filter_by((email=data['email'])).first():
-        if user.authenticate(data.get('password_hash','')):
+    print (data);
+    if user := User.query.filter_by(email=data.get("email", "")).first():
+        if user.authenticate(data.get('password','')):
             token = create_access_token(identity=user.id)
             refresh_token=create_access_token(identity=user.id)
             response = make_response({'user':user.to_dict()},201)
@@ -383,7 +384,6 @@ class Logout(Resource):
 
 api.add_resource(Users, '/users', '/users/<int:user_id>')
 
-api.add_resource(LoginUser, '/login/user')
 
 api.add_resource(Sellers, '/sellers', '/sellers/<int:seller_id>')
 api.add_resource(LoginSeller, '/login/seller','/login/seller')

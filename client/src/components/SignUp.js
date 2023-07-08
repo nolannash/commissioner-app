@@ -76,10 +76,10 @@ export default function SignUpPage() {
             shopname: '',
         }}
         validationSchema={validationSchema}
-        onSubmit={handleSignUp}
+        onSubmit={(values) => handleSignUp(values)}
         >
-        {({ touched, errors }) => (
-            <Form>
+        {({ touched, errors, handleSubmit }) => (
+            <Form onSubmit={handleSubmit}>
             <div>
                 <Field
                 as={TextField}
@@ -147,7 +147,7 @@ export default function SignUpPage() {
                 <ErrorMessage name="shopname" component="div" />
                 </div>
             )}
-            <Button variant="contained" onClick={()=>handleSignUp()}>
+            <Button variant="contained" type='submit'>
                 Sign Up
             </Button>
             </Form>

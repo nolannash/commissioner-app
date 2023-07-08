@@ -51,8 +51,8 @@ export default function LoginPage() {
         validationSchema={validationSchema}
         onSubmit={handleLogin}
         >
-        {({ touched, errors }) => (
-            <Form>
+        {({ touched, errors, handleSubmit }) => (
+            <Form onSubmit={handleSubmit}>
             <div>
                 <Field
                 as={TextField}
@@ -79,7 +79,7 @@ export default function LoginPage() {
                 />
                 <ErrorMessage name="password" component="div" />
             </div>
-            <Button variant="contained" onClick={()=>handleLogin()}>
+            <Button variant="contained" type='submit'>
                 Login
             </Button>
             </Form>

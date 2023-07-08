@@ -18,7 +18,7 @@ const HomePage = () => {
     setSearchText(event.target.value);
     // Handle search logic here
     };
-
+    console.log(user)
 
 
     return (
