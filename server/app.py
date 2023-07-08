@@ -135,7 +135,7 @@ def signupseller():
         db.session.commit()
         token = create_access_token(identity=seller.id)
         refresh_token=create_access_token(identity=seller.id)
-        response = make_response({'user':seller.to_dict()},201)
+        response = make_response({'seller':seller.to_dict()},201)
         set_access_cookies(response,token)
         set_refresh_cookies(response,refresh_token)
         return response
@@ -143,20 +143,19 @@ def signupseller():
     except Exception as e:
         return make_response({'error':str(e)},400)
 
-
-class LoginSeller(Resource):
-    def post(self):
-        data = request.get_json()
-        email = data.get('email')
-        password = data.get('password')
-
-        seller = Seller.query.filter_by(email=email).first()
-        if seller and seller.authenticate(password):
-            access_token = create_access_token(identity=seller.id)
-            return {'access_token': access_token, 'seller': seller.to_dict()}, 200
-        else:
-            return make_response({'message': 'Invalid email or password'}, 401)
-
+@app.route('/login/seller',methods={'POST'})
+def login_seller():
+    data = request.get_json()
+    print (data);
+    if seller := Seller.query.filter_by(email=data.get("email", "")).first():
+        if seller.authenticate(data.get('password','')):
+            token = create_access_token(identity=seller.id)
+            refresh_token=create_access_token(identity=seller.id)
+            response = make_response({'seller':seller.to_dict()},201)
+            set_access_cookies(response,token)
+            set_refresh_cookies(response,refresh_token)
+            return response
+        return make_response({'error':'Invalid Username or Password'})
 
 class Items(Resource):
     def get(self, item_id=None):
@@ -386,7 +385,6 @@ api.add_resource(Users, '/users', '/users/<int:user_id>')
 
 
 api.add_resource(Sellers, '/sellers', '/sellers/<int:seller_id>')
-api.add_resource(LoginSeller, '/login/seller','/login/seller')
 
 api.add_resource(Logout, '/logout')
 
