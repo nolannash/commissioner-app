@@ -6,42 +6,41 @@ import { Button, TextField, Typography } from '@mui/material';
 import { useHistory } from 'react-router-dom';
 
 export default function LoginPage() {
-  const { login } = useContext(AuthContext);
-  const [userType, setUserType] = useState('user');
-  const history = useHistory();
+    const { login, userType } = useContext(AuthContext);
+    const history = useHistory()
 
-  const handleLogin = async (values) => {
+    const handleLogin = async (values) => {
     try {
-      await login(userType, values);
-      history.push('/home');
+        await login(userType, values);
+        history.push('/home');
     } catch (error) {
-      console.error(error);
+        console.error(error);
       // Handle the error, show an error message, or perform other actions
     }
-  };
+    };
 
-  const validationSchema = Yup.object().shape({
+    const validationSchema = Yup.object().shape({
     email: Yup.string().email('Invalid email address').required('Email is required'),
     password: Yup.string().required('Password is required'),
-  });
+    });
 
-  return (
+    return (
     <div>
-      <Typography variant="h4" component="h1" gutterBottom>
+        <Typography variant="h4" component="h1" gutterBottom>
         Login
-      </Typography>
-      <Formik
+        </Typography>
+        <Formik
         initialValues={{
-          email: '',
-          password: '',
+            email: '',
+            password: '',
         }}
         validationSchema={validationSchema}
         onSubmit={handleLogin}
-      >
+        >
         {({ touched, errors }) => (
-          <Form>
+            <Form>
             <div>
-              <Field
+                <Field
                 as={TextField}
                 type="email"
                 name="email"
@@ -50,11 +49,11 @@ export default function LoginPage() {
                 fullWidth
                 error={touched.email && errors.email}
                 helperText={touched.email && errors.email}
-              />
-              <ErrorMessage name="email"component="div" />
+                />
+                <ErrorMessage name="email"component="div" />
             </div>
             <div>
-              <Field
+                <Field
                 as={TextField}
                 type="password"
                 name="password"
@@ -63,15 +62,15 @@ export default function LoginPage() {
                 fullWidth
                 error={touched.password && errors.password}
                 helperText={touched.password && errors.password}
-              />
-              <ErrorMessage name="password" component="div" />
+                />
+                <ErrorMessage name="password" component="div" />
             </div>
             <Button type="submit" variant="contained" color="primary">
-              Login
+                Login
             </Button>
-          </Form>
+            </Form>
         )}
-      </Formik>
+        </Formik>
     </div>
-  );
+    );
 }
