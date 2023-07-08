@@ -1,39 +1,76 @@
-import React, { useContext } from 'react';
+import React, { useState, useContext } from 'react';
+import {
+    AppBar,
+    Toolbar,
+    Typography,
+    Button,
+    InputBase,
+} from '@mui/material';
+import { Search as SearchIcon } from '@mui/icons-material';
+import { Link } from 'react-router-dom';
 import { AuthContext } from '../contexts/AuthContext';
-import { AppBar, Toolbar, Typography, Button } from '@mui/material';
-import Logout from './Logout';
+
+const LogoutButton = ({ onLogout }) => {
+    return (
+    <Button color="inherit" onClick={onLogout}>
+        Logout
+    </Button>
+    );
+};
 
 const HomePage = () => {
-  const { userType } = useContext(AuthContext);
+    const [searchText, setSearchText] = useState('');
+    const { user, logout } = useContext(AuthContext);
 
-  return (
+    const handleSearch = (event) => {
+    setSearchText(event.target.value);
+    // Handle search logic here
+    };
+
+    const handleLogout = () => {
+    logout();
+    };
+
+    return (
     <div>
-      <AppBar position="static">
+        <AppBar position="static">
         <Toolbar>
-          <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+            <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
             Commissioner
-          </Typography>
-          {userType === 'seller' || userType === 'user' ? <Logout /> : <Button Link to={'/'}xx/>}
+            </Typography>
+            <div>
+            <div>
+                <SearchIcon />
+            </div>
+            <InputBase
+                placeholder="Search..."
+                value={searchText}
+                onChange={handleSearch}
+            />
+            </div>
+            {user ? (
+            <>
+            <Link to ={'/profile'}>
+            <Button>Profile</Button>
+            </Link>
+            <LogoutButton onLogout={handleLogout} />
+            </>
+            ) : (
+            <Link to="/landing">
+                <Button color="inherit">Login/Signup</Button>
+            </Link>
+            )}
         </Toolbar>
-      </AppBar>
+        </AppBar>
 
-    <div>
-      <h1>Welcome to the Homepage</h1>
-      {userType === 'seller' && (
-        <h2>Hello, Seller!</h2>
-        // Display seller-specific content here
-      )}
-      {userType === 'user' && (
-        <h2>Hello, User!</h2>
-        // Display user-specific content here
-      )}
-      {userType === 'guest' && (
-        <h2>Hello, Guest!</h2>
-        // Display guest-specific content here
-      )}
+        <div>
+        <ul>
+            <li>Generic Item List Goes Here</li>
+            <li>"New Items" item list goes here</li>
+        </ul>
+        </div>
     </div>
-    </div>
-  );
+    );
 };
 
 export default HomePage;

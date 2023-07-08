@@ -13,7 +13,7 @@ const App = () => {
       <Router>
         <Switch>
           <Route exact path="/">
-            <LandingPage />
+          <HomePage />
           </Route>
           <Route path="/login">
             <LoginPage />
@@ -21,8 +21,8 @@ const App = () => {
           <Route path="/signup">
             <SignUpPage />
           </Route>
-          <Route path="/home">
-            <HomePage />
+          <Route path="/landing">
+            <LandingPage />
           </Route>
         </Switch>
       </Router>

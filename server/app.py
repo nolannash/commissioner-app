@@ -7,6 +7,21 @@ import re
 from config import app, db, api, jwt
 from models import User, Seller, Item, Order, Favorite, FormItem, save_file
 
+from werkzeug.routing import BaseConverter
+
+# Custom URL converter for user type
+class UserTypeConverter(BaseConverter):
+    def to_python(self, value):
+        if value in ['user', 'seller']:
+            return value
+        return None
+
+    def to_url(self, value):
+        return value
+
+# Register the custom URL converter
+app.url_map.converters['usertype'] = UserTypeConverter
+
 class Users(Resource):
     @jwt_required()
     def get(self, user_id=None):

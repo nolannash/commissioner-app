@@ -10,12 +10,12 @@ const AuthProvider = ({ children }) => {
   const determineUserType = () => {
     const { pathname } = location;
 
-    if (pathname.startsWith('/signup/seller') || pathname.startsWith('/login/seller')) {
+    if (pathname.includes('/signup/seller') || pathname.includes('/login/seller')) {
       return 'seller';
-    } else if (pathname.startsWith('/signup/user') || pathname.startsWith('/login/user')) {
+    } else if (pathname.includes('/signup/user') || pathname.includes('/login/user')) {
       return 'user';
     } else {
-      return null;
+      return 'user';
     }
   };
 
