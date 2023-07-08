@@ -77,7 +77,7 @@ def login_user():
             return response
         return make_response({'error':'Invalid Username or Password'})
 
-@app.route('/refresh_token', methods=['POST'])
+@app.route('/refresh_token/user', methods=['POST'])
 @jwt_required(refresh=True)
 def refresh_token():
     id_ = get_jwt_identity()
@@ -85,6 +85,17 @@ def refresh_token():
     # Generate a new access token
     new_access_token = create_access_token(identity=id_)
     response = make_response({"user": user.to_dict()}, 200)
+    set_access_cookies(response, new_access_token)
+    return response
+
+@app.route('/refresh_token/seller', methods=['POST'])
+@jwt_required(refresh=True)
+def refresh_token():
+    id_ = get_jwt_identity()
+    seller = db.session.get(Seller, id_)
+    # Generate a new access token
+    new_access_token = create_access_token(identity=id_)
+    response = make_response({"seller": seller.to_dict()}, 200)
     set_access_cookies(response, new_access_token)
     return response
 
