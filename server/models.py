@@ -4,7 +4,7 @@ from flask_mail import Message
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import relationship, validates
 from sqlalchemy_serializer import SerializerMixin
-from werkzeug.utils import secure_filename
+
 
 from config import db, bcrypt, mail
 

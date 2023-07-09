@@ -299,6 +299,7 @@ class Recent(Resource):
 @jwt_required()
 def logout():
     response = jsonify({'message': 'Logout successful'})
+    print(response)
     unset_jwt_cookies(response)
     return response, 200
 
@@ -493,12 +494,22 @@ def upload_item_images(item_id):
             file_path = save_file(image)
             if file_path:
                 saved_image_paths.append(file_path)
+            else:
+                return jsonify(message='Failed to save file'), 400
+        else:
+            return jsonify(message='Invalid file'), 400
 
     # Create ItemImage objects and associate them with the item
     for image_path in saved_image_paths:
         item_image = ItemImage(item_id=item_id, image_path=image_path)
         db.session.add(item_image)
     db.session.commit()
+
+    # Retrieve the updated images for the item
+    item_images = ItemImage.query.filter_by(item_id=item_id).all()
+    item.images = item_images
+    db.session.commit()
+
     return jsonify(message='Item images uploaded successfully'), 200
 
 api.add_resource(SellerItems, '/sellers/<int:id>/items', '/sellers/<int:id>/items/<int:item_id>')

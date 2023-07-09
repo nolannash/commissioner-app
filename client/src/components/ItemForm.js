@@ -72,10 +72,10 @@ const ItemForm = ({ onSubmit }) => {
         const response = await fetch(`/sellers/${user.id}/items`, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json',
+                // 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${accessToken}`,
             },
-            body: JSON.stringify(values),
+            body: formData,
             });
         if (response.ok) {
             const data = await response.json();
@@ -196,7 +196,7 @@ const ItemForm = ({ onSubmit }) => {
         ))}
         </div>
         <Button type="submit" variant="contained" color="primary">
-        Submit
+        Post Item
         </Button>
     </form>
     );

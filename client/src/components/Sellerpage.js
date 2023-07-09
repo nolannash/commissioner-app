@@ -18,7 +18,7 @@ import SellerItems from './SellerItemsPage';
 
 const SellerPage = () => {
     const { user, logout } = useContext(AuthContext);
-    console.log(user);
+
     const [anchorEl, setAnchorEl] = useState(null);
     const [activeSection, setActiveSection] = useState('');
 
@@ -44,9 +44,13 @@ const SellerPage = () => {
         case 'orders':
         return <Orders />;
         default:
-        return null;
+        return <AccountInfo />;
     }
     };
+
+    const handleLogout = () =>{
+        logout();
+    }
 
     return (
     <AppBar position="static">
@@ -57,7 +61,7 @@ const SellerPage = () => {
         <Box sx={{ display: 'flex', alignItems: 'center', textAlign: 'center' }}>
             <Button
             variant="contained"
-            onClick={logout}
+            onClick={handleLogout}
             sx={{ ml: 2 }}
             >
             Logout
@@ -71,7 +75,7 @@ const SellerPage = () => {
                 aria-haspopup="true"
                 aria-expanded={open ? 'true' : undefined}
             >
-                <Avatar sx={{ width: 32, height: 32 }}>M</Avatar>
+                <Avatar sx={{ width: 32, height: 32 }}><AccountBox/></Avatar>
             </Button>
             </Tooltip>
             <Menu
