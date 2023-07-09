@@ -1,17 +1,10 @@
 import React, { useState, useContext } from 'react';
 import { AuthContext } from '../contexts/AuthContext';
 import {
-    AppBar,
-    Toolbar,
+
     Typography,
     Button,
-    Menu,
-    MenuItem,
-    Divider,
-    Box,
-    Tooltip,
-    Avatar,
-    ListItemIcon
+
 } from '@mui/material';
 import AddSharpIcon from '@mui/icons-material/AddSharp';
 const SellerItems = () => {
@@ -23,8 +16,9 @@ const SellerItems = () => {
             <Button 
                 variant='contained' 
                 Link='/ItemForm'
-                startIcon={<AddSharpIcon/>}
-            ></Button>
+                startIcon={<AddSharpIcon/>}>
+                    New Item
+                </Button>
         </div>
     );
 };

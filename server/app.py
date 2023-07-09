@@ -399,7 +399,8 @@ def signupuser():
     data = request.get_json()
     print(data)
     try: 
-        user=User(username=data['username'],email=data['email'],password_hash=data["password"])
+        user=User(username=data['username'],email=data['email'])
+        user.password_hash = data['password']
         db.session.add(user)
         db.session.commit()
         token = create_access_token(identity=user.id)
@@ -429,7 +430,8 @@ def login_user():
 def signupseller():
     data = request.get_json()
     try: 
-        seller=Seller(shopname=data['shopname'],email=data['email'],password_hash=data['password'])
+        seller=Seller(shopname=data['shopname'],email=data['email'])
+        seller.password_hash=data['password']
         db.session.add(seller)
         db.session.commit()
         token = create_access_token(identity=seller.id)
