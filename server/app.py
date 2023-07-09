@@ -18,20 +18,33 @@ class Users(Resource):
         else:
             return make_response({'error': 'User Not Found'}, 404)
 
+    def update_profile_photo(self, user, file):
+        if file and allowed_file(file.filename):
+            filename = secure_filename(file.filename)
+            file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            file.save(file_path)
+            user.profile_photo = file_path
+            db.session.commit()
+
     @jwt_required()
     def patch(self, user_id):
         if not (user := User.query.get(user_id)):
-            return make_response({'error': 'User Not Found'}, 404)
+            return {'error': 'User not found'}, 404
+
         data = request.get_json()
+        file = request.files.get('profile_photo')
+
         try:
             user.username = data.get('username', user.username)
             user.email = data.get('email', user.email)
             user.password_hash = data.get('password', user.password_hash)
             user.email_notifications = data.get('email_notifications', user.email_notifications)
+            self.update_profile_photo(user, file)
             db.session.commit()
             return make_response(user.to_dict(), 200)
         except Exception as e:
             return make_response({'error': str(e)}, 400)
+
 
     @jwt_required()
     def delete(self, user_id):
@@ -92,42 +105,18 @@ class Items(Resource):
     def post(self):
         data = request.get_json()
         seller_id = data.get('seller_id')
-        seller = db.session.get(Seller, seller_id)
+        seller = Seller.query.get(seller_id)
         if not seller:
             return {'message': 'Seller not found'}, 404
 
-        user_id = data.get('user_id')
-        user = db.session.get(User, user_id)
-        if not user:
-            return {'message': 'User not found'}, 404
-
-        item_id = data.get('item_id')
-        item = db.session.get(Item, item_id)
-        if not item:
-            return {'message': 'Item not found'}, 404
-
-        # Check if a rollover is required based on the rollover period
-        if item.rollover_period:
-            current_time = datetime.now()
-            if item.last_rollover is None or (current_time - item.last_rollover) >= timedelta(days=item.rollover_period):
-                # Reset the order count and update the last rollover timestamp
-                item.order_count = 0
-                item.last_rollover = current_time
-
-        # Check if the batch size is exceeded
-        if item.batch_size and item.order_count >= item.batch_size:
-            return {'message': 'Commissions are closed for now.'}, 400
-
-        # Create the order
-        order = Order(seller=seller, user=user, item=item)
+        # Create the item
+        item = Item(seller=seller, **data)
         try:
-            db.session.add(order)
-            item.order_count += 1
+            db.session.add(item)
             db.session.commit()
-            return {'message': 'Order created successfully'}, 201
+            return {'message': 'Item created successfully', 'item': item.to_dict()}, 201
         except ValueError as e:
             return {'message': str(e)}, 400
-
 
     def patch(self, item_id):
         if not (item := Item.query.get(item_id)):
@@ -370,30 +359,6 @@ class SellerItems(Resource):
         db.session.commit()
         return {'message': 'Item deleted successfully'}
 
-@app.route('/items/<int:item_id>/images', methods=['POST'])
-def upload_item_images(item_id):
-    item = Item.query.get(item_id)
-    if not item:
-        return jsonify(message='Item not found'), 404
-
-    images = request.files.getlist('images')
-    saved_image_paths = []
-
-    for image in images:
-        if allowed_file(image.filename):
-            file_path = save_file(image)
-            if file_path:
-                saved_image_paths.append(file_path)
-
-    # Create ItemImage objects and associate them with the item
-    for image_path in saved_image_paths:
-        item_image = ItemImage(item_id=item_id, image_path=image_path)
-        db.session.add(item_image)
-
-    db.session.commit()
-
-    return jsonify(message='Item images uploaded successfully'), 200
-
 @app.route("/signup/user",methods=["POST"])
 def signupuser():
     data = request.get_json()
@@ -466,7 +431,6 @@ def upload_user_profile_photo(user_id):
     user = User.query.get(user_id)
     if not user:
         return {'message': 'User not found'}, 404
-
     file = request.files['file']
     if file and allowed_file(file.filename):
         filename = save_file(file)
@@ -484,7 +448,6 @@ def upload_seller_profile_photo(seller_id):
     seller = Seller.query.get(seller_id)
     if not seller:
         return {'message': 'Seller not found'}, 404
-
     file = request.files['file']
     if file and allowed_file(file.filename):
         filename = save_file(file)
@@ -496,13 +459,12 @@ def upload_seller_profile_photo(seller_id):
             return {'message': 'Failed to save file'}, 400
     else:
         return {'message': 'Invalid file'}, 400
-    
+
 @app.route('/sellers/<int:seller_id>/logo-banner', methods=['POST'])
 def upload_seller_logo_banner(seller_id):
     seller = Seller.query.get(seller_id)
     if not seller:
         return {'message': 'Seller not found'}, 404
-
     file = request.files['file']
     if file and allowed_file(file.filename):
         filename = save_file(file)
@@ -514,6 +476,28 @@ def upload_seller_logo_banner(seller_id):
             return {'message': 'Failed to save file'}, 400
     else:
         return {'message': 'Invalid file'}, 400
+
+@app.route('/items/<int:item_id>/images', methods=['POST'])
+def upload_item_images(item_id):
+    item = Item.query.get(item_id)
+    if not item:
+        return jsonify(message='Item not found'), 404
+
+    images = request.files.getlist('images')
+    saved_image_paths = []
+
+    for image in images:
+        if allowed_file(image.filename):
+            file_path = save_file(image)
+            if file_path:
+                saved_image_paths.append(file_path)
+
+    # Create ItemImage objects and associate them with the item
+    for image_path in saved_image_paths:
+        item_image = ItemImage(item_id=item_id, image_path=image_path)
+        db.session.add(item_image)
+    db.session.commit()
+    return jsonify(message='Item images uploaded successfully'), 200
 
 api.add_resource(SellerItems, '/sellers/<int:id>/items', '/sellers/<int:id>/items/<int:item_id>')
 
