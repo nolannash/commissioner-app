@@ -4,8 +4,9 @@ from flask_jwt_extended import jwt_required, create_access_token, get_jwt_identi
 from datetime import datetime, timedelta
 import re
 
-from config import app, db, api
-from models import User, Seller, Item, Order, Favorite, FormItem, ItemImage,save_file, allowed_file
+from config import app, db, api,save_file, allowed_file
+from models import User, Seller, Item, Order, Favorite, FormItem, ItemImage
+
 
 class Users(Resource):
     @jwt_required()
@@ -317,8 +318,9 @@ class SellerItems(Resource):
         seller = Seller.query.get(id)
         if not seller:
             return {'message': 'Seller not found'}, 404
-
+        print(data)
         item = Item(seller=seller, **data)
+        print(item)
         try:
             db.session.add(item)
             db.session.commit()

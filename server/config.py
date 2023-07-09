@@ -6,6 +6,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 from sqlalchemy import MetaData
 from flask_mail import Mail
+
 from flask_jwt_extended import JWTManager
 from datetime import timedelta
 import os
@@ -30,6 +31,22 @@ db.init_app(app)
 bcrypt = Bcrypt(app)
 
 api = Api(app)
+
+UPLOAD_FOLDER = './UPLOAD_FOLDER'
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
+
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+
+def save_file(file):
+    if file and allowed_file(file.filename):
+        filename = secure_filename(file.filename)
+        file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        file.save(file_path)
+        return file_path
+    return None
 
 CORS(app)
 
