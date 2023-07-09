@@ -20,13 +20,13 @@ ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-# Function to save the uploaded file
-# do I need to implement more specific storage for files? probably not rn for small scale but would for large
+
 def save_file(file):
     if file and allowed_file(file.filename):
         filename = secure_filename(file.filename)
-        file.save(os.path.join(UPLOAD_FOLDER, filename))
-        return filename
+        file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        file.save(file_path)
+        return file_path
     return None
 
 class User(db.Model, SerializerMixin):
@@ -145,9 +145,22 @@ class Item(db.Model, SerializerMixin):
     seller = db.relationship('Seller', back_populates='items')
     orders = db.relationship("Order", back_populates="item")
     form_items = db.relationship("FormItem", back_populates="item", cascade="all, delete-orphan")
+    images = db.relationship("ItemImage", back_populates="item", cascade="all, delete-orphan")
 
     def __repr__(self):
         return f"<Item {self.id}>"
+
+class ItemImage(db.Model, SerializerMixin):
+    __tablename__ = 'item_images'
+
+    id = db.Column(db.Integer, primary_key=True)
+    item_id = db.Column(db.Integer, db.ForeignKey('items.id'))
+    image_path = db.Column(db.String, nullable=False)
+
+    item = db.relationship('Item', back_populates='images')
+
+    def __repr__(self):
+        return f"<ItemImage {self.id}>"
 
 class Order(db.Model, SerializerMixin):
     __tablename__ = 'orders'
