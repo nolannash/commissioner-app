@@ -25,7 +25,6 @@ export default function LoginPage() {
     const handleLogin = async (values) => {
     try {
         await login(determineUserType(), values);
-        console.log(values);
         (determineUserType()==='user'?history.push('/'):history.push('/sellerProfile'));
     } catch (error) {
         console.error(error);

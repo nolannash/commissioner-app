@@ -39,10 +39,10 @@ const HomePage = () => {
             {user ? (
             <>
             <Link to ={'/UserProfile'}>
-                <Button color='white'>Profile</Button>
+                <Button color='secondary'>Profile</Button>
             </Link>
             <Link to ={'/'}>
-            <Button color="white" onClick={logout} >
+            <Button color="secondary" onClick={logout} >
                 Logout
             </Button>
             </Link>

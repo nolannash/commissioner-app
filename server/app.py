@@ -7,7 +7,6 @@ import re
 from config import app, db, api
 from models import User, Seller, Item, Order, Favorite, FormItem, save_file
 
-
 class Users(Resource):
     @jwt_required()
     def get(self, user_id=None):
@@ -46,9 +45,9 @@ class Users(Resource):
 @app.route("/signup/user",methods=["POST"])
 def signupuser():
     data = request.get_json()
-
+    print(data)
     try: 
-        user=User(username=data['username'],email=data['email'],password_hash=data['password'])
+        user=User(username=data['username'],email=data['email'],password_hash=data["password"])
         db.session.add(user)
         db.session.commit()
         token = create_access_token(identity=user.id)
@@ -137,7 +136,6 @@ class Sellers(Resource):
 @app.route("/signup/seller",methods=["POST"])
 def signupseller():
     data = request.get_json()
-
     try: 
         seller=Seller(shopname=data['shopname'],email=data['email'],password_hash=data['password'])
         db.session.add(seller)
@@ -160,7 +158,7 @@ def login_seller():
         if seller.authenticate(data.get('password','')):
             token = create_access_token(identity=seller.id)
             refresh_token=create_access_token(identity=seller.id)
-            response = make_response({'seller':seller.to_dict()},201)
+            response = make_response({'user':seller.to_dict()},201)
             set_access_cookies(response,token)
             set_refresh_cookies(response,refresh_token)
             return response
@@ -395,7 +393,7 @@ class Recent(Resource):
 
 class Logout(Resource):
     @jwt_required()
-    def logout(self):
+    def post(self):
         response = jsonify({'message': 'Logout successful'})
         unset_jwt_cookies(response)
         return response, 200
