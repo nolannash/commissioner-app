@@ -18,6 +18,7 @@ const AuthProvider = ({ children }) => {
 
       if (response.ok) {
         const data = await response.json();
+        console.log(data)
         cookies.set('token', data.token);
         cookies.set('refresh_token', data.refresh_token);
 
