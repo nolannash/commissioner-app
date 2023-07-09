@@ -13,7 +13,6 @@ import {
     ListItemIcon,
 } from '@mui/material';
 import { Search as SearchIcon, ViewList, Receipt, AccountBox } from '@mui/icons-material';
-import { Link } from 'react-router-dom';
 import { AuthContext } from '../contexts/AuthContext';
 import SellerItems from './SellerItemsPage';
 
@@ -99,10 +98,10 @@ const SellerPage = () => {
                     position: 'absolute',
                     top: 0,
                     right: 14,
-                  width: 10,
-                  height: 10,
-                  bgcolor: 'background.paper',
-                  transform: 'translateY(-50%) rotate(45deg)',
+                    width: 10,
+                    height: 10,
+                    bgcolor: 'background.paper',
+                    transform: 'translateY(-50%) rotate(45deg)',
                     zIndex: 0,
                 },
                 },

@@ -63,23 +63,18 @@ const AuthProvider = ({ children }) => {
     try {
       const response = await fetch('/logout', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
       });
-  
+
       if (response.ok) {
-        Cookies.remove('token');
-        Cookies.remove('refresh_token');
-        setUser(null);
-        history.push('/')
+        setUser(null); // Clear the user state upon successful logout
       } else {
         const errorData = await response.json();
-        throw new Error(errorData.message);
+        throw new Error(errorData.message || 'Logout failed');
       }
     } catch (error) {
-      console.error(error);
-      throw error;
+      console.error('Logout error:', error.message);
     }
-  };
+  }
   return (
     <AuthContext.Provider
       value={{
