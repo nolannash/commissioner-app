@@ -15,6 +15,7 @@ import {
 import { Search as SearchIcon, ViewList, Receipt, AccountBox } from '@mui/icons-material';
 import { Link } from 'react-router-dom';
 import { AuthContext } from '../contexts/AuthContext';
+import SellerItems from './SellerItemsPage';
 
 const SellerPage = () =>{
     const { user, logout } = useContext(AuthContext);
@@ -40,7 +41,7 @@ const SellerPage = () =>{
             case 'accountInfo':
                 return <AccountInfo />;
             case 'items':
-                return <Items />;
+                return <SellerItems />;
             case 'orders':
                 return <Orders />;
             default:
