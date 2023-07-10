@@ -1,18 +1,29 @@
 import React from 'react';
 import { BrowserRouter as Router, Switch, Route } from 'react-router-dom';
-import LoginPage from './Login';
-import HomePage from './HomePage';
-import SignUpPage from './SignUp';
 import { AuthProvider } from '../contexts/AuthContext';
+import LoginPage from './Login';
+import SignUpPage from './SignUp';
+import LandingPage from './LandingPage';
+import HomePage from './HomePage';
+
 
 const App = () => {
   return (
-    <AuthProvider>
+    <AuthProvider> 
       <Router>
         <Switch>
-          <Route exact path="/" component={HomePage} />
-          <Route path="/login" component={LoginPage} />
-          <Route path="/signup" component={SignUpPage} />
+          <Route exact path="/">
+          <HomePage />
+          </Route>
+          <Route path="/login">
+            <LoginPage />
+          </Route>
+          <Route path="/signup">
+            <SignUpPage />
+          </Route>
+          <Route path="/landing">
+            <LandingPage />
+          </Route>
         </Switch>
       </Router>
     </AuthProvider>

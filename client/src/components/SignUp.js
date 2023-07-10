@@ -1,90 +1,89 @@
-import React, { useContext, useState, useEffect } from "react";
-import { AuthContext } from "../contexts/AuthContext";
-import { Formik, Form, Field, ErrorMessage } from "formik";
-import * as Yup from "yup";
-import { Button, TextField, Typography } from "@mui/material";
-import { useRouteMatch } from "react-router-dom";
+import React, { useContext } from 'react';
+import { AuthContext } from '../contexts/AuthContext';
+import { Formik, Form, Field, ErrorMessage } from 'formik';
+import * as Yup from 'yup';
+import { Button, TextField, Typography } from '@mui/material';
+import {  useHistory, useLocation } from 'react-router-dom';
 
 export default function SignUpPage() {
-    const { signUp } = useContext(AuthContext);
-    const match = useRouteMatch("/signup/:userType");
-    const routeUserType = match ? match.params.userType : null;
-    const [userType, setUserType] = useState(routeUserType || "user");
+    const { signUp, userType } = useContext(AuthContext);
+    const history = useHistory();
+    const location = useLocation();
 
-    useEffect(() => {
-    if (routeUserType) {
-        setUserType(routeUserType);
-    }
-    }, [routeUserType]);
+    const determineUserType = () => {
+        const { pathname } = location;
+
+        if (pathname.includes('/signup/seller') || pathname.includes('/login/seller')) {
+        return 'seller';
+        } else if (pathname.includes('/signup/user') || pathname.includes('/login/user')) {
+        return 'user';
+        } else {
+        return 'none';
+        }
+    };
+
 
     const handleSignUp = async (values) => {
-    const { confirmPassword, ...signupData } = values; 
+    const { confirmPassword, ...signupData } = values;
 
     try {
-        await signUp(userType, signupData);
+        // debugger
+        console.log(signupData)
+        await signUp(determineUserType(),signupData);
+        history.push('/');
     } catch (error) {
         console.error(error);
+        console.log(signupData)
       // Handle the error, show an error message, or perform other actions
     }
     };
 
     const validationSchema = Yup.object().shape({
-    email: Yup.string()
-        .email("Invalid email address")
-        .required("Email is required"),
+    email: Yup.string().email('Invalid email address').required('Email is required'),
     password: Yup.string()
-        .min(8, "Password must be at least 8 characters long")
-        .matches(/^\S+$/, "Password cannot contain spaces")
-        .matches(/[A-Z]/, "Password must have an uppercase letter")
-        .matches(/[a-z]/, "Password must have a lowercase letter")
-        .matches(/[0-9]/, "Password must contain at least 1 number")
-        .matches(
-        /[^a-zA-Z0-9]/,
-        "Password must have at least one special character"
-        )
-        .required("Please enter a password"),
+        .min(8, 'Password must be at least 8 characters long')
+        .matches(/^\S+$/, 'Password cannot contain spaces')
+        .matches(/[A-Z]/, 'Password must have an uppercase letter')
+        .matches(/[a-z]/, 'Password must have a lowercase letter')
+        .matches(/[0-9]/, 'Password must contain at least 1 number')
+        .matches(/[^a-zA-Z0-9]/, 'Password must have at least one special character')
+        .required('Please enter a password'),
     confirmPassword: Yup.string()
-        .oneOf([Yup.ref("password"), null], "Passwords must match")
-        .required("Please confirm your password"),
+        .oneOf([Yup.ref('password'), null], 'Passwords must match')
+        .required('Please confirm your password'),
     username: Yup.string()
-        .min(2, "Username cannot be less than 2 characters")
-        .max(20, "Username cannot be greater than 20 characters")
-        .matches(
-        /^[a-zA-Z0-9]*$/,
-        "Username must be only letters and numbers with no spaces"
-        )
-        .required("Please enter a username between 2 and 20 characters"),
-    shopname: Yup.string().when("userType", {
-        is: "seller",
+        .min(2, 'Username cannot be less than 2 characters')
+        .max(20, 'Username cannot be greater than 20 characters')
+        .matches(/^[a-zA-Z0-9]*$/, 'Username must be only letters and numbers with no spaces')
+        .required('Please enter a username between 2 and 20 characters'),
+    shopname: Yup.string().when('userType', {
+        is: 'seller',
         then: Yup.string()
-        .min(2, "Shop Name must be between 2 and 20 characters")
-        .max(20, "Shop Name must be between 2 and 20 characters")
-        .matches(
-            /^[a-zA-Z0-9]*$/,
-            "Shop Name must be only letters and numbers with no spaces"
-        )
-        .required("A shop name between 2 and 20 characters is required"),
+        .min(2, 'Shop Name must be between 2 and 20 characters')
+        .max(20, 'Shop Name must be between 2 and 20 characters')
+        .matches(/^[a-zA-Z0-9]*$/, 'Shop Name must be only letters and numbers with no spaces')
+        .required('A shop name between 2 and 20 characters is required'),
     }),
     });
 
     return (
-        <div>
-            <Typography variant="h4" component="h1" gutterBottom>
-            Sign Up Page
-            </Typography>
-            <Formik
-            initialValues={{
-                email: "",
-                password: "",
-                confirmPassword: "",
-                username: "",
-                shopname: "",
-            }}
-            validationSchema={validationSchema}
-            onSubmit={handleSignUp}
-            >
-            {({ touched, errors }) => (
-                <Form>
+    <div>
+        <Typography variant="h4" component="h1" gutterBottom>
+        Enter Account Information Below
+        </Typography>
+        <Formik
+        initialValues={{
+            email: '',
+            password: '',
+            confirmPassword: '',
+            username: '',
+            shopname: '',
+        }}
+        validationSchema={validationSchema}
+        onSubmit={handleSignUp}
+        >
+        {({ touched, errors }) => (
+            <Form>
             <div>
                 <Field
                 as={TextField}
@@ -137,9 +136,9 @@ export default function SignUpPage() {
                 />
                 <ErrorMessage name="username" component="div" />
             </div>
-            {userType === "seller" && (
+            {userType === 'seller' && (
                 <div>
-                    <Field
+                <Field
                     as={TextField}
                     type="text"
                     name="shopname"

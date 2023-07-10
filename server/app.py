@@ -1,11 +1,26 @@
 from flask import request, make_response, jsonify
 from flask_restful import Resource
-from flask_jwt_extended import jwt_required, create_access_token, get_jwt_identity, unset_jwt_cookies
+from flask_jwt_extended import jwt_required, create_access_token, get_jwt_identity, set_access_cookies, set_refresh_cookies, unset_jwt_cookies
 from datetime import datetime, timedelta
 import re
 
-from config import app, db, api, jwt
+from config import app, db, api
 from models import User, Seller, Item, Order, Favorite, FormItem, save_file
+
+from werkzeug.routing import BaseConverter
+
+# Custom URL converter for user type
+class UserTypeConverter(BaseConverter):
+    def to_python(self, value):
+        if value in ['user', 'seller']:
+            return value
+        return None
+
+    def to_url(self, value):
+        return value
+
+# Register the custom URL converter
+app.url_map.converters['usertype'] = UserTypeConverter
 
 class Users(Resource):
     @jwt_required()
@@ -13,14 +28,14 @@ class Users(Resource):
         if not user_id:
             users = User.query.all()
             return make_response([user.to_dict() for user in users], 200)
-        if user := db.session.get(User,user_id):
+        if user := User.query.get(user_id):
             return make_response(user.to_dict(), 200)
         else:
             return make_response({'error': 'User Not Found'}, 404)
 
     @jwt_required()
     def patch(self, user_id):
-        if not (user := db.session.get(User, user_id)):
+        if not (user := User.query.get(user_id)):
             return make_response({'error': 'User Not Found'}, 404)
         data = request.get_json()
         try:
@@ -35,42 +50,64 @@ class Users(Resource):
 
     @jwt_required()
     def delete(self, user_id):
-        if user := db.session.get(User,user_id):
+        if user := User.query.get(user_id):
             db.session.delete(user)
             db.session.commit()
             return {'message': 'User deleted successfully'}
         else:
             return {'message': 'User not found'}, 404
 
-class SignupUser(Resource):
-    def post(self):
+@app.route("/signup/user",methods=["POST"])
+def signupuser():
+    data = request.get_json()
+    print(data);
+    try: 
+        user=User(username=data['username'],email=data['email'],password_hash=data['password'])
+        db.session.add(user)
+        db.session.commit()
+        token = create_access_token(identity=user.id)
+        refresh_token=create_access_token(identity=user.id)
+        response = make_response({'user':user.to_dict()},201)
+        set_access_cookies(response,token)
+        set_refresh_cookies(response,refresh_token)
+        return response
 
-        try:
-            data = request.get_json()
-            user = User(
-            username = data['username'],
-            email = data['email'],
-            password_hash = data['password']
-            )
+    except Exception as e:
+        return make_response({'error':str(e)},400)
 
-            db.session.add(user)
-            db.session.commit()
-            return make_response(user.to_dict(), 201)
-        except Exception as e:
-            return make_response({'error': str(e)}, 400)
+
+# DO I need to use the restful or the other?
+
+# class SignupUser(Resource):
+#     def post(self):
+#         try:
+#             data = request.get_json(force=True)
+
+#             new_user = User(username=data['username'], email=data['email'], password_hash=data['password'])
+#             db.session.add(new_user)
+#             db.session.commit()
+
+#             token = create_access_token(identity=new_user.id)
+#             refr_token = create_access_token(identity=new_user.id)
+            
+#             return {'access_token': token,'refresh_token':refr_token, 'user': new_user.to_dict()}, 201
+#         except Exception as e:
+#             return make_response({'error': str(e)}, 400)
 
 class LoginUser(Resource):
     def post(self):
         data = request.get_json()
         email = data.get('email')
-        password = data.get('password')
+        password_hash = data.get('password')
 
         user = User.query.filter_by(email=email).first()
-        if user and user.verify_password(password):
+        if user and user.authenticate(password_hash):
             access_token = create_access_token(identity=user.id)
-            return {'access_token': access_token}, 200
+            refr_token = create_access_token(identity=user.id)
+            return {'access_token': access_token,'refresh_token':refr_token, 'user': user.to_dict()}, 200
         else:
             return make_response({'message': 'Invalid email or password'}, 401)
+
 
 class Sellers(Resource):
     @jwt_required()
@@ -78,7 +115,7 @@ class Sellers(Resource):
         if seller_id:
             return (
                 seller.to_dict()
-                if (seller := db.session.get(Seller, seller_id))
+                if (seller := Seller.query.get(seller_id))
                 else ({'message': 'Seller not found'}, 404)
             )
         sellers = Seller.query.all()
@@ -86,7 +123,7 @@ class Sellers(Resource):
 
     @jwt_required()
     def patch(self, seller_id):
-        if not (seller := db.session.get(Seller, seller_id)):
+        if not (seller := Seller.query.get(seller_id)):
             return {'message': 'Seller not found'}, 404
         data = request.get_json()
         try:
@@ -101,7 +138,7 @@ class Sellers(Resource):
 
     @jwt_required()
     def delete(self, seller_id):
-        if seller := db.session.get(Seller,seller_id):
+        if seller := Seller.query.all(seller_id):
             db.session.delete(seller)
             db.session.commit()
             return {'message': 'Seller deleted successfully'}
@@ -111,18 +148,23 @@ class Sellers(Resource):
 class SignupSeller(Resource):
     def post(self):
         data = request.get_json()
-        seller = Seller(
-            shopname=data['shopname'],
-            email=data['email']
-        )
-        seller.password_hash = data['password']
+        shopname = data.get('shopname')
+        email = data.get('email')
+        password_hash = data.get('password')
 
-        try:
-            db.session.add(seller)
-            db.session.commit()
-            return {'message': 'Seller created successfully'}, 201
-        except ValueError as e:
-            return {'message': str(e)}, 400
+        seller = Seller.query.filter_by(email=email).first()
+        if seller:
+            return make_response({'message': 'An account with that Email already exists'}, 400)
+
+        new_seller = Seller(shopname=shopname, email=email)
+        new_seller.password_hash = password_hash
+
+        db.session.add(new_seller)
+        db.session.commit()
+
+        access_token = create_access_token(identity=new_seller.id)
+        return {'access_token': access_token, 'seller': new_seller.to_dict()}, 201
+
 
 class LoginSeller(Resource):
     def post(self):
@@ -131,18 +173,19 @@ class LoginSeller(Resource):
         password = data.get('password')
 
         seller = Seller.query.filter_by(email=email).first()
-        if seller and seller.verify_password(password):
+        if seller and seller.authenticate(password):
             access_token = create_access_token(identity=seller.id)
-            return {'access_token': access_token}, 200
+            return {'access_token': access_token, 'seller': seller.to_dict()}, 200
         else:
-            return {'message': 'Invalid email or password'}, 401
+            return make_response({'message': 'Invalid email or password'}, 401)
+
 
 class Items(Resource):
     def get(self, item_id=None):
         if item_id:
             return (
                 item.to_dict()
-                if (item := db.session.get(Item, item_id))
+                if (item := Item.query.get(item_id))
                 else ({'message': 'Item not found'}, 404)
             )
         items = Item.query.all()
@@ -189,7 +232,7 @@ class Items(Resource):
 
 
     def patch(self, item_id):
-        if not (item := db.session.get(Item, item_id)):
+        if not (item := Item.query.get(item_id)):
             return {'message': 'Item not found'}, 404
         data = request.get_json()
         try:
@@ -213,7 +256,7 @@ class Orders(Resource):
         if order_id:
             return (
                 order.to_dict()
-                if (order := db.session.get(Order, order_id))
+                if (order := Order.query.get(order_id))
                 else ({'message': 'Order not found'}, 404)
             )
         orders = Order.query.all()
@@ -257,7 +300,7 @@ class Favorites(Resource):
         if favorite_id:
             return (
                 favorite.to_dict()
-                if (favorite := db.session.get(Favorite, favorite_id))
+                if (favorite := Favorite.query.get(favorite_id))
                 else ({'message': 'Favorite not found'}, 404)
             )
         favorites = Favorite.query.all()
@@ -285,7 +328,7 @@ class Favorites(Resource):
             db.session.add(favorite)
             db.session.commit()
             favorite.notify_new_item(item)
-            return {'message': 'Favorite created successfully'}, 201
+            return {'message': 'Succsessfully added to Favorites!'}, 201
         except ValueError as e:
             return {'message': str(e)}, 400
 
@@ -297,15 +340,26 @@ class Favorites(Resource):
         else:
             return {'message': 'Page Not Found'}, 404
 
+class UserFavorites(Resource):
+    def get(self, user_id, favorite_id):
+        if favorite_id:
+            return (
+                favorite.to_dict()
+                if (favorite := db.session.get(Favorite, favorite_id))
+                else ({'message': 'Favorite not found'}, 404)
+            )
+        favorites = Favorite.query.filter_by(user_id=favorite.user_id)
+        return [favorite.to_dict() for favorite in favorites]
+
 class FormItems(Resource):
     def get(self, form_item_id=None):
         if form_item_id:
             return (
                 form_item.to_dict()
-                if (form_item := db.session.get(FormItem, form_item_id))
+                if (form_item := Item.query.get(form_item_id))
                 else ({'message': 'Form Item not found'}, 404)
             )
-        form_items = FormItem.query.all()
+        form_items = FormItem.query.get()
         return [form_item.to_dict() for form_item in form_items]
 
     def post(self):
@@ -345,18 +399,18 @@ class FormItems(Resource):
 
 class Logout(Resource):
     @jwt_required()
-    def logout():
+    def logout(self):
         response = jsonify({'message': 'Logout successful'})
         unset_jwt_cookies(response)
         return response, 200
 
 api.add_resource(Users, '/users', '/users/<int:user_id>')
-api.add_resource(SignupUser, '/signup/user','/signup/user')
+# api.add_resource(SignupUser, '/signup/user')
 api.add_resource(LoginUser, '/login/user')
 
 api.add_resource(Sellers, '/sellers', '/sellers/<int:seller_id>')
 api.add_resource(SignupSeller, '/signup/seller','/signup/seller')
-api.add_resource(LoginSeller, '/login/seller')
+api.add_resource(LoginSeller, '/login/seller','/login/seller')
 
 api.add_resource(Logout, '/logout')
 

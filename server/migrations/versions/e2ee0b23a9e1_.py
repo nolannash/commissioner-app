@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: ba8c0c9067f3
+Revision ID: e2ee0b23a9e1
 Revises: 
-Create Date: 2023-07-05 21:52:47.058524
+Create Date: 2023-07-07 21:16:21.400202
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = 'ba8c0c9067f3'
+revision = 'e2ee0b23a9e1'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -21,7 +21,7 @@ def upgrade():
     op.create_table('sellers',
     sa.Column('id', sa.INTEGER(), nullable=False),
     sa.Column('shopname', sa.VARCHAR(length=25), nullable=False),
-    sa.Column('email', sa.VARCHAR(), nullable=False),
+    sa.Column('email', sa.String(), nullable=False),
     sa.Column('_password_hash', sa.String(), nullable=True),
     sa.Column('logo_banner', sa.VARCHAR(), nullable=True),
     sa.Column('profile_photo', sa.VARCHAR(), nullable=True),
@@ -33,7 +33,7 @@ def upgrade():
     op.create_table('users',
     sa.Column('id', sa.INTEGER(), nullable=False),
     sa.Column('username', sa.VARCHAR(length=20), nullable=False),
-    sa.Column('email', sa.VARCHAR(), nullable=False),
+    sa.Column('email', sa.String(), nullable=False),
     sa.Column('_password_hash', sa.String(), nullable=True),
     sa.Column('profile_photo', sa.VARCHAR(), nullable=True),
     sa.Column('email_notifications', sa.Boolean(), nullable=True),

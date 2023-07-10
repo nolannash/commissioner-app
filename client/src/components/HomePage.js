@@ -1,22 +1,75 @@
-import React from 'react';
-import Button from '@mui/material/Button';
+import React, { useState, useContext } from 'react';
+import {
+    AppBar,
+    Toolbar,
+    Typography,
+    Button,
+    InputBase,
+} from '@mui/material';
+import { Search as SearchIcon } from '@mui/icons-material';
 import { Link } from 'react-router-dom';
+import { AuthContext } from '../contexts/AuthContext';
+
+const LogoutButton = ({ onLogout }) => {
+    return (
+    <Button color="inherit" onClick={onLogout}>
+        Logout
+    </Button>
+    );
+};
 
 const HomePage = () => {
-  return (
+    const [searchText, setSearchText] = useState('');
+    const { user, logout } = useContext(AuthContext);
+
+    const handleSearch = (event) => {
+    setSearchText(event.target.value);
+    // Handle search logic here
+    };
+
+    const handleLogout = () => {
+    logout();
+    };
+
+    return (
     <div>
-      <Link to="/signup/user">
-        <Button variant="contained">Sign Up as User</Button>
-      </Link>
-      <Link to="/signup/seller">
-        <Button variant="contained">Sign Up as Seller</Button>
-      </Link>
-      <Link to="/login">
-        <Button variant="contained">Log In</Button>
-      </Link>
-      <Button variant="contained">Guest</Button>
+        <AppBar position="static">
+        <Toolbar>
+            <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+            Commissioner
+            </Typography>
+            <div>
+            <SearchIcon />
+            <InputBase
+                placeholder="Search..."
+                value={searchText}
+                onChange={handleSearch}
+            />
+            </div>
+            {user ? (
+            <>
+            <Link to ={'/UserProfile'}>
+            <Button>Profile</Button>
+            </Link>
+            <LogoutButton onLogout={handleLogout} />
+            </>
+            ) : (
+            <Link to="/landing">
+                <Button color="inherit">Login/Signup</Button>
+            </Link>
+            )}
+        </Toolbar>
+        </AppBar>
+
+        <div>
+        <ul>
+            <li>Generic Item List Goes Here</li>
+            <li>"New Items" item list goes here</li>
+            {user ? <li>favorites (items/shops) go here</li>:<></>}
+        </ul>
+        </div>
     </div>
-  );
+    );
 };
 
 export default HomePage;

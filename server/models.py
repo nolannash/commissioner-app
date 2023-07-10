@@ -34,12 +34,14 @@ class User(db.Model, SerializerMixin):
 
     id = db.Column(db.INTEGER, primary_key=True)
     username = db.Column(db.VARCHAR(20), unique=True, nullable=False)
-    email = db.Column(db.VARCHAR, unique=True, nullable=False)
+    email = db.Column(db.String, unique=True, nullable=False)
     _password_hash = db.Column(db.String)
     profile_photo = db.Column(db.VARCHAR)  # File path to profile photo
     email_notifications = db.Column(db.Boolean, default=False)
+    
 
     favorites = db.relationship('Favorite', back_populates='user')
+    orders = db.relationship('Order', back_populates='user')
 
     @validates("username")
     def validate_username(self, key, username):
@@ -51,15 +53,15 @@ class User(db.Model, SerializerMixin):
             raise ValueError("An account with that username already exists")
         return username
 
-    @validates("email")
-    def validate_email(self, key, email):
-        if not email:
-            raise ValueError("Email is required")
-        elif not re.match("[a-zA-Z0-9_\-\.]+[@][a-z]+[\.][a-z]{2,3}", email):
-            raise ValueError("Please Enter a valid email address")
-        elif User.query.filter_by(email=email).first():
-            raise ValueError("An account with that email address already exists")
-        return email
+    # @validates("email")
+    # def validate_email(self, key, email):
+    #     if not email:
+    #         raise ValueError("Email is required")
+    #     elif not re.match("[a-zA-Z0-9_\-\.]+[@][a-z]+[\.][a-z]{2,3}", email):
+    #         raise ValueError("Please Enter a valid email address")
+    #     elif User.query.filter_by(email=email).first():
+    #         raise ValueError("An account with that email address already exists")
+    #     return email
 
     @hybrid_property
     def password_hash(self):
@@ -73,16 +75,8 @@ class User(db.Model, SerializerMixin):
     def authenticate(self, password):
         return bcrypt.check_password_hash(self._password_hash, password.encode("utf-8"))
 
-    def to_dict(self):
-        return {
-            'id': self.id,
-            'username': self.username,
-            'email': self.email,
-            'profile_photo': self.profile_photo,
-            'email_notifications': self.email_notifications,
-            'favorites': [favorite.to_dict() for favorite in self.favorites]
-        }
 
+#add orders to dict
     def __repr__(self):
         return f"<User {self.id}>"
 
@@ -91,13 +85,15 @@ class Seller(db.Model, SerializerMixin):
 
     id = db.Column(db.INTEGER, primary_key=True)
     shopname = db.Column(db.VARCHAR(25), unique=True, nullable=False)
-    email = db.Column(db.VARCHAR, unique=True, nullable=False)
+    email = db.Column(db.String, unique=True, nullable=False)
     _password_hash = db.Column(db.String)
     logo_banner = db.Column(db.VARCHAR)  # the ~varchar~ is the file path to the photo
     profile_photo = db.Column(db.VARCHAR)  
     email_notifications = db.Column(db.Boolean, default=True)
+    
 
     items = db.relationship('Item', back_populates='seller')
+    orders = db.relationship('Order', back_populates='seller')
 
     @validates("shopname")
     def validate_shopname(self, key, shopname):
@@ -187,6 +183,8 @@ class Order(db.Model, SerializerMixin):
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
 
     item = db.relationship("Item", back_populates="orders")
+    seller = db.relationship('Seller',back_populates='orders')
+    user = db.relationship('User',back_populates='orders')
 
     def to_dict(self):
         return {
