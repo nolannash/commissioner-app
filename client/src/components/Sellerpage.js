@@ -109,7 +109,7 @@ const SellerPage = () => {
             transformOrigin={{ horizontal: 'right', vertical: 'top' }}
             anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
             >
-            <Divider dark/>
+            <Divider />
             <MenuItem onClick={() => handleSectionClick('accountInfo')}>
                 <ListItemIcon>
                 <AccountBox fontSize="small" />

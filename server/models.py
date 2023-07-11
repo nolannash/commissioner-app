@@ -136,6 +136,7 @@ class Item(db.Model, SerializerMixin):
 
     id = db.Column(db.INTEGER, primary_key=True)
     seller_id = db.Column(db.Integer, db.ForeignKey('sellers.id'))
+    name = db.Column(db.String, nullable=False)
     description = db.Column(db.Text, nullable=False)
     price = db.Column(db.Float, nullable=False)
     batch_size = db.Column(db.INTEGER, nullable=False)
