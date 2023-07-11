@@ -7,9 +7,6 @@ import re
 from config import app, db, api
 from models import User, Seller, Item, Order, Favorite, FormItem, save_file
 
-from werkzeug.routing import BaseConverter
-
-
 class Users(Resource):
     @jwt_required()
     def get(self, user_id=None):
@@ -48,9 +45,9 @@ class Users(Resource):
 @app.route("/signup/user",methods=["POST"])
 def signupuser():
     data = request.get_json()
-
+    print(data)
     try: 
-        user=User(username=data['username'],email=data['email'],password_hash=data['password'])
+        user=User(username=data['username'],email=data['email'],password_hash=data["password"])
         db.session.add(user)
         db.session.commit()
         token = create_access_token(identity=user.id)
@@ -77,27 +74,27 @@ def login_user():
             return response
         return make_response({'error':'Invalid Username or Password'})
 
-@app.route('/refresh_token/user', methods=['POST'])
-@jwt_required(refresh=True)
-def refresh_token():
-    id_ = get_jwt_identity()
-    user = db.session.get(User, id_)
-    # Generate a new access token
-    new_access_token = create_access_token(identity=id_)
-    response = make_response({"user": user.to_dict()}, 200)
-    set_access_cookies(response, new_access_token)
-    return response
+# @app.route('/refresh_token/user', methods=['POST'])
+# @jwt_required(refresh=True)
+# def refresh_token():
+#     id_ = get_jwt_identity()
+#     user = db.session.get(User, id_)
+#     # Generate a new access token
+#     new_access_token = create_access_token(identity=id_)
+#     response = make_response({"user": user.to_dict()}, 200)
+#     set_access_cookies(response, new_access_token)
+#     return response
 
-@app.route('/refresh_token/seller', methods=['POST'])
-@jwt_required(refresh=True)
-def refresh_token():
-    id_ = get_jwt_identity()
-    seller = db.session.get(Seller, id_)
-    # Generate a new access token
-    new_access_token = create_access_token(identity=id_)
-    response = make_response({"seller": seller.to_dict()}, 200)
-    set_access_cookies(response, new_access_token)
-    return response
+# @app.route('/refresh_token/seller', methods=['POST'])
+# @jwt_required(refresh=True)
+# def refresh_token():
+#     id_ = get_jwt_identity()
+#     seller = db.session.get(Seller, id_)
+#     # Generate a new access token
+#     new_access_token = create_access_token(identity=id_)
+#     response = make_response({"seller": seller.to_dict()}, 200)
+#     set_access_cookies(response, new_access_token)
+#     return response
 
 
 class Sellers(Resource):
@@ -139,7 +136,6 @@ class Sellers(Resource):
 @app.route("/signup/seller",methods=["POST"])
 def signupseller():
     data = request.get_json()
-
     try: 
         seller=Seller(shopname=data['shopname'],email=data['email'],password_hash=data['password'])
         db.session.add(seller)
@@ -162,7 +158,7 @@ def login_seller():
         if seller.authenticate(data.get('password','')):
             token = create_access_token(identity=seller.id)
             refresh_token=create_access_token(identity=seller.id)
-            response = make_response({'seller':seller.to_dict()},201)
+            response = make_response({'user':seller.to_dict()},201)
             set_access_cookies(response,token)
             set_refresh_cookies(response,refresh_token)
             return response
@@ -385,9 +381,19 @@ class FormItems(Resource):
         else:
             return {'message': 'Form Item not found'}, 404
 
+class Recent(Resource):
+    def get(self):
+        recent_shops = Seller.query.order_by(Seller.created_at.desc()).limit(10).all()
+        recent_items = Item.query.order_by(Item.created_at.desc()).limit(10).all()
+
+        recent_shops_data = [shop.to_dict() for shop in recent_shops]
+        recent_items_data = [item.to_dict() for item in recent_items]
+
+        return {'recent_shops': recent_shops_data, 'recent_items': recent_items_data}
+
 class Logout(Resource):
     @jwt_required()
-    def logout(self):
+    def post(self):
         response = jsonify({'message': 'Logout successful'})
         unset_jwt_cookies(response)
         return response, 200
@@ -396,7 +402,7 @@ api.add_resource(Users, '/users', '/users/<int:user_id>')
 
 
 api.add_resource(Sellers, '/sellers', '/sellers/<int:seller_id>')
-
+api.add_resource(Recent, '/recent')
 api.add_resource(Logout, '/logout')
 
 api.add_resource(Items, '/items', '/items/<int:item_id>')

@@ -42,7 +42,7 @@ class User(db.Model, SerializerMixin):
     favorites = db.relationship('Favorite', back_populates='user')
     orders = db.relationship('Order', back_populates='user')
 
-    serialize_rules=('-orders.user','-_password_hash')
+    serialize_rules=('-orders.user')
 
     @validates("username")
     def validate_username(self, key, username):
@@ -89,6 +89,7 @@ class Seller(db.Model, SerializerMixin):
     logo_banner = db.Column(db.VARCHAR)  # the ~varchar~ is the file path to the photo
     profile_photo = db.Column(db.VARCHAR)  
     email_notifications = db.Column(db.Boolean, default=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
 
     items = db.relationship('Item', back_populates='seller')

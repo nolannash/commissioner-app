@@ -3,7 +3,6 @@ import { AuthContext } from '../contexts/AuthContext';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
 import { Button, TextField, Typography } from '@mui/material';
-
 import { useHistory, useLocation } from 'react-router-dom';
 
 export default function LoginPage() {
@@ -82,7 +81,7 @@ export default function LoginPage() {
             <Button variant="contained" type='submit'>
                 Login
             </Button>
-            </Form>
+        </Form>
         )}
         </Formik>
     </div>

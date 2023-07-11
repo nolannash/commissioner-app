@@ -1,11 +1,13 @@
 import React, { createContext, useState } from 'react';
 import { Cookies } from 'react-cookie';
+import { useHistory } from 'react-router-dom/cjs/react-router-dom.min';
 
 const AuthContext = createContext();
 
 const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const cookies = new Cookies()
+  const history = useHistory();
 
   const handleSignUp = async (userType,userData) => {
 
@@ -20,7 +22,6 @@ const AuthProvider = ({ children }) => {
         const data = await response.json();
         cookies.set('token', data.token);
         cookies.set('refresh_token', data.refresh_token);
-
         setUser(data.user);
       } else {
         const errorData = await response.json();
@@ -42,13 +43,14 @@ const AuthProvider = ({ children }) => {
 
       if (response.ok) {
         const data = await response.json();
-        console.log(data);
         cookies.set('token', data.token);
         cookies.set('refresh_token', data.refresh_token);
+        console.log(data.user);
+        console.log(data);
         setUser(data.user);
+
       } else {
         const errorData = await response.json();
-        console.log(errorData)
         throw new Error(errorData.message);
       }
     } catch (error) {
@@ -68,6 +70,7 @@ const AuthProvider = ({ children }) => {
         Cookies.remove('token');
         Cookies.remove('refresh_token');
         setUser(null);
+        history.push('/')
       } else {
         const errorData = await response.json();
         throw new Error(errorData.message);
