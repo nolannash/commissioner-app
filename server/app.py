@@ -305,12 +305,12 @@ class Recent(Resource):
 
         return {'recent_shops': recent_shops_data, 'recent_items': recent_items_data}
 
-class Logout(Resource):
-    @jwt_required()
-    def post(self):
-        response = jsonify({'message': 'Logout successful'})
-        unset_jwt_cookies(response)
-        return response, 200
+@app.route('/logout', methods=['POST'])
+@jwt_required()
+def logout():
+    response = jsonify({'message': 'Logout successful'})
+    unset_jwt_cookies(response)
+    return response, 200
 
 class SellerItems(Resource):
     @jwt_required()
@@ -399,7 +399,8 @@ def signupuser():
     data = request.get_json()
     print(data)
     try: 
-        user=User(username=data['username'],email=data['email'],password_hash=data["password"])
+        user=User(username=data['username'],email=data['email'])
+        user.password_hash = data['password']
         db.session.add(user)
         db.session.commit()
         token = create_access_token(identity=user.id)
@@ -415,21 +416,24 @@ def signupuser():
 @app.route('/login/user',methods={'POST'})
 def login_user():
     data = request.get_json()
-    print (data);
+    print (data)
     if user := User.query.filter_by(email=data.get("email", "")).first():
         if user.authenticate(data.get('password','')):
             token = create_access_token(identity=user.id)
-            refresh_token=create_access_token(identity=user.id)
-            response = make_response({'user':user.to_dict()},201)
-            set_access_cookies(response,token)
-            set_refresh_cookies(response,refresh_token)
+            refresh_token = create_access_token(identity=user.id)
+            response = make_response({'user': user.to_dict()}, 201)
+            set_access_cookies(response, token)
+            set_refresh_cookies(response, refresh_token)
             return response
+        return make_response({'error':'Invalid Username or Password'}, 401)
+    return make_response({'error': 'User not found'}, 404)
 
 @app.route("/signup/seller",methods=["POST"])
 def signupseller():
     data = request.get_json()
     try: 
-        seller=Seller(shopname=data['shopname'],email=data['email'],password_hash=data['password'])
+        seller=Seller(shopname=data['shopname'],email=data['email'])
+        seller.password_hash=data['password']
         db.session.add(seller)
         db.session.commit()
         token = create_access_token(identity=seller.id)
@@ -454,7 +458,8 @@ def login_seller():
             set_access_cookies(response,token)
             set_refresh_cookies(response,refresh_token)
             return response
-        return make_response({'error':'Invalid Username or Password'})
+        return make_response({'error':'Invalid Username or Password'}, 401)
+    return make_response({'error': 'User not found'}, 404)
 
 @app.route('/users/<int:user_id>/profile-photo', methods=['POST'])
 def upload_user_profile_photo(user_id):
@@ -517,8 +522,6 @@ api.add_resource(Users, '/users', '/users/<int:user_id>')
 api.add_resource(Sellers, '/sellers', '/sellers/<int:seller_id>')
 
 api.add_resource(Recent, '/recent')
-
-api.add_resource(Logout, '/logout')
 
 api.add_resource(Items, '/items', '/items/<int:item_id>')
 

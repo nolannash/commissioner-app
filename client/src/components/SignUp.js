@@ -27,7 +27,7 @@ export default function SignUpPage() {
     const { confirmPassword, ...signupData } = values;
     try {
         await signUp(determineUserType(),signupData);
-        (determineUserType()==='user'?history.push('/'):history.push('/sellerProfile'));
+        (determineUserType()==='user'?history.push('/'):history.push('/sellerPage'));
     } catch (error) {
         console.error(error);
         throw error;
@@ -47,11 +47,13 @@ export default function SignUpPage() {
     confirmPassword: Yup.string()
         .oneOf([Yup.ref('password'), null], 'Passwords must match')
         .required('Please confirm your password'),
-    username: Yup.string()
+    username: Yup.string().when('userType',{is:'user',
+        then: Yup.string()
         .min(2, 'Username cannot be less than 2 characters')
         .max(20, 'Username cannot be greater than 20 characters')
         .matches(/^[a-zA-Z0-9]*$/, 'Username must be only letters and numbers with no spaces')
         .required('Please enter a username between 2 and 20 characters'),
+    }),
     shopname: Yup.string().when('userType', {
         is: 'seller',
         then: Yup.string()
