@@ -5,7 +5,7 @@ from datetime import datetime, timedelta
 import re
 
 from config import app, db, api
-from models import User, Seller, Item, Order, Favorite, FormItem, save_file
+from models import User, Seller, Item, Order, Favorite, FormItem, ItemImage,save_file, allowed_file
 
 class Users(Resource):
     @jwt_required()
@@ -42,61 +42,6 @@ class Users(Resource):
         else:
             return {'message': 'User not found'}, 404
 
-@app.route("/signup/user",methods=["POST"])
-def signupuser():
-    data = request.get_json()
-    print(data)
-    try: 
-        user=User(username=data['username'],email=data['email'],password_hash=data["password"])
-        db.session.add(user)
-        db.session.commit()
-        token = create_access_token(identity=user.id)
-        refresh_token=create_access_token(identity=user.id)
-        response = make_response({'user':user.to_dict()},201)
-        set_access_cookies(response,token)
-        set_refresh_cookies(response,refresh_token)
-        return response
-
-    except Exception as e:
-        return make_response({'error':str(e)},400)
-
-@app.route('/login/user',methods={'POST'})
-def login_user():
-    data = request.get_json()
-    print (data);
-    if user := User.query.filter_by(email=data.get("email", "")).first():
-        if user.authenticate(data.get('password','')):
-            token = create_access_token(identity=user.id)
-            refresh_token=create_access_token(identity=user.id)
-            response = make_response({'user':user.to_dict()},201)
-            set_access_cookies(response,token)
-            set_refresh_cookies(response,refresh_token)
-            return response
-        return make_response({'error':'Invalid Username or Password'})
-
-# @app.route('/refresh_token/user', methods=['POST'])
-# @jwt_required(refresh=True)
-# def refresh_token():
-#     id_ = get_jwt_identity()
-#     user = db.session.get(User, id_)
-#     # Generate a new access token
-#     new_access_token = create_access_token(identity=id_)
-#     response = make_response({"user": user.to_dict()}, 200)
-#     set_access_cookies(response, new_access_token)
-#     return response
-
-# @app.route('/refresh_token/seller', methods=['POST'])
-# @jwt_required(refresh=True)
-# def refresh_token():
-#     id_ = get_jwt_identity()
-#     seller = db.session.get(Seller, id_)
-#     # Generate a new access token
-#     new_access_token = create_access_token(identity=id_)
-#     response = make_response({"seller": seller.to_dict()}, 200)
-#     set_access_cookies(response, new_access_token)
-#     return response
-
-
 class Sellers(Resource):
     @jwt_required()
     def get(self, seller_id=None):
@@ -132,37 +77,6 @@ class Sellers(Resource):
             return {'message': 'Seller deleted successfully'}
         else:
             return {'message': 'Seller not found'}, 404
-
-@app.route("/signup/seller",methods=["POST"])
-def signupseller():
-    data = request.get_json()
-    try: 
-        seller=Seller(shopname=data['shopname'],email=data['email'],password_hash=data['password'])
-        db.session.add(seller)
-        db.session.commit()
-        token = create_access_token(identity=seller.id)
-        refresh_token=create_access_token(identity=seller.id)
-        response = make_response({'seller':seller.to_dict()},201)
-        set_access_cookies(response,token)
-        set_refresh_cookies(response,refresh_token)
-        return response
-
-    except Exception as e:
-        return make_response({'error':str(e)},400)
-
-@app.route('/login/seller',methods={'POST'})
-def login_seller():
-    data = request.get_json()
-    print (data);
-    if seller := Seller.query.filter_by(email=data.get("email", "")).first():
-        if seller.authenticate(data.get('password','')):
-            token = create_access_token(identity=seller.id)
-            refresh_token=create_access_token(identity=seller.id)
-            response = make_response({'user':seller.to_dict()},201)
-            set_access_cookies(response,token)
-            set_refresh_cookies(response,refresh_token)
-            return response
-        return make_response({'error':'Invalid Username or Password'})
 
 class Items(Resource):
     def get(self, item_id=None):
@@ -398,19 +312,244 @@ class Logout(Resource):
         unset_jwt_cookies(response)
         return response, 200
 
+class SellerItems(Resource):
+    @jwt_required()
+    def get(self, id):
+        seller = Seller.query.get(id)
+        if not seller:
+            return {'message': 'Seller not found'}, 404
+
+        items = Item.query.filter_by(seller=seller).all()
+        return [item.to_dict() for item in items]
+
+    @jwt_required()
+    def post(self, id):
+        data = request.get_json()
+        seller = Seller.query.get(id)
+        if not seller:
+            return {'message': 'Seller not found'}, 404
+
+        item = Item(seller=seller, **data)
+        try:
+            db.session.add(item)
+            db.session.commit()
+            return {'message': 'Item created successfully'}, 201
+        except ValueError as e:
+            return {'message': str(e)}, 400
+
+    @jwt_required()
+    def patch(self, id, item_id):
+        seller = Seller.query.get(id)
+        if not seller:
+            return {'message': 'Seller not found'}, 404
+
+        item = Item.query.filter_by(id=item_id, seller=seller).first()
+        if not item:
+            return {'message': 'Item not found'}, 404
+
+        data = request.get_json()
+        try:
+            item.batch_size = data.get('batch_size', item.batch_size)
+            item.rollover_period = data.get('rollover_period', item.rollover_period)
+            db.session.commit()
+            return {'message': 'Item updated successfully'}
+        except ValueError as e:
+            return {'message': str(e)}, 400
+
+    @jwt_required()
+    def delete(self, id, item_id):
+        seller = Seller.query.get(id)
+        if not seller:
+            return {'message': 'Seller not found'}, 404
+
+        item = Item.query.filter_by(id=item_id, seller=seller).first()
+        if not item:
+            return {'message': 'Item not found'}, 404
+
+        db.session.delete(item)
+        db.session.commit()
+        return {'message': 'Item deleted successfully'}
+
+@app.route('/items/<int:item_id>/images', methods=['POST'])
+def upload_item_images(item_id):
+    item = Item.query.get(item_id)
+    if not item:
+        return jsonify(message='Item not found'), 404
+
+    images = request.files.getlist('images')
+    saved_image_paths = []
+
+    for image in images:
+        if allowed_file(image.filename):
+            file_path = save_file(image)
+            if file_path:
+                saved_image_paths.append(file_path)
+
+    # Create ItemImage objects and associate them with the item
+    for image_path in saved_image_paths:
+        item_image = ItemImage(item_id=item_id, image_path=image_path)
+        db.session.add(item_image)
+
+    db.session.commit()
+
+    return jsonify(message='Item images uploaded successfully'), 200
+
+@app.route("/signup/user",methods=["POST"])
+def signupuser():
+    data = request.get_json()
+    print(data)
+    try: 
+        user=User(username=data['username'],email=data['email'],password_hash=data["password"])
+        db.session.add(user)
+        db.session.commit()
+        token = create_access_token(identity=user.id)
+        refresh_token=create_access_token(identity=user.id)
+        response = make_response({'user':user.to_dict()},201)
+        set_access_cookies(response,token)
+        set_refresh_cookies(response,refresh_token)
+        return response
+
+    except Exception as e:
+        return make_response({'error':str(e)},400)
+
+@app.route('/login/user',methods={'POST'})
+def login_user():
+    data = request.get_json()
+    print (data);
+    if user := User.query.filter_by(email=data.get("email", "")).first():
+        if user.authenticate(data.get('password','')):
+            token = create_access_token(identity=user.id)
+            refresh_token=create_access_token(identity=user.id)
+            response = make_response({'user':user.to_dict()},201)
+            set_access_cookies(response,token)
+            set_refresh_cookies(response,refresh_token)
+            return response
+
+@app.route("/signup/seller",methods=["POST"])
+def signupseller():
+    data = request.get_json()
+    try: 
+        seller=Seller(shopname=data['shopname'],email=data['email'],password_hash=data['password'])
+        db.session.add(seller)
+        db.session.commit()
+        token = create_access_token(identity=seller.id)
+        refresh_token=create_access_token(identity=seller.id)
+        response = make_response({'seller':seller.to_dict()},201)
+        set_access_cookies(response,token)
+        set_refresh_cookies(response,refresh_token)
+        return response
+
+    except Exception as e:
+        return make_response({'error':str(e)},400)
+
+@app.route('/login/seller',methods={'POST'})
+def login_seller():
+    data = request.get_json()
+    print (data);
+    if seller := Seller.query.filter_by(email=data.get("email", "")).first():
+        if seller.authenticate(data.get('password','')):
+            token = create_access_token(identity=seller.id)
+            refresh_token=create_access_token(identity=seller.id)
+            response = make_response({'user':seller.to_dict()},201)
+            set_access_cookies(response,token)
+            set_refresh_cookies(response,refresh_token)
+            return response
+        return make_response({'error':'Invalid Username or Password'})
+
+@app.route('/users/<int:user_id>/profile-photo', methods=['POST'])
+def upload_user_profile_photo(user_id):
+    user = User.query.get(user_id)
+    if not user:
+        return {'message': 'User not found'}, 404
+
+    file = request.files['file']
+    if file and allowed_file(file.filename):
+        filename = save_file(file)
+        if filename:
+            user.profile_photo = filename
+            db.session.commit()
+            return {'message': 'Profile photo uploaded successfully'}, 200
+        else:
+            return {'message': 'Failed to save file'}, 400
+    else:
+        return {'message': 'Invalid file'}, 400
+
+@app.route('/sellers/<int:seller_id>/profile-photo', methods=['POST'])
+def upload_seller_profile_photo(seller_id):
+    seller = Seller.query.get(seller_id)
+    if not seller:
+        return {'message': 'Seller not found'}, 404
+
+    file = request.files['file']
+    if file and allowed_file(file.filename):
+        filename = save_file(file)
+        if filename:
+            seller.profile_photo = filename
+            db.session.commit()
+            return {'message': 'Profile photo uploaded successfully'}, 200
+        else:
+            return {'message': 'Failed to save file'}, 400
+    else:
+        return {'message': 'Invalid file'}, 400
+    
+@app.route('/sellers/<int:seller_id>/logo-banner', methods=['POST'])
+def upload_seller_logo_banner(seller_id):
+    seller = Seller.query.get(seller_id)
+    if not seller:
+        return {'message': 'Seller not found'}, 404
+
+    file = request.files['file']
+    if file and allowed_file(file.filename):
+        filename = save_file(file)
+        if filename:
+            seller.logo_banner = filename
+            db.session.commit()
+            return {'message': 'Logo banner uploaded successfully'}, 200
+        else:
+            return {'message': 'Failed to save file'}, 400
+    else:
+        return {'message': 'Invalid file'}, 400
+
+api.add_resource(SellerItems, '/sellers/<int:id>/items', '/sellers/<int:id>/items/<int:item_id>')
+
 api.add_resource(Users, '/users', '/users/<int:user_id>')
 
-
 api.add_resource(Sellers, '/sellers', '/sellers/<int:seller_id>')
+
 api.add_resource(Recent, '/recent')
+
 api.add_resource(Logout, '/logout')
 
 api.add_resource(Items, '/items', '/items/<int:item_id>')
+
 api.add_resource(Orders, '/orders', '/orders/<int:order_id>')
+
 api.add_resource(Favorites, '/favorites', '/favorites/<int:favorite_id>')
+
 api.add_resource(FormItems, '/form-items', '/form-items/<int:form_item_id>')
 
 
+# @app.route('/refresh_token/user', methods=['POST'])
+# @jwt_required(refresh=True)
+# def refresh_token():
+#     id_ = get_jwt_identity()
+#     user = db.session.get(User, id_)
+#     # Generate a new access token
+#     new_access_token = create_access_token(identity=id_)
+#     response = make_response({"user": user.to_dict()}, 200)
+#     set_access_cookies(response, new_access_token)
+#     return response
+
+# @app.route('/refresh_token/seller', methods=['POST'])
+# @jwt_required(refresh=True)
+# def refresh_token():
+#     id_ = get_jwt_identity()
+#     seller = db.session.get(Seller, id_)
+#     # Generate a new access token
+#     new_access_token = create_access_token(identity=id_)
+#     response = make_response({"seller": seller.to_dict()}, 200)
+#     set_access_cookies(response, new_access_token)
+#     return response
 
 if __name__ == '__main__':
     app.run(port=5555, debug=True, use_debugger=True,use_reloader=False)

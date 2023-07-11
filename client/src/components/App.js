@@ -6,7 +6,7 @@ import LoginPage from './Login';
 import SignUpPage from './SignUp';
 import LandingPage from './LandingPage';
 import HomePage from './HomePage';
-import SellerProfile from './SellerProfile';
+import SellerPage from './Sellerpage';
 
 
 const App = () => {
@@ -27,8 +27,8 @@ const App = () => {
           <Route path="/landing">
             <LandingPage />
           </Route>
-          <Route path='/sellerProfile'>
-            <SellerProfile></SellerProfile>
+          <Route path='/sellerPage'>
+            <SellerPage></SellerPage>
           </Route>
         </Switch>
       </Router>
