@@ -9,18 +9,6 @@ from models import User, Seller, Item, Order, Favorite, FormItem, save_file
 
 from werkzeug.routing import BaseConverter
 
-# Custom URL converter for user type
-class UserTypeConverter(BaseConverter):
-    def to_python(self, value):
-        if value in ['user', 'seller']:
-            return value
-        return None
-
-    def to_url(self, value):
-        return value
-
-# Register the custom URL converter
-app.url_map.converters['usertype'] = UserTypeConverter
 
 class Users(Resource):
     @jwt_required()
@@ -60,7 +48,7 @@ class Users(Resource):
 @app.route("/signup/user",methods=["POST"])
 def signupuser():
     data = request.get_json()
-    print(data);
+
     try: 
         user=User(username=data['username'],email=data['email'],password_hash=data['password'])
         db.session.add(user)
@@ -75,38 +63,41 @@ def signupuser():
     except Exception as e:
         return make_response({'error':str(e)},400)
 
+@app.route('/login/user',methods={'POST'})
+def login_user():
+    data = request.get_json()
+    print (data);
+    if user := User.query.filter_by(email=data.get("email", "")).first():
+        if user.authenticate(data.get('password','')):
+            token = create_access_token(identity=user.id)
+            refresh_token=create_access_token(identity=user.id)
+            response = make_response({'user':user.to_dict()},201)
+            set_access_cookies(response,token)
+            set_refresh_cookies(response,refresh_token)
+            return response
+        return make_response({'error':'Invalid Username or Password'})
 
-# DO I need to use the restful or the other?
+@app.route('/refresh_token/user', methods=['POST'])
+@jwt_required(refresh=True)
+def refresh_token():
+    id_ = get_jwt_identity()
+    user = db.session.get(User, id_)
+    # Generate a new access token
+    new_access_token = create_access_token(identity=id_)
+    response = make_response({"user": user.to_dict()}, 200)
+    set_access_cookies(response, new_access_token)
+    return response
 
-# class SignupUser(Resource):
-#     def post(self):
-#         try:
-#             data = request.get_json(force=True)
-
-#             new_user = User(username=data['username'], email=data['email'], password_hash=data['password'])
-#             db.session.add(new_user)
-#             db.session.commit()
-
-#             token = create_access_token(identity=new_user.id)
-#             refr_token = create_access_token(identity=new_user.id)
-            
-#             return {'access_token': token,'refresh_token':refr_token, 'user': new_user.to_dict()}, 201
-#         except Exception as e:
-#             return make_response({'error': str(e)}, 400)
-
-class LoginUser(Resource):
-    def post(self):
-        data = request.get_json()
-        email = data.get('email')
-        password_hash = data.get('password')
-
-        user = User.query.filter_by(email=email).first()
-        if user and user.authenticate(password_hash):
-            access_token = create_access_token(identity=user.id)
-            refr_token = create_access_token(identity=user.id)
-            return {'access_token': access_token,'refresh_token':refr_token, 'user': user.to_dict()}, 200
-        else:
-            return make_response({'message': 'Invalid email or password'}, 401)
+@app.route('/refresh_token/seller', methods=['POST'])
+@jwt_required(refresh=True)
+def refresh_token():
+    id_ = get_jwt_identity()
+    seller = db.session.get(Seller, id_)
+    # Generate a new access token
+    new_access_token = create_access_token(identity=id_)
+    response = make_response({"seller": seller.to_dict()}, 200)
+    set_access_cookies(response, new_access_token)
+    return response
 
 
 class Sellers(Resource):
@@ -145,40 +136,37 @@ class Sellers(Resource):
         else:
             return {'message': 'Seller not found'}, 404
 
-class SignupSeller(Resource):
-    def post(self):
-        data = request.get_json()
-        shopname = data.get('shopname')
-        email = data.get('email')
-        password_hash = data.get('password')
+@app.route("/signup/seller",methods=["POST"])
+def signupseller():
+    data = request.get_json()
 
-        seller = Seller.query.filter_by(email=email).first()
-        if seller:
-            return make_response({'message': 'An account with that Email already exists'}, 400)
-
-        new_seller = Seller(shopname=shopname, email=email)
-        new_seller.password_hash = password_hash
-
-        db.session.add(new_seller)
+    try: 
+        seller=Seller(shopname=data['shopname'],email=data['email'],password_hash=data['password'])
+        db.session.add(seller)
         db.session.commit()
+        token = create_access_token(identity=seller.id)
+        refresh_token=create_access_token(identity=seller.id)
+        response = make_response({'seller':seller.to_dict()},201)
+        set_access_cookies(response,token)
+        set_refresh_cookies(response,refresh_token)
+        return response
 
-        access_token = create_access_token(identity=new_seller.id)
-        return {'access_token': access_token, 'seller': new_seller.to_dict()}, 201
+    except Exception as e:
+        return make_response({'error':str(e)},400)
 
-
-class LoginSeller(Resource):
-    def post(self):
-        data = request.get_json()
-        email = data.get('email')
-        password = data.get('password')
-
-        seller = Seller.query.filter_by(email=email).first()
-        if seller and seller.authenticate(password):
-            access_token = create_access_token(identity=seller.id)
-            return {'access_token': access_token, 'seller': seller.to_dict()}, 200
-        else:
-            return make_response({'message': 'Invalid email or password'}, 401)
-
+@app.route('/login/seller',methods={'POST'})
+def login_seller():
+    data = request.get_json()
+    print (data);
+    if seller := Seller.query.filter_by(email=data.get("email", "")).first():
+        if seller.authenticate(data.get('password','')):
+            token = create_access_token(identity=seller.id)
+            refresh_token=create_access_token(identity=seller.id)
+            response = make_response({'seller':seller.to_dict()},201)
+            set_access_cookies(response,token)
+            set_refresh_cookies(response,refresh_token)
+            return response
+        return make_response({'error':'Invalid Username or Password'})
 
 class Items(Resource):
     def get(self, item_id=None):
@@ -405,12 +393,9 @@ class Logout(Resource):
         return response, 200
 
 api.add_resource(Users, '/users', '/users/<int:user_id>')
-# api.add_resource(SignupUser, '/signup/user')
-api.add_resource(LoginUser, '/login/user')
+
 
 api.add_resource(Sellers, '/sellers', '/sellers/<int:seller_id>')
-api.add_resource(SignupSeller, '/signup/seller','/signup/seller')
-api.add_resource(LoginSeller, '/login/seller','/login/seller')
 
 api.add_resource(Logout, '/logout')
 

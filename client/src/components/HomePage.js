@@ -10,14 +10,6 @@ import { Search as SearchIcon } from '@mui/icons-material';
 import { Link } from 'react-router-dom';
 import { AuthContext } from '../contexts/AuthContext';
 
-const LogoutButton = ({ onLogout }) => {
-    return (
-    <Button color="inherit" onClick={onLogout}>
-        Logout
-    </Button>
-    );
-};
-
 const HomePage = () => {
     const [searchText, setSearchText] = useState('');
     const { user, logout } = useContext(AuthContext);
@@ -26,10 +18,8 @@ const HomePage = () => {
     setSearchText(event.target.value);
     // Handle search logic here
     };
+    console.log(user)
 
-    const handleLogout = () => {
-    logout();
-    };
 
     return (
     <div>
@@ -49,9 +39,13 @@ const HomePage = () => {
             {user ? (
             <>
             <Link to ={'/UserProfile'}>
-            <Button>Profile</Button>
+                <Button color='white'>Profile</Button>
             </Link>
-            <LogoutButton onLogout={handleLogout} />
+            <Link to ={'/'}>
+            <Button color="white" onClick={logout} >
+                Logout
+            </Button>
+            </Link>
             </>
             ) : (
             <Link to="/landing">
