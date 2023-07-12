@@ -15,14 +15,14 @@ import {
 import { Search as SearchIcon, ViewList, Receipt, AccountBox } from '@mui/icons-material';
 import { AuthContext } from '../contexts/AuthContext';
 import SellerItems from './SellerItemsPage';
-import {useHistory} from 'react-router-dom';
+import {useHistory,} from 'react-router-dom';
 
 const SellerPage = () => {
   const { user, logout } = useContext(AuthContext);
-
+  const history = useHistory()
   const [anchorEl, setAnchorEl] = useState(null);
   const [activeSection, setActiveSection] = useState('');
-  const history = useHistory();
+
   const open = Boolean(anchorEl);
   const handleClick = (event) => {
     setAnchorEl(event.currentTarget);
@@ -51,15 +51,12 @@ const SellerPage = () => {
 
   const handleLogout = async () => {
     try {
-      await logout(); // Assuming the logout function returns a Promise
+      history.push('/landing')
+      logout(); 
 
-      // Perform any additional actions after successful logout
-      debugger
-      // Redirect to the desired page
-      history.push('/landing');
     } catch (error) {
       console.error('Logout error:', error.message);
-      // Handle the error if necessary
+
     }
   };
 

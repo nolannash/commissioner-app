@@ -1,20 +1,21 @@
-import React, { createContext, useState, useEffect } from 'react';
+import React, { createContext, useState } from 'react';
 import { useHistory } from 'react-router-dom';
 
 const AuthContext = createContext();
 
-const getCookie = (name) => {
-  const value = `; ${document.cookie}`;
-  const parts = value.split(`; ${name}=`);
-  if (parts.length === 2) {
-    return parts.pop().split(';').shift();
-  }
-};
 
 const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
+  const getCookie = (name) => {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) {
+      return parts.pop().split(';').shift();
+    }
+  };
+  
   const history = useHistory();
-  const csrfToken = getCookie('csrf_token');
+  const csrfToken = getCookie('csrf_access_token');
 
   const handleSignUp = async (userType, userData) => {
     try {
@@ -75,8 +76,8 @@ const AuthProvider = ({ children }) => {
       });
 
       if (response.ok) {
+        history.push('/landing')
         setUser(null);
-        history.push('/');
       } else {
         const errorData = await response.json();
         throw new Error(errorData.message || 'Logout failed');
