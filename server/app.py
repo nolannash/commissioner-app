@@ -85,7 +85,7 @@ class Sellers(Resource):
 
     @jwt_required()
     def delete(self, seller_id):
-        if seller := Seller.query.all(seller_id):
+        if seller := Seller.query.get(seller_id):
             db.session.delete(seller)
             db.session.commit()
             return {'message': 'Seller deleted successfully'}
@@ -132,7 +132,7 @@ class Items(Resource):
             return {'message': str(e)}, 400
 
     def delete(self, item_id):
-        if item := db.session.get(Item,item_id):
+        if item := Item.query.get(item_id):
             db.session.delete(item)
             db.session.commit()
             return {'message': 'Item deleted successfully'}, 204
@@ -463,6 +463,7 @@ def upload_seller_profile_photo(seller_id):
     else:
         return {'message': 'Invalid file'}, 400
 
+@jwt_required()
 @app.route('/sellers/<int:seller_id>/logo-banner', methods=['POST'])
 def upload_seller_logo_banner(seller_id):
     seller = Seller.query.get(seller_id)
@@ -529,27 +530,27 @@ api.add_resource(Favorites, '/favorites', '/favorites/<int:favorite_id>')
 api.add_resource(FormItems, '/form-items', '/form-items/<int:form_item_id>')
 
 
-# @app.route('/refresh_token/user', methods=['POST'])
-# @jwt_required(refresh=True)
-# def refresh_token():
-#     id_ = get_jwt_identity()
-#     user = db.session.get(User, id_)
-#     # Generate a new access token
-#     new_access_token = create_access_token(identity=id_)
-#     response = make_response({"user": user.to_dict()}, 200)
-#     set_access_cookies(response, new_access_token)
-#     return response
+@app.route('/refresh_token/user', methods=['POST'])
+@jwt_required(refresh=True)
+def refresh_token():
+    id_ = get_jwt_identity()
+    user = db.session.get(User, id_)
+    # Generate a new access token
+    new_access_token = create_access_token(identity=id_)
+    response = make_response({"user": user.to_dict()}, 200)
+    set_access_cookies(response, new_access_token)
+    return response
 
-# @app.route('/refresh_token/seller', methods=['POST'])
-# @jwt_required(refresh=True)
-# def refresh_token():
-#     id_ = get_jwt_identity()
-#     seller = db.session.get(Seller, id_)
-#     # Generate a new access token
-#     new_access_token = create_access_token(identity=id_)
-#     response = make_response({"seller": seller.to_dict()}, 200)
-#     set_access_cookies(response, new_access_token)
-#     return response
+@app.route('/refresh_token/seller', methods=['POST'])
+@jwt_required(refresh=True)
+def refresh_token():
+    id_ = get_jwt_identity()
+    seller = db.session.get(Seller, id_)
+    # Generate a new access token
+    new_access_token = create_access_token(identity=id_)
+    response = make_response({"seller": seller.to_dict()}, 200)
+    set_access_cookies(response, new_access_token)
+    return response
 
 if __name__ == '__main__':
     app.run(port=5555, debug=True, use_debugger=True,use_reloader=False)

@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { BrowserRouter as Router, Switch, Route } from 'react-router-dom';
-import { AuthProvider } from '../contexts/AuthContext';
+import { AuthProvider, AuthContext } from '../contexts/AuthContext';
 import { CssBaseline } from '@mui/material';
 import LoginPage from './Login';
 import SignUpPage from './SignUp';
@@ -10,19 +10,28 @@ import SellerPage from './Sellerpage';
 import ItemForm from './ItemForm';
 
 const App = () => {
+
+
   return (
-    <AuthProvider> 
-      <CssBaseline/>
+    <AuthProvider>
+      <CssBaseline />
       <Router>
         <Switch>
           <Route exact path="/">
-          <HomePage />
+            <HomePage />
           </Route>
           <Route path="/login">
             <LoginPage />
           </Route>
           <Route path="/signup">
-            <SignUpPage />
+            <SignUpPage initialValues={{
+            email: '',
+            password: '',
+            confirmPassword: '',
+            username: '',
+            shopname: '',
+            }}
+            />
           </Route>
           <Route path="/landing">
             <LandingPage />
@@ -30,7 +39,7 @@ const App = () => {
           <Route path='/sellerPage'>
             <SellerPage></SellerPage>
           </Route>
-          <Route path = '/itemForm'>
+          <Route path='/itemForm'>
             <ItemForm></ItemForm>
           </Route>
         </Switch>

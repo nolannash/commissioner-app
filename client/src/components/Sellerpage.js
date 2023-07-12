@@ -18,7 +18,7 @@ import SellerItems from './SellerItemsPage';
 
 const SellerPage = () => {
     const { user, logout } = useContext(AuthContext);
-
+    console.log(user);
     const [anchorEl, setAnchorEl] = useState(null);
     const [activeSection, setActiveSection] = useState('');
 
@@ -44,13 +44,9 @@ const SellerPage = () => {
         case 'orders':
         return <Orders />;
         default:
-        return <AccountInfo />;
+        return null;
     }
     };
-
-    const handleLogout = () =>{
-        logout();
-    }
 
     return (
     <AppBar position="static">
@@ -61,7 +57,7 @@ const SellerPage = () => {
         <Box sx={{ display: 'flex', alignItems: 'center', textAlign: 'center' }}>
             <Button
             variant="contained"
-            onClick={handleLogout}
+            onClick={logout}
             sx={{ ml: 2 }}
             >
             Logout
@@ -75,7 +71,7 @@ const SellerPage = () => {
                 aria-haspopup="true"
                 aria-expanded={open ? 'true' : undefined}
             >
-                <Avatar sx={{ width: 32, height: 32 }}><AccountBox/></Avatar>
+                <Avatar sx={{ width: 32, height: 32 }}>M</Avatar>
             </Button>
             </Tooltip>
             <Menu
@@ -139,23 +135,20 @@ const SellerPage = () => {
     </AppBar>
     );
 };
-
 const AccountInfo = () => {
-    return (
-    <div>
-        <Typography variant="h6">Account Information</Typography>
-      {/* Render account information */}
-    </div>
-    );
+  return (
+  <div>
+      <Typography variant="h6">Account Information</Typography>
+    {/* Render account information */}
+  </div>
+  );
 };
-
 const Orders = () => {
-    return (
-    <div>
-        <Typography variant="h6">Orders</Typography>
-      {/* Render orders */}
-    </div>
-    );
+  return (
+  <div>
+      <Typography variant="h6">Orders</Typography>
+    {/* Render orders */}
+  </div>
+  );
 };
-
 export default SellerPage;

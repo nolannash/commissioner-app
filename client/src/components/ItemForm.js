@@ -39,7 +39,7 @@ const validationSchema = Yup.object().shape({
 
 const ItemForm = ({ onSubmit }) => {
     const { user } = useContext(AuthContext);
-    const accessToken = user?.accessToken;
+    // const token = user?.token;
     const history = useHistory();
     const initialValues = {
     name: '',
@@ -68,12 +68,12 @@ const ItemForm = ({ onSubmit }) => {
         });
 
         formData.append('seller_id', user.id);
-        const { accessToken } = user;
+        // const { token } = user;
         const response = await fetch(`/sellers/${user.id}/items`, {
             method: 'POST',
             headers: {
-                // 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${accessToken}`,
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${user.token}`,
             },
             body: formData,
             });
