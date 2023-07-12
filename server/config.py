@@ -8,7 +8,7 @@ from sqlalchemy import MetaData
 from flask_mail import Mail
 from werkzeug.utils import secure_filename
 from flask_jwt_extended import JWTManager
-from datetime import timedelta
+
 import os
 
 app = Flask(__name__)
@@ -55,7 +55,7 @@ app.config['JWT_SECRET_KEY'] = os.environ.get('JWT_SECRET_KEY', 'dev')
 
 app.config["JWT_TOKEN_LOCATION"] = ["headers", "cookies"]
 app.config['JWT_ACCESS_COOKIE_SAMESITE'] = 'None'
-app.config['JWT_ACCESS_TOKEN_EXPIRES']= timedelta(minutes=10)
+
 
 app.config['MAIL_SERVER'] = 'your_mail_server'
 app.config['MAIL_PORT'] = 587  # or the appropriate port number

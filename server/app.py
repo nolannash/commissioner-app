@@ -1,6 +1,6 @@
 from flask import request, make_response, jsonify
 from flask_restful import Resource
-from flask_jwt_extended import jwt_required, create_access_token, get_jwt_identity, set_access_cookies, set_refresh_cookies, unset_jwt_cookies
+from flask_jwt_extended import jwt_required, create_access_token, get_jwt_identity, set_access_cookies,  unset_jwt_cookies
 from datetime import datetime, timedelta
 import re
 
@@ -372,10 +372,8 @@ def signupuser():
         db.session.add(user)
         db.session.commit()
         token = create_access_token(identity=user.id)
-        refresh_token=create_access_token(identity=user.id)
         response = make_response({'user':user.to_dict()},201)
         set_access_cookies(response,token)
-        set_refresh_cookies(response,refresh_token)
         return response
 
     except Exception as e:
@@ -388,10 +386,8 @@ def login_user():
     if user := User.query.filter_by(email=data.get("email", "")).first():
         if user.authenticate(data.get('password','')):
             token = create_access_token(identity=user.id)
-            refresh_token = create_access_token(identity=user.id)
             response = make_response({'user': user.to_dict()}, 201)
             set_access_cookies(response, token)
-            set_refresh_cookies(response, refresh_token)
             return response
         return make_response({'error':'Invalid Username or Password'}, 401)
     return make_response({'error': 'User not found'}, 404)
@@ -405,10 +401,8 @@ def signupseller():
         db.session.add(seller)
         db.session.commit()
         token = create_access_token(identity=seller.id)
-        refresh_token=create_access_token(identity=seller.id)
         response = make_response({'seller':seller.to_dict()},201)
         set_access_cookies(response,token)
-        set_refresh_cookies(response,refresh_token)
         return response
 
     except Exception as e:
@@ -421,10 +415,10 @@ def login_seller():
     if seller := Seller.query.filter_by(email=data.get("email", "")).first():
         if seller.authenticate(data.get('password','')):
             token = create_access_token(identity=seller.id)
-            refresh_token=create_access_token(identity=seller.id)
+
             response = make_response({'user':seller.to_dict()},201)
             set_access_cookies(response,token)
-            set_refresh_cookies(response,refresh_token)
+
             return response
         return make_response({'error':'Invalid Username or Password'}, 401)
     return make_response({'error': 'User not found'}, 404)
@@ -529,27 +523,7 @@ api.add_resource(Favorites, '/favorites', '/favorites/<int:favorite_id>')
 api.add_resource(FormItems, '/form-items', '/form-items/<int:form_item_id>')
 
 
-# @app.route('/refresh_token/user', methods=['POST'])
-# @jwt_required(refresh=True)
-# def refresh_token():
-#     id_ = get_jwt_identity()
-#     user = db.session.get(User, id_)
-#     # Generate a new access token
-#     new_access_token = create_access_token(identity=id_)
-#     response = make_response({"user": user.to_dict()}, 200)
-#     set_access_cookies(response, new_access_token)
-#     return response
 
-# @app.route('/refresh_token/seller', methods=['POST'])
-# @jwt_required(refresh=True)
-# def refresh_token():
-#     id_ = get_jwt_identity()
-#     seller = db.session.get(Seller, id_)
-#     # Generate a new access token
-#     new_access_token = create_access_token(identity=id_)
-#     response = make_response({"seller": seller.to_dict()}, 200)
-#     set_access_cookies(response, new_access_token)
-#     return response
 
 if __name__ == '__main__':
     app.run(port=5555, debug=True, use_debugger=True,use_reloader=False)
