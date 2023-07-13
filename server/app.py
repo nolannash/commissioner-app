@@ -315,17 +315,20 @@ class SellerItems(Resource):
 
     @jwt_required()
     def post(self, id):
-        data = request.get_json()
+        data = request.form
         seller = Seller.query.get(id)
         if not seller:
             return {'message': 'Seller not found'}, 404
-        print(data)
         item = Item(seller_id=seller.id, **data)
-        print(item)
         try:
-            db.session.add(item)
-            db.session.commit()
-            return {'message': 'Item created successfully'}, 201
+            file = request.files['file']
+            if file and allowed_file(file.filename):
+                filepath = save_file(file)
+
+                Item.profile_photo = filepath
+                db.session.add(item)
+                db.session.commit()
+                return {'message': 'Item created successfully'}, 201
         except ValueError as e:
             return {'message': str(e)}, 400
 
@@ -406,19 +409,28 @@ def signupseller():
     except Exception as e:
         return make_response({'error':str(e)},400)
 
-@app.route('/login/seller',methods={'POST'})
+@app.route('/login/seller', methods=['POST'])
 def login_seller():
     data = request.get_json()
-    if seller := Seller.query.filter_by(email=data.get("email", "")).first():
-        if seller.authenticate(data.get('password','')):
+    email = data.get('email', '')
+    password = data.get('password', '')
+
+    seller = Seller.query.filter_by(email=email).first()
+    user = User.query.filter_by(email=email).first()
+
+    if seller and not user:  # Check if the email belongs to a Seller and not a User
+        if seller.authenticate(password):
             token = create_access_token(identity=seller.id)
-
-            response = make_response({'user':seller.to_dict()},201)
-            set_access_cookies(response,token)
-
+            response = make_response({'seller': seller.to_dict()}, 201)
+            set_access_cookies(response, token)
             return response
-        return make_response({'error':'Invalid Username or Password'}, 401)
-    return make_response({'error': 'User not found'}, 404)
+        else:
+            return make_response({'error': 'Invalid Username or Password'}, 401)
+    elif user:
+        return make_response({'error': 'Please sign in as a user'}, 400)
+    else:
+        return make_response({'error': 'User not found'}, 404)
+
 
 @app.route('/users/<int:user_id>/profile-photo', methods=['POST'])
 def upload_user_profile_photo(user_id):

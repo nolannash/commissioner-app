@@ -88,7 +88,7 @@ const SellerAccountInfo = () => {
 
   const handleProfileEdit = async (values) => {
     try {
-      const { shopname } = values;
+      const { shopname, email} = values;
 
       const response = await fetch(`/sellers/${user.id}`, {
         method: 'PATCH',
@@ -96,13 +96,13 @@ const SellerAccountInfo = () => {
           'Content-Type': 'application/json',
           'X-CSRF-Token': csrfToken,
         },
-        body: JSON.stringify({ shopname }),
+        body: JSON.stringify({ shopname, email }),
       });
 
       if (response.ok) {
         // Profile successfully updated
         toggleEditMode();
-        refreshUser(); // Update the user context with the latest data
+        refreshUser(user.id, 'sellers'); // Update the user context with the latest data
       } else {
         // Error updating profile
         const errorData = await response.json();
