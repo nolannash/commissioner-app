@@ -77,7 +77,7 @@ const AuthProvider = ({ children }) => {
 
       if (response.ok) {
         history.push('/landing')
-        setUser(null);
+        await setUser(null);
       } else {
         const errorData = await response.json();
         throw new Error(errorData.message || 'Logout failed');

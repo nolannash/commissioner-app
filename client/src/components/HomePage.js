@@ -38,7 +38,7 @@ const HomePage = () => {
             </div>
             {user ? (
             <>
-            <Link to ={'/UserProfile'}>
+            <Link to ={'/userProfile'}>
                 <Button color='secondary'>Profile</Button>
             </Link>
             <Link to ={'/'}>

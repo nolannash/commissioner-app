@@ -8,6 +8,7 @@ import LandingPage from './LandingPage';
 import HomePage from './HomePage';
 import SellerPage from './Sellerpage';
 import ItemForm from './ItemForm';
+import UserProfile from './UserProfile';
 
 const App = () => {
   return (
@@ -32,6 +33,9 @@ const App = () => {
           </Route>
           <Route path = '/itemForm'>
             <ItemForm></ItemForm>
+          </Route>
+          <Route path='/userProfile'>
+            <UserProfile/>
           </Route>
         </Switch>
       </Router>

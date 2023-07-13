@@ -28,7 +28,6 @@ class User(db.Model, SerializerMixin):
     favorites = db.relationship('Favorite', back_populates='user')
     orders = db.relationship('Order', back_populates='user')
 
-    serialize_rules=('-orders.user')
 
     @validates("username")
     def validate_username(self, key, username):
