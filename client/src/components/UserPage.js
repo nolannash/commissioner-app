@@ -11,8 +11,7 @@ import {
 } from '@mui/material';
 import {
   Search as SearchIcon,
-  Store,
-  Star,
+  ViewList,
   Receipt,
   AccountBox,
   DeleteSharp,
@@ -20,19 +19,14 @@ import {
 import { AuthContext } from '../contexts/AuthContext';
 import SellerItems from './SellerItemsPage';
 
-const UserProfile = () => {
+const UserPage = () => {
   const { user, logout } = useContext(AuthContext);
   const [activeSection, setActiveSection] = useState(0);
-  const [activeSubSection, setActiveSubSection] = useState(0);
   const [deletePopoverOpen, setDeletePopoverOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState(null);
 
   const handleTabChange = (event, newValue) => {
     setActiveSection(newValue);
-  };
-
-  const handleSubTabChange = (event, newValue) => {
-    setActiveSubSection(newValue);
   };
 
   const handleDeleteProfileClick = (event) => {
@@ -58,14 +52,16 @@ const UserProfile = () => {
     setDeletePopoverOpen(false);
   };
 
-  const renderSubSection = () => {
-    switch (activeSubSection) {
+  const renderSection = () => {
+    switch (activeSection) {
       case 0:
-        return <Shops />;
+        return <SellerItems />;
       case 1:
-        return <Items />;
+        return <Orders />;
+      case 2:
+        return <AccountInfo handleDeleteProfileClick={handleDeleteProfileClick} />;
       default:
-        return <Shops />;
+        return <AccountInfo handleDeleteProfileClick={handleDeleteProfileClick} />;
     }
   };
 
@@ -94,33 +90,11 @@ const UserProfile = () => {
           },
         }}
       >
-        <Tab label="Favorites" icon={<Star />} />
+        <Tab label="Items" icon={<ViewList />} />
         <Tab label="Orders" icon={<Receipt />} />
         <Tab label="Profile" icon={<AccountBox />} />
       </Tabs>
-      {activeSection === 0 && (
-        <Tabs
-          value={activeSubSection}
-          onChange={handleSubTabChange}
-          centered
-          indicatorColor="primary"
-          textColor="primary"
-          sx={{
-            '& .Mui-selected': {
-              bgcolor: 'primary.contrastText',
-              color: 'primary.main',
-            },
-          }}
-        >
-          <Tab label="Shops" icon={<Store />} />
-          <Tab label="Items" icon={<Star />} />
-        </Tabs>
-      )}
-      {activeSection === 0 ? (
-        renderSubSection()
-      ) : (
-        <SectionContent activeSection={activeSection} handleDeleteProfileClick={handleDeleteProfileClick} />
-      )}
+      {renderSection()}
       <Popover
         open={deletePopoverOpen}
         anchorEl={anchorEl}
@@ -145,17 +119,6 @@ const UserProfile = () => {
       </Popover>
     </AppBar>
   );
-};
-
-const SectionContent = ({ activeSection, handleDeleteProfileClick }) => {
-  switch (activeSection) {
-    case 1:
-      return <Orders />;
-    case 2:
-      return <AccountInfo handleDeleteProfileClick={handleDeleteProfileClick} />;
-    default:
-      return <AccountInfo handleDeleteProfileClick={handleDeleteProfileClick} />;
-  }
 };
 
 const AccountInfo = ({ handleDeleteProfileClick }) => {
@@ -187,22 +150,4 @@ const Orders = () => {
   );
 };
 
-const Shops = () => {
-  return (
-    <div>
-      <Typography variant="h6">Shops</Typography>
-      {/* Render shops */}
-    </div>
-  );
-};
-
-const Items = () => {
-  return (
-    <div>
-      <Typography variant="h6">Items</Typography>
-      {/* Render items */}
-    </div>
-  );
-};
-
-export default UserProfile;
+export default UserPage;

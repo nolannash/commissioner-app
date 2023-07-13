@@ -32,7 +32,7 @@ const HomePage = () => {
             </Link>
             {user ? (
             <>
-            <Link to ={'/userProfile'}>
+            <Link to ={'/userPage'}>
                 <Button variant='contained'color='secondary'>Profile</Button>
             </Link>
             <Link to ={'/'}>

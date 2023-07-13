@@ -8,7 +8,7 @@ import LandingPage from './LandingPage';
 import HomePage from './HomePage';
 import SellerPage from './Sellerpage';
 import ItemForm from './ItemForm';
-import UserProfile from './UserProfile';
+import UserPage from './UserPage';
 import Search from './Search';
 
 const App = () => {
@@ -40,8 +40,8 @@ const App = () => {
           <Route path = '/itemForm'>
             <ItemForm></ItemForm>
           </Route>
-          <Route path='/userProfile'>
-            <UserProfile/>
+          <Route path='/userPage'>
+            <UserPage/>
           </Route>
           <Route path='/search'>
             <Search tabs={tabs}></Search>
