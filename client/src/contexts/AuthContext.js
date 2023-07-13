@@ -94,6 +94,7 @@ const AuthProvider = ({ children }) => {
         signUp: handleSignUp,
         login: handleLogin,
         logout: handleLogout,
+        csrfToken,
       }}
     >
       {children}

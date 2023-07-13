@@ -320,7 +320,7 @@ class SellerItems(Resource):
         if not seller:
             return {'message': 'Seller not found'}, 404
         print(data)
-        item = Item(seller=seller, **data)
+        item = Item(seller_id=seller.id, **data)
         print(item)
         try:
             db.session.add(item)

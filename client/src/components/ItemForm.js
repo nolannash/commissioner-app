@@ -1,7 +1,7 @@
 import React, { useContext, useState } from 'react';
 import { AuthContext } from '../contexts/AuthContext';
 import { useFormik } from 'formik';
-import { TextField, Button } from '@mui/material';
+import { TextField, Button, Box, Container, Typography } from '@mui/material';
 import { useHistory } from 'react-router-dom';
 import * as Yup from 'yup';
 
@@ -37,8 +37,8 @@ const validationSchema = Yup.object().shape({
     }),
 });
 
-const ItemForm = ({ onSubmit }) => {
-    const { user } = useContext(AuthContext);
+const ItemForm = () => {
+    const { user, csrfToken } = useContext(AuthContext);
     const history = useHistory();
     const initialValues = {
     name: '',
@@ -70,16 +70,20 @@ const ItemForm = ({ onSubmit }) => {
         const response = await fetch(`/sellers/${user.id}/items`, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json',
+            'X-CSRF-Token': csrfToken,
             },
             body: formData,
-            });
+        });
         if (response.ok) {
             const data = await response.json();
             console.log(data);
             history.push('/sellerPage');
         } else {
-            console.error('Form submission failed:', response.status, response.statusText);
+            console.error(
+            'Form submission failed:',
+            response.status,
+            response.statusText
+            );
         }
         } catch (error) {
         console.error('An error occurred:', error);
@@ -113,89 +117,135 @@ const ItemForm = ({ onSubmit }) => {
     };
 
     return (
-    <form onSubmit={formik.handleSubmit}>
-        <div className="item-form-group">
-        <TextField
-            type="text"
-            name="name"
-            label="Item Name"
-            error={formik.touched.name && !!formik.errors.name}
-            helperText={formik.touched.name && formik.errors.name}
-            {...formik.getFieldProps('name')}
-        />
-        </div>
-        <div className="item-form-group">
-        <TextField
-            type="text"
-            name="description"
-            label="Item Description"
-            multiline
-            rows={4}
-            error={formik.touched.description && !!formik.errors.description}
-            helperText={formik.touched.description && formik.errors.description}
-            {...formik.getFieldProps('description')}
-        />
-        </div>
-        <div className="item-form-group">
-        <TextField
-            type="number"
-            name="price"
-            label="Price"
-            error={formik.touched.price && !!formik.errors.price}
-            helperText={formik.touched.price && formik.errors.price}
-            {...formik.getFieldProps('price')}
-        />
-        </div>
-        <div className="item-form-group">
-        <TextField
-            type="number"
-            name="batchSize"
-            label="Batch Size"
-            error={formik.touched.batchSize && !!formik.errors.batchSize}
-            helperText={formik.touched.batchSize && formik.errors.batchSize}
-            {...formik.getFieldProps('batchSize')}
-        />
-        </div>
-        <div className="item-form-group">
-        <TextField
-            type="number"
-            name="rolloverPeriod"
-            label="Rollover Period (optional)"
-            error={formik.touched.rolloverPeriod && !!formik.errors.rolloverPeriod}
-            helperText={formik.touched.rolloverPeriod && formik.errors.rolloverPeriod}
-            {...formik.getFieldProps('rolloverPeriod')}
-        />
-        </div>
-        <div className="item-form-group">
-        <input
-            type="file"
-            name="images"
-            multiple
-            accept="image/jpeg, image/jpg, application/pdf"
-            onChange={handleImageChange}
-        />
-        {formik.touched.images && formik.errors.images && (
-            <div>{formik.errors.images}</div>
-        )}
-        </div>
-        <div className="image-preview-container">
-        {imagePreviews.map((preview, index) => (
-            <div className="image-preview-item" key={index}>
-            <img src={preview} alt={`Preview ${index}`} className="preview-image" />
-            <button
-                type="button"
-                className="remove-image-button"
-                onClick={() => handleRemoveImage(index)}
+    <Container maxWidth="md">
+        <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+        <Box sx={{ width: '45%' }}>
+            <Typography variant="h6" gutterBottom>
+            Item Info
+            </Typography>
+            <form onSubmit={formik.handleSubmit}>
+            <Box sx={{ marginBottom: '16px' }}>
+                <TextField
+                type="text"
+                name="name"
+                label="Item Name"
+                error={formik.touched.name && !!formik.errors.name}
+                helperText={formik.touched.name && formik.errors.name}
+                {...formik.getFieldProps('name')}
+                fullWidth
+                />
+            </Box>
+            <Box sx={{ marginBottom: '16px' }}>
+                <TextField
+                type="text"
+                name="description"
+                label="Item Description"
+                multiline
+                rows={4}
+                error={formik.touched.description && !!formik.errors.description}
+                helperText={formik.touched.description && formik.errors.description}
+                {...formik.getFieldProps('description')}
+                fullWidth
+                />
+            </Box>
+            <Box sx={{ marginBottom: '16px' }}>
+                <TextField
+                type="number"
+                name="price"
+                label="Price"
+                error={formik.touched.price && !!formik.errors.price}
+                helperText={formik.touched.price && formik.errors.price}
+                {...formik.getFieldProps('price')}
+                fullWidth
+                />
+            </Box>
+            <Box sx={{ marginBottom: '16px' }}>
+                <TextField
+                type="number"
+                name="batchSize"
+                label="Batch Size"
+                error={formik.touched.batchSize && !!formik.errors.batchSize}
+                helperText={formik.touched.batchSize && formik.errors.batchSize}
+                {...formik.getFieldProps('batchSize')}
+                fullWidth
+                />
+            </Box>
+            <Box sx={{ marginBottom: '16px' }}>
+                <TextField
+                type="number"
+                name="rolloverPeriod"
+                label="Rollover Period (optional)"
+                error={formik.touched.rolloverPeriod && !!formik.errors.rolloverPeriod}
+                helperText={formik.touched.rolloverPeriod && formik.errors.rolloverPeriod}
+                {...formik.getFieldProps('rolloverPeriod')}
+                fullWidth
+                />
+            </Box>
+            <Box sx={{ marginBottom: '16px' }}>
+                <input
+                type="file"
+                name="images"
+                multiple
+                accept="image/jpeg, image/jpg, application/pdf"
+                onChange={handleImageChange}
+                />
+                {formik.touched.images && formik.errors.images && (
+                <div>{formik.errors.images}</div>
+                )}
+            </Box>
+
+            <Button type="submit" variant="contained" color="primary">
+                Post Item
+            </Button>
+            </form>
+        </Box>
+
+        <Box sx={{ width: '45%' }}>
+            <Typography variant="h6" gutterBottom>
+            Images
+            </Typography>
+            <Box
+            sx={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
+                gap: '16px',
+            }}
             >
-                X
-            </button>
-            </div>
-        ))}
-        </div>
-        <Button type="submit" variant="contained" color="primary">
-        Post Item
-        </Button>
-    </form>
+            {imagePreviews.map((preview, index) => (
+                <Box
+                key={index}
+                sx={{
+                    position: 'relative',
+                    border: '1px solid #ccc',
+                    borderRadius: '4px',
+                    padding: '8px',
+                }}
+                >
+                <img
+                    src={preview}
+                    alt={`Preview ${index}`}
+                    style={{ width: '100%', height: 'auto' }}
+                />
+                <Button
+                    variant="contained"
+                    color="secondary"
+                    size="small"
+                    onClick={() => handleRemoveImage(index)}
+                    sx={{
+                    position: 'absolute',
+                    top: '8px',
+                    right: '8px',
+                    zIndex: 1,
+                    }}
+                >
+                    Remove
+                </Button>
+                </Box>
+            ))}
+            </Box>
+        </Box>
+        </Box>
+    </Container>
     );
 };
 
