@@ -4,7 +4,7 @@ from flask_mail import Message
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import relationship, validates
 from sqlalchemy_serializer import SerializerMixin
-from werkzeug.utils import secure_filename
+
 
 from config import db, bcrypt, mail
 
@@ -13,21 +13,7 @@ from datetime import datetime
 import re
 import os
 
-UPLOAD_FOLDER = './UPLOAD_FOLDER'
-ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
 
-
-def allowed_file(filename):
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
-
-
-def save_file(file):
-    if file and allowed_file(file.filename):
-        filename = secure_filename(file.filename)
-        file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-        file.save(file_path)
-        return file_path
-    return None
 
 class User(db.Model, SerializerMixin):
     __tablename__ = 'users'
@@ -42,7 +28,6 @@ class User(db.Model, SerializerMixin):
     favorites = db.relationship('Favorite', back_populates='user')
     orders = db.relationship('Order', back_populates='user')
 
-    serialize_rules=('-orders.user')
 
     @validates("username")
     def validate_username(self, key, username):

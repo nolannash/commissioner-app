@@ -6,8 +6,9 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 from sqlalchemy import MetaData
 from flask_mail import Mail
+from werkzeug.utils import secure_filename
 from flask_jwt_extended import JWTManager
-from datetime import timedelta
+
 import os
 
 app = Flask(__name__)
@@ -31,6 +32,22 @@ bcrypt = Bcrypt(app)
 
 api = Api(app)
 
+UPLOAD_FOLDER = './UPLOAD_FOLDER'
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
+
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+
+def save_file(file):
+    if file and allowed_file(file.filename):
+        filename = secure_filename(file.filename)
+        file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        file.save(file_path)
+        return file_path
+    return None
+
 CORS(app)
 
 jwt = JWTManager(app)
@@ -38,7 +55,7 @@ app.config['JWT_SECRET_KEY'] = os.environ.get('JWT_SECRET_KEY', 'dev')
 
 app.config["JWT_TOKEN_LOCATION"] = ["headers", "cookies"]
 app.config['JWT_ACCESS_COOKIE_SAMESITE'] = 'None'
-app.config['JWT_ACCESS_TOKEN_EXPIRES']= timedelta(minutes=10)
+
 
 app.config['MAIL_SERVER'] = 'your_mail_server'
 app.config['MAIL_PORT'] = 587  # or the appropriate port number
