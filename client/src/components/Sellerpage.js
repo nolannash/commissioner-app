@@ -15,7 +15,7 @@ import {
   AccountBox,
 } from '@mui/icons-material';
 import { AuthContext } from '../contexts/AuthContext';
-import { useHistory } from 'react-router-dom';
+
 import SellerItems from './SellerItemsPage';
 import SellerAccountInfo from './SellerAct';
 

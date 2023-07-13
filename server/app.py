@@ -76,10 +76,11 @@ class Sellers(Resource):
         try:
             seller.shopname = data.get('shopname', seller.shopname)
             seller.email = data.get('email', seller.email)
-            seller.password_hash = data.get('password', seller.password_hash)
+            
             seller.email_notifications = data.get('email_notifications', seller.email_notifications)
             db.session.commit()
-            return {'message': 'Seller updated successfully'}
+            # return {'message': 'Seller updated successfully'}
+            return make_response(seller.to_dict(),204)
         except ValueError as e:
             return {'message': str(e)}, 400
 

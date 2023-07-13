@@ -1,4 +1,4 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import {
   Typography,
   Button,
@@ -14,24 +14,13 @@ import {
   IconButton,
   TextField,
 } from '@mui/material';
-import { Edit, DeleteSharp, Person, AddPhotoAlternate } from '@mui/icons-material';
+import { DeleteSharp, Person, AddPhotoAlternate } from '@mui/icons-material';
 import { AuthContext } from '../contexts/AuthContext';
 import { Formik, Field, Form, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
 
 const validationSchema = Yup.object().shape({
   email: Yup.string().email('Invalid email address').required('Email is required'),
-  password: Yup.string()
-    .min(8, 'Password must be at least 8 characters long')
-    .matches(/^\S+$/, 'Password cannot contain spaces')
-    .matches(/[A-Z]/, 'Password must have an uppercase letter')
-    .matches(/[a-z]/, 'Password must have a lowercase letter')
-    .matches(/[0-9]/, 'Password must contain at least 1 number')
-    .matches(/[^a-zA-Z0-9]/, 'Password must have at least one special character')
-    .required('Please enter a password'),
-  confirmPassword: Yup.string()
-    .oneOf([Yup.ref('password'), null], 'Passwords must match')
-    .required('Please confirm your password'),
   shopname: Yup.string()
     .min(2, 'Shop Name must be between 2 and 20 characters')
     .max(20, 'Shop Name must be between 2 and 20 characters')
@@ -40,7 +29,7 @@ const validationSchema = Yup.object().shape({
 });
 
 const SellerAccountInfo = () => {
-  const { user, csrfToken } = useContext(AuthContext);
+  const { user, csrfToken, refreshUser } = useContext(AuthContext);
   const [emailNotifications, setEmailNotifications] = useState(user.email_notifications);
   const [popoverAnchorEl, setPopoverAnchorEl] = useState(null);
   const [showUploadBanner, setShowUploadBanner] = useState(!user.logo_banner);
@@ -48,11 +37,16 @@ const SellerAccountInfo = () => {
   const [editMode, setEditMode] = useState(false);
   const [profilePhoto, setProfilePhoto] = useState(null);
 
+  useEffect(() => {
+    // Update emailNotifications state when user.email_notifications change
+    setEmailNotifications(user.email_notifications);
+  }, [user.email_notifications]);
+
   const handleEmailNotificationsChange = (event) => {
     const checked = event.target.checked;
     if (checked) {
       setEmailNotifications(true);
-      // call function to update email notifications
+      // Call function to update email notifications in the backend
     } else {
       setPopoverAnchorEl(event.target);
     }
@@ -94,7 +88,7 @@ const SellerAccountInfo = () => {
 
   const handleProfileEdit = async (values) => {
     try {
-      const { confirmPassword, ...signupData } = values;
+      const { shopname } = values;
 
       const response = await fetch(`/sellers/${user.id}`, {
         method: 'PATCH',
@@ -102,12 +96,13 @@ const SellerAccountInfo = () => {
           'Content-Type': 'application/json',
           'X-CSRF-Token': csrfToken,
         },
-        body: JSON.stringify(signupData),
+        body: JSON.stringify({ shopname }),
       });
 
       if (response.ok) {
         // Profile successfully updated
         toggleEditMode();
+        refreshUser(); // Update the user context with the latest data
       } else {
         // Error updating profile
         const errorData = await response.json();
@@ -137,8 +132,6 @@ const SellerAccountInfo = () => {
             <Formik
               initialValues={{
                 email: user.email,
-                password: '',
-                confirmPassword: '',
                 shopname: user.shopname,
               }}
               validationSchema={validationSchema}
@@ -158,32 +151,6 @@ const SellerAccountInfo = () => {
                       helperText={touched.email && errors.email}
                     />
                     <ErrorMessage name="email" component="div" />
-                  </div>
-                  <div>
-                    <Field
-                      as={TextField}
-                      type="password"
-                      name="password"
-                      label="Password"
-                      variant="outlined"
-                      fullWidth
-                      error={touched.password && errors.password}
-                      helperText={touched.password && errors.password}
-                    />
-                    <ErrorMessage name="password" component="div" />
-                  </div>
-                  <div>
-                    <Field
-                      as={TextField}
-                      type="password"
-                      name="confirmPassword"
-                      label="Confirm Password"
-                      variant="outlined"
-                      fullWidth
-                      error={touched.confirmPassword && errors.confirmPassword}
-                      helperText={touched.confirmPassword && errors.confirmPassword}
-                    />
-                    <ErrorMessage name="confirmPassword" component="div" />
                   </div>
                   <div>
                     <Field

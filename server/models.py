@@ -78,7 +78,6 @@ class Seller(db.Model, SerializerMixin):
     bio = db.Column(db.String)
     email_notifications = db.Column(db.Boolean, default=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    
 
     items = db.relationship('Item', back_populates='seller')
     orders = db.relationship('Order', back_populates='seller')
@@ -116,7 +115,9 @@ class Seller(db.Model, SerializerMixin):
 
     def authenticate(self, password):
         return bcrypt.check_password_hash(self._password_hash, password.encode("utf-8"))
+    
 
+    serialize_rules=('-password_hash','-password')
 
     def __repr__(self):
         return f"<Seller {self.id}>"
