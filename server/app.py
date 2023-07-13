@@ -1,4 +1,4 @@
-from flask import request, make_response, jsonify
+from flask import request, make_response, jsonify,send_file, send_from_directory
 from flask_restful import Resource
 from flask_jwt_extended import jwt_required, create_access_token, get_jwt_identity, set_access_cookies,  unset_jwt_cookies
 from datetime import datetime, timedelta
@@ -6,6 +6,7 @@ import re
 from werkzeug.utils import secure_filename
 from config import app, db, api,save_file, allowed_file
 from models import User, Seller, Item, Order, Favorite, FormItem, ItemImage
+from werkzeug.utils import secure_filename
 
 
 class Users(Resource):
@@ -431,6 +432,10 @@ def login_seller():
     else:
         return make_response({'error': 'User not found'}, 404)
 
+@app.route('/uploads/<path:filename>')
+def serve_uploaded_file(filename):
+    print(filename)
+    return send_from_directory(app.config['UPLOAD_FOLDER'], secure_filename(filename))
 
 @app.route('/users/<int:user_id>/profile-photo', methods=['POST'])
 def upload_user_profile_photo(user_id):
@@ -450,17 +455,36 @@ def upload_user_profile_photo(user_id):
         return {'message': 'Invalid file'}, 400
 
 @jwt_required()
-@app.route('/sellers/<int:seller_id>/profile_photo', methods=['POST'])
+@app.route('/sellers/<int:seller_id>/profile_photo', methods=['PATCH'])
 def upload_seller_profile_photo(seller_id):
     data = request.form
     file = request.files.get('profilePhoto')
-    seller = db.session.get(Seller,data.get('userId'))
+    seller = db.session.query(Seller).get(data.get('userId'))
     if not seller:
-        return {'message': 'Seller not found'}, 404
-    print(file,file.filename,'file')
+        return jsonify({'message': 'Seller not found'}), 404
+
+    if not file:
+        return jsonify({'message': 'No file uploaded'}), 400
+
     file_path = save_file(file)
     seller.profile_photo = file_path
-    return make_response({'user':seller.to_dict()},204)
+    db.session.commit()
+    return jsonify({'message': 'Profile photo uploaded successfully'}), 204
+
+
+def delete_seller_profile_photo(seller_id):
+    seller = db.session.query(Seller).get(seller_id)
+    if not seller:
+        return jsonify({'message': 'Seller not found'}), 404
+
+    if not seller.profile_photo:
+        return jsonify({'message': 'Profile photo not found'}), 404
+
+    # Delete the profile photo file from the filesystem if desired
+
+    seller.profile_photo = None
+    db.session.commit()
+    return jsonify({'message': 'Profile photo deleted successfully'}), 204
     
 
 @app.route('/sellers/<int:seller_id>/logo-banner', methods=['POST'])

@@ -116,7 +116,7 @@ const SellerAccountInfo = () => {
       console.log(profilePhoto);
       try {
         const response = await fetch(`/sellers/${user.id}/profile_photo`, {
-          method: 'POST',
+          method: 'PATCH',
           headers: {
             'X-CSRF-Token': csrfToken,
           },
@@ -125,8 +125,8 @@ const SellerAccountInfo = () => {
 
         if (response.ok) {
           console.log('Profile photo uploaded successfully');
+          refreshUser(user.id, 'sellers');
         } else {
-          // Handle the error if the upload fails
           console.error('Failed to upload profile photo');
         }
       } catch (error) {
@@ -335,7 +335,7 @@ const SellerAccountInfo = () => {
               <Box display="flex" alignItems="flex-start" justifyContent="flex-start" mb={2}>
                 {/* Profile photo overlaid as an avatar */}
                 <Avatar
-                  src={user.profile_photo}
+                  src={`/uploads/${user.profile_photo}`}
                   alt="Profile Photo"
                   sx={{ width: 80, height: 80, marginRight: 2, marginTop: -40 }}
                 >

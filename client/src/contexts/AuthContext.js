@@ -77,7 +77,7 @@ const AuthProvider = ({ children }) => {
       });
 
       if (response.ok) {
-        await history.push('/landing')
+        await history.push('/')
         setUser(null);
       } else {
         const errorData = await response.json();

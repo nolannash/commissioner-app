@@ -18,7 +18,7 @@ app.secret_key = os.environ.get('JWT_SECRET_KEY', 'dev')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.json.compact = False
 
-UPLOAD_FOLDER = './UPLOAD_FOLDER'
+UPLOAD_FOLDER = os.path.join(app.root_path, 'UPLOAD_FOLDER')
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 metadata = MetaData(naming_convention={
@@ -45,7 +45,8 @@ def save_file(file):
         filename = secure_filename(file.filename)
         file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
         file.save(file_path)
-        return file_path
+        print(file_path)
+        return filename
     return None
 
 CORS(app)
