@@ -30,11 +30,6 @@ const SellerPage = () => {
     setActiveSection(newValue);
   };
 
-  const handleDeleteProfileClick = (event) => {
-    setAnchorEl(event.currentTarget);
-    setDeletePopoverOpen(true);
-  };
-
   const handleDeleteProfileConfirm = async () => {
     try {
       // Perform the profile deletion API request
@@ -60,9 +55,9 @@ const SellerPage = () => {
       case 1:
         return <Orders />;
       case 2:
-        return <SellerAccountInfo handleDeleteProfileClick={handleDeleteProfileClick} />;
+        return <SellerAccountInfo />;
       default:
-        return <SellerAccountInfo handleDeleteProfileClick={handleDeleteProfileClick} />;
+        return <SellerAccountInfo />;
     }
   };
 
