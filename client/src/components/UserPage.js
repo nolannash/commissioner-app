@@ -10,7 +10,7 @@ import {
   Popover,
 } from '@mui/material';
 import {
-  Search as SearchIcon,
+
   ViewList,
   Receipt,
   AccountBox,
