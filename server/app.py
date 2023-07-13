@@ -299,7 +299,6 @@ class Recent(Resource):
 @jwt_required()
 def logout():
     response = jsonify({'message': 'Logout successful'})
-    print(response)
     unset_jwt_cookies(response)
     return response, 200
 
@@ -365,7 +364,6 @@ class SellerItems(Resource):
 @app.route("/signup/user",methods=["POST"])
 def signupuser():
     data = request.get_json()
-    print(data)
     try: 
         user=User(username=data['username'],email=data['email'])
         user.password_hash = data['password']
@@ -382,7 +380,6 @@ def signupuser():
 @app.route('/login/user',methods={'POST'})
 def login_user():
     data = request.get_json()
-    print (data)
     if user := User.query.filter_by(email=data.get("email", "")).first():
         if user.authenticate(data.get('password','')):
             token = create_access_token(identity=user.id)
@@ -411,7 +408,6 @@ def signupseller():
 @app.route('/login/seller',methods={'POST'})
 def login_seller():
     data = request.get_json()
-    print (data);
     if seller := Seller.query.filter_by(email=data.get("email", "")).first():
         if seller.authenticate(data.get('password','')):
             token = create_access_token(identity=seller.id)

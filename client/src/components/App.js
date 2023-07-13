@@ -9,8 +9,14 @@ import HomePage from './HomePage';
 import SellerPage from './Sellerpage';
 import ItemForm from './ItemForm';
 import UserProfile from './UserProfile';
+import Search from './Search';
 
 const App = () => {
+  const tabs = [
+    { type: 'items', label: 'Items' },
+    { type: 'store', label: 'Store' },
+];
+
   return (
     <AuthProvider> 
       <CssBaseline/>
@@ -36,6 +42,9 @@ const App = () => {
           </Route>
           <Route path='/userProfile'>
             <UserProfile/>
+          </Route>
+          <Route path='/search'>
+            <Search tabs={tabs}></Search>
           </Route>
         </Switch>
       </Router>
