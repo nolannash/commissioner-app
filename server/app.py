@@ -3,7 +3,7 @@ from flask_restful import Resource
 from flask_jwt_extended import jwt_required, create_access_token, get_jwt_identity, set_access_cookies,  unset_jwt_cookies
 from datetime import datetime, timedelta
 import re
-
+from werkzeug.utils import secure_filename
 from config import app, db, api,save_file, allowed_file
 from models import User, Seller, Item, Order, Favorite, FormItem, ItemImage
 
@@ -449,39 +449,36 @@ def upload_user_profile_photo(user_id):
     else:
         return {'message': 'Invalid file'}, 400
 
-@app.route('/sellers/<int:seller_id>/profile-photo', methods=['POST'])
+@jwt_required()
+@app.route('/sellers/<int:seller_id>/profile_photo', methods=['POST'])
 def upload_seller_profile_photo(seller_id):
-    seller = Seller.query.get(seller_id)
+    data = request.form
+    file = request.files.get('profilePhoto')
+    seller = db.session.get(Seller,data.get('userId'))
     if not seller:
         return {'message': 'Seller not found'}, 404
-    file = request.files['file']
-    if file and allowed_file(file.filename):
-        filename = save_file(file)
-        if filename:
-            seller.profile_photo = filename
-            db.session.commit()
-            return {'message': 'Profile photo uploaded successfully'}, 200
-        else:
-            return {'message': 'Failed to save file'}, 400
-    else:
-        return {'message': 'Invalid file'}, 400
+    print(file,file.filename,'file')
+    file_path = save_file(file)
+    seller.profile_photo = file_path
+    return make_response({'user':seller.to_dict()},204)
+    
 
 @app.route('/sellers/<int:seller_id>/logo-banner', methods=['POST'])
 def upload_seller_logo_banner(seller_id):
-    seller = Seller.query.get(seller_id)
+    seller = db.session.get(Seller, data.get('userId'))
+    data = request.form
+    file = request.files.get('file')
     if not seller:
         return {'message': 'Seller not found'}, 404
-    file = request.files['file']
-    if file and allowed_file(file.filename):
-        filename = save_file(file)
-        if filename:
-            seller.logo_banner = filename
-            db.session.commit()
-            return {'message': 'Logo banner uploaded successfully'}, 200
-        else:
-            return {'message': 'Failed to save file'}, 400
+
+    filename = save_file(file)
+    if filename:
+        seller.logo_banner = filename
+        db.session.commit()
+        return {'message': 'Logo banner uploaded successfully'}, 200
     else:
-        return {'message': 'Invalid file'}, 400
+        return {'message': 'Failed to save file'}, 400
+
 
 @app.route('/items/<int:item_id>/images', methods=['POST'])
 def upload_item_images(item_id):

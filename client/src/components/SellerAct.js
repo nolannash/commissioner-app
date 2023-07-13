@@ -38,17 +38,47 @@ const SellerAccountInfo = () => {
   const [profilePhoto, setProfilePhoto] = useState(null);
 
   useEffect(() => {
-    // Update emailNotifications state when user.email_notifications change
     setEmailNotifications(user.email_notifications);
   }, [user.email_notifications]);
 
-  const handleEmailNotificationsChange = (event) => {
+  const handleEmailNotificationsChange = async (event) => {
     const checked = event.target.checked;
     if (checked) {
       setEmailNotifications(true);
-      // Call function to update email notifications in the backend
+      try {
+        const response = await fetch(`/sellers/${user.id}`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-Token': csrfToken,
+          },
+          body: JSON.stringify({ email_notifications: true }),
+        });
+        if (!response.ok) {
+          throw new Error('Failed to update email notifications');
+        }
+      } catch (error) {
+        console.error('Email Notifications Error:', error);
+        // Handle the error, show a notification, etc.
+      }
     } else {
-      setPopoverAnchorEl(event.target);
+      setEmailNotifications(false);
+      try {
+        const response = await fetch(`/sellers/${user.id}`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-Token': csrfToken,
+          },
+          body: JSON.stringify({ email_notifications: false }),
+        });
+        if (!response.ok) {
+          throw new Error('Failed to update email notifications');
+        }
+      } catch (error) {
+        console.error('Email Notifications Error:', error);
+        // Handle the error, show a notification, etc.
+      }
     }
   };
 
@@ -73,11 +103,36 @@ const SellerAccountInfo = () => {
   };
 
   const handleProfilePhotoChange = (event) => {
-    setProfilePhoto(event.target.files[0]);
+    const file = event.target.files[0];
+    setProfilePhoto(file);
   };
 
-  const handleUploadProfilePhoto = () => {
-    // Implement same as logo banner above
+  const handleUploadProfilePhoto = async () => {
+    if (profilePhoto) {
+      const formData = new FormData();
+      formData.append('userId', user.id);
+      formData.append('profilePhoto', profilePhoto);
+      console.log(formData);
+      console.log(profilePhoto);
+      try {
+        const response = await fetch(`/sellers/${user.id}/profile_photo`, {
+          method: 'POST',
+          headers: {
+            'X-CSRF-Token': csrfToken,
+          },
+          body: formData, profilePhoto, user
+        });
+
+        if (response.ok) {
+          console.log('Profile photo uploaded successfully');
+        } else {
+          // Handle the error if the upload fails
+          console.error('Failed to upload profile photo');
+        }
+      } catch (error) {
+        console.error('Upload Profile Photo Error:', error);
+      }
+    }
   };
 
   const open = Boolean(popoverAnchorEl);
@@ -88,7 +143,7 @@ const SellerAccountInfo = () => {
 
   const handleProfileEdit = async (values) => {
     try {
-      const { shopname, email} = values;
+      const { shopname, email } = values;
 
       const response = await fetch(`/sellers/${user.id}`, {
         method: 'PATCH',
@@ -100,11 +155,9 @@ const SellerAccountInfo = () => {
       });
 
       if (response.ok) {
-        // Profile successfully updated
         toggleEditMode();
-        refreshUser(user.id, 'sellers'); // Update the user context with the latest data
+        refreshUser(user.id, 'sellers');
       } else {
-        // Error updating profile
         const errorData = await response.json();
         throw new Error(errorData.message);
       }
