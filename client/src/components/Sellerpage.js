@@ -10,7 +10,7 @@ import {
   Popover,
 } from '@mui/material';
 import {
-  Search as SearchIcon,
+  
   ViewList,
   Receipt,
   AccountBox,
@@ -18,6 +18,7 @@ import {
 } from '@mui/icons-material';
 import { AuthContext } from '../contexts/AuthContext';
 import SellerItems from './SellerItemsPage';
+import SellerAccountInfo from './SellerAct';
 
 const SellerPage = () => {
   const { user, logout } = useContext(AuthContext);
@@ -59,17 +60,17 @@ const SellerPage = () => {
       case 1:
         return <Orders />;
       case 2:
-        return <AccountInfo handleDeleteProfileClick={handleDeleteProfileClick} />;
+        return <SellerAccountInfo handleDeleteProfileClick={handleDeleteProfileClick} />;
       default:
-        return <AccountInfo handleDeleteProfileClick={handleDeleteProfileClick} />;
+        return <SellerAccountInfo handleDeleteProfileClick={handleDeleteProfileClick} />;
     }
   };
 
   return (
     <AppBar position="static">
       <Toolbar>
-        <Typography variant="h4" component="div" sx={{ flexGrow: 1 }}>
-          {user.shopname}
+        <Typography variant="h4" component="div" sx={{ flexGrow: 1, textAlign:'center'}}>
+          {user.shopname} 
         </Typography>
         <Box sx={{ display: 'flex', alignItems: 'center', textAlign: 'center' }}>
           <Button variant="contained" onClick={logout} sx={{ ml: 2 }}>
@@ -87,6 +88,7 @@ const SellerPage = () => {
           '& .Mui-selected': {
             bgcolor: 'primary.contrastText',
             color: 'primary.main',
+            alignItems: 'center', textAlign: 'center',
           },
         }}
       >
@@ -121,25 +123,7 @@ const SellerPage = () => {
   );
 };
 
-const AccountInfo = ({ handleDeleteProfileClick }) => {
-  return (
-    <div>
-      <Typography variant="h6">Account Information</Typography>
-      <Button variant="contained" size="medium" color="secondary">
-        Edit Profile
-      </Button>
-      <Button
-        variant="contained"
-        color="error"
-        size="medium"
-        startIcon={<DeleteSharp />}
-        onClick={handleDeleteProfileClick}
-      >
-        Delete Profile
-      </Button>
-    </div>
-  );
-};
+
 
 const Orders = () => {
   return (
