@@ -7,7 +7,7 @@ from werkzeug.utils import secure_filename
 from config import app, db, api,save_file, allowed_file
 from models import User, Seller, Item, Order, Favorite, FormItem, ItemImage
 from werkzeug.utils import secure_filename
-
+import os
 
 class Users(Resource):
     @jwt_required()
@@ -77,6 +77,7 @@ class Sellers(Resource):
         try:
             seller.shopname = data.get('shopname', seller.shopname)
             seller.email = data.get('email', seller.email)
+            seller.bio = data.get('bio',seller.bio)
             
             seller.email_notifications = data.get('email_notifications', seller.email_notifications)
             db.session.commit()
@@ -87,7 +88,7 @@ class Sellers(Resource):
 
     @jwt_required()
     def delete(self, seller_id):
-        if seller := Seller.query.all(seller_id):
+        if seller := Seller.query.get(seller_id):
             db.session.delete(seller)
             db.session.commit()
             return {'message': 'Seller deleted successfully'}
@@ -456,7 +457,7 @@ def upload_user_profile_photo(user_id):
         return {'message': 'Invalid file'}, 400
 
 @jwt_required()
-@app.route('/sellers/<int:seller_id>/logo_banner', methods=['PATCH'])
+@app.route('/sellers/<int:seller_id>/logo_banner', methods=['PATCH','DELETE'])
 def handle_seller_logo_banner(seller_id):
     if request.method == 'PATCH':
         return upload_seller_logo_banner(seller_id)
@@ -468,6 +469,7 @@ def handle_seller_logo_banner(seller_id):
 def upload_seller_logo_banner(seller_id):
     data = request.form
     file = request.files.get('logoBanner')
+    print(file)
     seller = db.session.query(Seller).get(data.get('userId'))
     if not seller:
         return jsonify({'message': 'Seller not found'}), 404
@@ -481,23 +483,25 @@ def upload_seller_logo_banner(seller_id):
     return jsonify({'message': 'Profile Logo Banner successfully'}), 204
 
 
-def delete_seller_p(seller_id):
+def delete_seller_logo_banner(seller_id):
     seller = db.session.query(Seller).get(seller_id)
     if not seller:
         return jsonify({'message': 'Seller not found'}), 404
 
     if not seller.logo_banner:
         return jsonify({'message': 'Profile photo not found'}), 404
-    
+    file_path = seller.logo_banner
+    if os.path.exists(file_path):
+        os.remove(file_path)
 
-    seller.profile_photo = None
+    seller.logo_banner = None
     db.session.commit()
     return jsonify({'message': 'Profile photo deleted successfully'}), 204
     
 
-@app.route('/sellers/<int:seller_id>/profilePhoto', methods=['POST'])
+
 @jwt_required()
-@app.route('/sellers/<int:seller_id>/profile_photo', methods=['PATCH'])
+@app.route('/sellers/<int:seller_id>/profile_photo', methods=['PATCH','DELETE'])
 def handle_seller_profile_photo(seller_id):
     if request.method == 'PATCH':
         return upload_seller_profile_photo(seller_id)
@@ -530,7 +534,9 @@ def delete_seller_profile_photo(seller_id):
     if not seller.profile_photo:
         return jsonify({'message': 'Profile photo not found'}), 404
 
-    # Delete the profile photo file from the filesystem if desired
+    file_path = seller.profile_photo
+    if os.path.exists(file_path):
+        os.remove(file_path)
 
     seller.profile_photo = None
     db.session.commit()
