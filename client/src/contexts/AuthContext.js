@@ -34,7 +34,7 @@ const AuthProvider = ({ children }) => {
         const data = await response.json();
 
         userType === 'seller'?setUser(data.seller ):setUser(data.user);
-        console.log(user)
+
       } else {
         const errorData = await response.json();
         throw new Error(errorData.message);
@@ -81,9 +81,11 @@ const AuthProvider = ({ children }) => {
       });
 
       if (response.ok) {
-        setUser(null); 
+        
         history.replace('/');
-        history.go(0); 
+        
+        await history.go(0); 
+        setUser(null); 
       } else {
         const errorData = await response.json();
         throw new Error(errorData.message || 'Logout failed');

@@ -30,7 +30,7 @@ const SellerPage = () => {
 
   };
 
-  console.log(user)
+
   const renderSection = () => {
     switch (activeSection) {
       case 0:

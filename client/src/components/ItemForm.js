@@ -39,7 +39,7 @@ const validationSchema = Yup.object().shape({
 
 const ItemForm = () => {
   const { user, csrfToken } = useContext(AuthContext);
-  console.log(user.seller.id);
+
   const history = useHistory();
   const initialValues = {
     name: '',
