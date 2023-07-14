@@ -18,7 +18,7 @@ app.secret_key = os.environ.get('JWT_SECRET_KEY', 'dev')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.json.compact = False
 
-UPLOAD_FOLDER = './UPLOAD_FOLDER'
+UPLOAD_FOLDER = os.path.join(app.root_path, 'UPLOAD_FOLDER')
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 metadata = MetaData(naming_convention={
@@ -32,7 +32,7 @@ bcrypt = Bcrypt(app)
 
 api = Api(app)
 
-UPLOAD_FOLDER = './UPLOAD_FOLDER'
+
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
 
 
@@ -45,7 +45,8 @@ def save_file(file):
         filename = secure_filename(file.filename)
         file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
         file.save(file_path)
-        return file_path
+        print(file_path)
+        return filename
     return None
 
 CORS(app)
@@ -58,7 +59,7 @@ app.config['JWT_ACCESS_COOKIE_SAMESITE'] = 'None'
 
 
 app.config['MAIL_SERVER'] = 'your_mail_server'
-app.config['MAIL_PORT'] = 587  # or the appropriate port number
+app.config['MAIL_PORT'] = 587
 app.config['MAIL_USE_TLS'] = True
 app.config['MAIL_USERNAME'] = 'your_username'
 app.config['MAIL_PASSWORD'] = 'your_password'

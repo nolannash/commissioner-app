@@ -1,19 +1,11 @@
 from flask import current_app
 from flask_mail import Message
-
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import relationship, validates
 from sqlalchemy_serializer import SerializerMixin
-
-
 from config import db, bcrypt, mail
-
-
 from datetime import datetime
 import re
-import os
-
-
 
 class User(db.Model, SerializerMixin):
     __tablename__ = 'users'
@@ -28,7 +20,9 @@ class User(db.Model, SerializerMixin):
     favorites = db.relationship('Favorite', back_populates='user')
     orders = db.relationship('Order', back_populates='user')
 
-
+    serialize_only =('id','username','email','profile_photo','email_notifications')
+    serialize_rules = ('-favorites.user','favorites.user_id','-orders.user','-orders.user_id')
+    
     @validates("username")
     def validate_username(self, key, username):
         if not username:
@@ -115,7 +109,7 @@ class Seller(db.Model, SerializerMixin):
 
     def authenticate(self, password):
         return bcrypt.check_password_hash(self._password_hash, password.encode("utf-8"))
-    
+
 
     serialize_rules=('-password_hash','-password')
 

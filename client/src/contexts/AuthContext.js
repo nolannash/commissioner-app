@@ -54,7 +54,8 @@ const AuthProvider = ({ children }) => {
 
       if (response.ok) {
         const data = await response.json();
-        setUser(data.user);
+
+        userType ==='seller'?setUser(data.seller):setUser(data.user);
       } else {
         const errorData = await response.json();
         throw new Error(errorData.message);
@@ -76,7 +77,7 @@ const AuthProvider = ({ children }) => {
       });
 
       if (response.ok) {
-        await history.push('/landing')
+        await history.push('/')
         setUser(null);
       } else {
         const errorData = await response.json();
@@ -87,10 +88,32 @@ const AuthProvider = ({ children }) => {
     }
   };
 
+  const refreshUser = async (id, type) => {
+    try {
+      const response = await fetch(`/${type}/${id}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-Token': csrfToken,
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setUser(data)
+      } else {
+        throw new Error(`Failed to fetch ${type} data`);
+      }
+    } catch (error) {
+      console.error(`Refresh ${type} error:`, error.message);
+    }
+  };
+
   return (
     <AuthContext.Provider
       value={{
         user,
+        refreshUser,
         signUp: handleSignUp,
         login: handleLogin,
         logout: handleLogout,
