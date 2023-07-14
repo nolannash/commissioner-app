@@ -47,7 +47,7 @@ def save_file(file):
         unique_filename = f"{uuid.uuid4().hex}_{int(time.time())}_{filename}"
         file_path = os.path.join(app.config['UPLOAD_FOLDER'], unique_filename)
         file.save(file_path)
-        return file_path
+        return unique_filename
     return None
 
 CORS(app)

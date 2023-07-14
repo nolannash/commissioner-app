@@ -32,8 +32,9 @@ const AuthProvider = ({ children }) => {
 
       if (response.ok) {
         const data = await response.json();
-        console.log(data);
-        setUser(data.user);
+
+        userType === 'seller'?setUser(data.seller ):setUser(data.user);
+        console.log(user)
       } else {
         const errorData = await response.json();
         throw new Error(errorData.message);

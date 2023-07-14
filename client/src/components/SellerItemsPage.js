@@ -22,6 +22,7 @@ const SellerItemsPage = () => {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [editItemId, setEditItemId] = useState(null);
+  console.log(user);
   const [editItemData, setEditItemData] = useState({
     id: '',
     name: '',

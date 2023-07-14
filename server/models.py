@@ -84,7 +84,7 @@ class Seller(db.Model, SerializerMixin):
         if not shopname:
             raise ValueError("You need to name your shop!")
         elif self.shopname != shopname:
-            if not re.match("^[a-zA-Z0-9]{2,25}$", shopname):
+            if not re.match("^[a-zA-Z0-9 ]{2,25}$", shopname):
                 raise ValueError("Your shop name can be between 2 and 25 characters in length")
             elif Seller.query.filter(Seller.id != self.id, Seller.shopname == shopname).first():
                 raise ValueError("An account with that shop name already exists")

@@ -27,10 +27,10 @@ const SellerPage = () => {
 
   const handleTabChange = (event, newValue) => {
     setActiveSection(newValue);
-    console.log(user)
+
   };
 
-  
+  console.log(user)
   const renderSection = () => {
     switch (activeSection) {
       case 0:
@@ -48,7 +48,7 @@ const SellerPage = () => {
     <AppBar position="static">
       <Toolbar>
         <Typography variant="h4" component="div" sx={{ flexGrow: 1, textAlign:'center'}}>
-          {user.shopname} 
+          {user.shopname || user.seller.shopname} 
         </Typography>
         <Box sx={{ display: 'flex', alignItems: 'center', textAlign: 'center' }}>
           <Button variant="contained" onClick={logout} sx={{ ml: 2 }}>

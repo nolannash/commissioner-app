@@ -312,11 +312,13 @@ class SellerItems(Resource):
                 for image_file in request.files.getlist('images'):
                     if image_file and allowed_file(image_file.filename):
                         image_path = save_file(image_file)
-                        item_image = ItemImage(item_id=item.id, image_path=image_path)  # Set item_id here
+                        item_image = ItemImage(item_id=item.id, image_path=image_path)  # Set item_id and image_path here
                         item_images.append(item_image)
-                
-                db.session.bulk_save_objects(item_images)
-                db.session.commit()
+
+                # Check if item_images list is not empty before bulk saving
+                if item_images:
+                    db.session.bulk_save_objects(item_images)
+                    db.session.commit()
                 
                 return {'message': 'Item created successfully'}, 201
         except ValueError as e:
