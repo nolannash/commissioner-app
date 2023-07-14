@@ -87,7 +87,7 @@ class Sellers(Resource):
 
     @jwt_required()
     def delete(self, seller_id):
-        if seller := Seller.query.all(seller_id):
+        if seller := Seller.query.get(seller_id):
             db.session.delete(seller)
             db.session.commit()
             return {'message': 'Seller deleted successfully'}
@@ -134,7 +134,7 @@ class Items(Resource):
             return {'message': str(e)}, 400
 
     def delete(self, item_id):
-        if item := db.session.get(Item,item_id):
+        if item := Item.query.get(item_id):
             db.session.delete(item)
             db.session.commit()
             return {'message': 'Item deleted successfully'}, 204
@@ -487,6 +487,7 @@ def delete_seller_profile_photo(seller_id):
     return jsonify({'message': 'Profile photo deleted successfully'}), 204
     
 
+@jwt_required()
 @app.route('/sellers/<int:seller_id>/logo-banner', methods=['POST'])
 def upload_seller_logo_banner(seller_id):
     seller = db.session.get(Seller, data.get('userId'))
@@ -551,8 +552,6 @@ api.add_resource(Orders, '/orders', '/orders/<int:order_id>')
 api.add_resource(Favorites, '/favorites', '/favorites/<int:favorite_id>')
 
 api.add_resource(FormItems, '/form-items', '/form-items/<int:form_item_id>')
-
-
 
 
 if __name__ == '__main__':

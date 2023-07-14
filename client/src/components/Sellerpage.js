@@ -20,8 +20,10 @@ import SellerItems from './SellerItemsPage';
 import SellerAccountInfo from './SellerAct';
 
 const SellerPage = () => {
+
   const { user, logout } = useContext(AuthContext);
   const [activeSection, setActiveSection] = useState(0);
+
 
 
   const handleTabChange = (event, newValue) => {
@@ -35,6 +37,7 @@ const SellerPage = () => {
         return <SellerItems />;
       case 1:
         return <Orders />;
+
       case 2:
         return <SellerAccountInfo />;
       default:
@@ -43,15 +46,19 @@ const SellerPage = () => {
   };
 
   return (
+
     <AppBar position="static">
       <Toolbar>
         <Typography variant="h4" component="div" sx={{ flexGrow: 1, textAlign:'center'}}>
           {user.shopname} 
         </Typography>
         <Box sx={{ display: 'flex', alignItems: 'center', textAlign: 'center' }}>
+
+
           <Button variant="contained" onClick={logout} sx={{ ml: 2 }}>
             Logout
           </Button>
+
         </Box>
       </Toolbar>
       <Tabs
@@ -79,13 +86,14 @@ const SellerPage = () => {
 
 
 
+
 const Orders = () => {
   return (
     <div>
       <Typography variant="h6">Orders</Typography>
       {/* Render orders */}
     </div>
+
   );
 };
-
 export default SellerPage;
