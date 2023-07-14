@@ -35,7 +35,6 @@ const SellerAccountInfo = () => {
   const { user, csrfToken, refreshUser,logout } = useContext(AuthContext);
   const [emailNotifications, setEmailNotifications] = useState(user.email_notifications);
   const [popoverAnchorEl, setPopoverAnchorEl] = useState(null);
-  // const [showUploadBanner, setShowUploadBanner] = useState(!user.logo_banner);
   const [logoBanner, setLogoBanner] = useState(null);
   const [editMode, setEditMode] = useState(false);
   const [profilePhoto, setProfilePhoto] = useState(null);

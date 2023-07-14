@@ -58,7 +58,7 @@ class Users(Resource):
             return {'message': 'User not found'}, 404
 
 class Sellers(Resource):
-    @jwt_required()
+
     def get(self, seller_id=None):
         if seller_id:
             return (

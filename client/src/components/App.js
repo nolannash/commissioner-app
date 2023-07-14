@@ -8,7 +8,7 @@ import LandingPage from './LandingPage';
 import HomePage from './HomePage';
 import SellerPage from './Sellerpage';
 import ItemForm from './ItemForm';
-import UserPage from './UserPage';
+import UserPage from './Userpage';
 import Search from './Search';
 
 const App = () => {
