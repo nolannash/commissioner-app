@@ -17,14 +17,17 @@ import {
 import { AuthContext } from '../contexts/AuthContext';
 import SellerItems from './SellerItemsPage';
 import SellerAccountInfo from './SellerAct';
+import { useHistory } from 'react-router-dom';
 
 const SellerPage = () => {
   const { user, logout } = useContext(AuthContext);
   const [activeSection, setActiveSection] = useState(0);
+  const history = useHistory();
 
 
   const handleTabChange = (event, newValue) => {
     setActiveSection(newValue);
+    console.log(user)
   };
 
   

@@ -41,25 +41,32 @@ const SellerItemsPage = () => {
         const response = await fetch(`/sellers/${user.id}/items`, {
           method: 'GET',
           headers: {
+            'Content-Type': 'application/json',
             'X-CSRF-Token': csrfToken,
           },
         });
 
         if (response.ok) {
           const data = await response.json();
-          setItems(data);
+
+          if (Array.isArray(data)) {
+            setItems(data);
+          } else {
+            setItems([]);
+          }
         } else {
-          console.error('Failed to fetch items');
+          history.push('/itemForm');
         }
+
+        setLoading(false);
       } catch (error) {
-        console.error('An error occurred:', error);
-      } finally {
+        console.error('An error occurred while fetching items:', error);
         setLoading(false);
       }
     };
 
     fetchItems();
-  }, [csrfToken, user.id]);
+  }, [csrfToken, user.id, history]);
 
   const handleDeleteItem = (itemId) => {
     setDeleteItemId(itemId);
@@ -142,9 +149,7 @@ const SellerItemsPage = () => {
         console.log('Item updated successfully');
         setIsEditPopoverOpen(false);
         setItems((prevItems) =>
-          prevItems.map((item) =>
-            item.id === editItemData.id ? { ...item, ...editItemData } : item
-          )
+          prevItems.map((item) => (item.id === editItemData.id ? { ...item, ...editItemData } : item))
         );
         setEditItemId(null);
       } else {
@@ -167,13 +172,7 @@ const SellerItemsPage = () => {
     <div>
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
         <Typography variant="h6">Items</Typography>
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={() => {
-            history.push('/itemForm');
-          }}
-        >
+        <Button variant="contained" color="primary" onClick={() => history.push('/itemForm')}>
           New Item
         </Button>
       </Box>
@@ -190,7 +189,7 @@ const SellerItemsPage = () => {
                     <CardMedia
                       component="img"
                       height="150"
-                      image={`/uploads/${item.images[0].image_path}`}
+                      src={`/uploads/${item.images[0].image_path}`}
                       alt={`Item ${item.id}`}
                     />
                   ) : (
@@ -204,12 +203,7 @@ const SellerItemsPage = () => {
               )}
               {editItemId === item.id ? (
                 <CardContent>
-                  <TextField
-                    label="Name"
-                    name="name"
-                    value={editItemData.name}
-                    onChange={handleEditItemChange}
-                  />
+                  <TextField label="Name" name="name" value={editItemData.name} onChange={handleEditItemChange} />
                   <TextField
                     label="Description"
                     name="description"
@@ -218,13 +212,7 @@ const SellerItemsPage = () => {
                     value={editItemData.description}
                     onChange={handleEditItemChange}
                   />
-                  <TextField
-                    label="Price"
-                    name="price"
-                    type="number"
-                    value={editItemData.price}
-                    onChange={handleEditItemChange}
-                  />
+                  <TextField label="Price" name="price" type="number" value={editItemData.price} onChange={handleEditItemChange} />
                   <TextField
                     label="Batch Size"
                     name="batchSize"
@@ -243,40 +231,20 @@ const SellerItemsPage = () => {
                     <Button variant="contained" color="primary" onClick={handleConfirmEdit}>
                       Confirm Edit
                     </Button>
-                    <Button variant="contained" color="error" onClick={handleCancelEdit}>
-                      Cancel
-                    </Button>
                   </Box>
                 </CardContent>
               ) : (
                 <CardContent>
                   <Typography variant="body1">{item.description}</Typography>
                   <Typography variant="body1">Price: ${item.price}</Typography>
-                  {item.batchSize && (
-                    <Typography variant="body1">Batch Size: {item.batchSize}</Typography>
-                  )}
-                  {item.rolloverPeriod && (
-                    <Typography variant="body1">Rollover Period: {item.rolloverPeriod} days</Typography>
-                  )}
+                  {item.batchSize && <Typography variant="body1">Batch Size: {item.batchSize}</Typography>}
+                  {item.rolloverPeriod && <Typography variant="body1">Rollover Period: {item.rolloverPeriod} days</Typography>}
                 </CardContent>
               )}
               <CardActions>
-                {editItemId === item.id ? (
+                {!editItemId && (
                   <>
-                    <Button variant="contained" color="primary" onClick={handleConfirmEdit}>
-                      Confirm Edit
-                    </Button>
-                    <Button variant="contained" color="error" onClick={handleCancelEdit}>
-                      Cancel
-                    </Button>
-                  </>
-                ) : (
-                  <>
-                    <IconButton
-                      color="primary"
-                      aria-label="edit item"
-                      onClick={() => handleEditButtonClick(item)}
-                    >
+                    <IconButton color="primary" aria-label="edit item" onClick={() => handleEditButtonClick(item)}>
                       <Edit />
                     </IconButton>
                     <IconButton color="error" aria-label="delete item" onClick={() => handleDeleteItem(item.id)}>

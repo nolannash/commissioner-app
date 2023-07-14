@@ -8,7 +8,7 @@ const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const history = useHistory();
 
-  
+
   const getCookie = (name) => {
     const value = `; ${document.cookie}`;
     const parts = value.split(`; ${name}=`);
@@ -32,6 +32,7 @@ const AuthProvider = ({ children }) => {
 
       if (response.ok) {
         const data = await response.json();
+        console.log(data);
         setUser(data.user);
       } else {
         const errorData = await response.json();

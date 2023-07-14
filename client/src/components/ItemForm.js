@@ -71,7 +71,7 @@ const ItemForm = () => {
           headers: {
             'X-CSRF-Token': csrfToken,
           },
-          body: formData, 
+          body: formData,
         });
 
         if (response.ok) {
@@ -116,9 +116,9 @@ const ItemForm = () => {
         <Box sx={{ width: '45%' }}>
           <Typography variant="h4" gutterBottom>
             Item Info
-            <Button variant='contained' onClick={history.push('/sellerPage')}><ArrowBackIcon></ArrowBackIcon>back</Button>
+            <Button variant='contained' onClick={() => history.push('/sellerPage')}><ArrowBackIcon />back</Button>
           </Typography>
-          
+
           <form onSubmit={formik.handleSubmit}>
             <Box sx={{ marginBottom: '16px' }}>
               <TextField
