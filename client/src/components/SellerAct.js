@@ -235,7 +235,7 @@ const SellerAccountInfo = () => {
             {editMode ? 'Cancel' : 'Edit Profile'}
           </Button>
           <Button variant="contained" color="error" size="medium" startIcon={<DeleteSharp 
-          onClick={handleDeleteProfile()}/>}>
+          onClick={()=>handleDeleteProfile}/>}>
             Delete Profile
           </Button>
         </Box>

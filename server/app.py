@@ -106,41 +106,6 @@ class Items(Resource):
         items = Item.query.all()
         return [item.to_dict() for item in items]
 
-    def post(self):
-        data = request.get_json()
-        seller_id = data.get('seller_id')
-        seller = Seller.query.get(seller_id)
-        if not seller:
-            return {'message': 'Seller not found'}, 404
-
-        # Create the item
-        item = Item(seller=seller, **data)
-        try:
-            db.session.add(item)
-            db.session.commit()
-            return {'message': 'Item created successfully', 'item': item.to_dict()}, 201
-        except ValueError as e:
-            return {'message': str(e)}, 400
-
-    def patch(self, item_id):
-        if not (item := Item.query.get(item_id)):
-            return {'message': 'Item not found'}, 404
-        data = request.get_json()
-        try:
-            item.batch_size = data.get('batch_size', item.batch_size)
-            item.rollover_period = data.get('rollover_period', item.rollover_period)
-            db.session.commit()
-            return {'message': 'Item updated successfully'}
-        except ValueError as e:
-            return {'message': str(e)}, 400
-
-    def delete(self, item_id):
-        if item := db.session.get(Item,item_id):
-            db.session.delete(item)
-            db.session.commit()
-            return {'message': 'Item deleted successfully'}, 204
-        else:
-            return {'message': 'Item not found'}, 404
 
 class Orders(Resource):
     def get(self, order_id=None):
@@ -313,23 +278,40 @@ class SellerItems(Resource):
             return {'message': 'Seller not found'}, 404
 
         items = Item.query.filter_by(seller=seller).all()
-        return [item.to_dict() for item in items]
+        if len(items) == 0: 
+            return {'message': 'You do not have any items'}, 204
+        else: 
+            return make_response([item.to_dict() for item in items], 200)
 
     @jwt_required()
     def post(self, id):
         data = request.form
+
         seller = Seller.query.get(id)
         if not seller:
             return {'message': 'Seller not found'}, 404
+        
         item = Item(seller_id=seller.id, **data)
+        
         try:
-            file = request.files['file']
+            file = request.files.get('images')
+            print(file)
             if file and allowed_file(file.filename):
                 filepath = save_file(file)
-
-                Item.profile_photo = filepath
+                
                 db.session.add(item)
                 db.session.commit()
+
+                item_images = []
+                for image_file in request.files.getlist('images'):
+                    if image_file and allowed_file(image_file.filename):
+                        image_path = save_file(image_file)
+                        item_image = ItemImage(item_id=item.id, image_path=image_path)  # Set item_id here
+                        item_images.append(item_image)
+                
+                db.session.bulk_save_objects(item_images)
+                db.session.commit()
+                
                 return {'message': 'Item created successfully'}, 201
         except ValueError as e:
             return {'message': str(e)}, 400
@@ -434,7 +416,6 @@ def login_seller():
         return make_response({'error': 'User not found'}, 404)
 
 @app.route('/uploads/<path:filename>', methods=['GET'])
-
 def serve_uploaded_file(filename):
     print(filename)
     return send_from_directory(app.config['UPLOAD_FOLDER'], secure_filename(filename))
@@ -562,18 +543,15 @@ def upload_item_images(item_id):
         else:
             return jsonify(message='Invalid file'), 400
 
-    # Create ItemImage objects and associate them with the item
     for image_path in saved_image_paths:
         item_image = ItemImage(item_id=item_id, image_path=image_path)
         db.session.add(item_image)
     db.session.commit()
-
-    # Retrieve the updated images for the item
     item_images = ItemImage.query.filter_by(item_id=item_id).all()
     item.images = item_images
     db.session.commit()
 
-    return jsonify(message='Item images uploaded successfully'), 200
+    return make_response(item.to_dict(), 201)
 
 api.add_resource(SellerItems, '/sellers/<int:id>/items', '/sellers/<int:id>/items/<int:item_id>')
 

@@ -15,7 +15,6 @@ import {
   AccountBox,
 } from '@mui/icons-material';
 import { AuthContext } from '../contexts/AuthContext';
-
 import SellerItems from './SellerItemsPage';
 import SellerAccountInfo from './SellerAct';
 

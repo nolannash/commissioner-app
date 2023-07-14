@@ -20,9 +20,9 @@ class User(db.Model, SerializerMixin):
     favorites = db.relationship('Favorite', back_populates='user')
     orders = db.relationship('Order', back_populates='user')
 
-    serialize_only =('id','username','email','profile_photo','email_notifications')
-    serialize_rules = ('-favorites.user','favorites.user_id','-orders.user','-orders.user_id')
-    
+    serialize_only = ('id', 'username', 'email', 'profile_photo', 'email_notifications')
+    serialize_rules = ('-favorites.user', 'favorites.user_id', '-orders.user', '-orders.user_id')
+
     @validates("username")
     def validate_username(self, key, username):
         if not username:
@@ -76,6 +76,9 @@ class Seller(db.Model, SerializerMixin):
     items = db.relationship('Item', back_populates='seller')
     orders = db.relationship('Order', back_populates='seller')
 
+    serialize_only = ('id', 'shopname', 'email', 'logo_banner', 'profile_photo', 'bio', 'email_notifications')
+    serialize_rules = ('-items.seller', '-items.seller_id', '-orders.seller', '-orders.seller_id')
+    
     @validates("shopname")
     def validate_shopname(self, key, shopname):
         if not shopname:
@@ -111,8 +114,6 @@ class Seller(db.Model, SerializerMixin):
         return bcrypt.check_password_hash(self._password_hash, password.encode("utf-8"))
 
 
-    serialize_rules=('-password_hash','-password')
-
     def __repr__(self):
         return f"<Seller {self.id}>"
 
@@ -134,6 +135,9 @@ class Item(db.Model, SerializerMixin):
     orders = db.relationship("Order", back_populates="item")
     form_items = db.relationship("FormItem", back_populates="item", cascade="all, delete-orphan")
     images = db.relationship("ItemImage", back_populates="item", cascade="all, delete-orphan")
+    
+    serialize_only = ('id', 'name', 'description', 'price', 'batch_size', 'rollover_period', 'last_rollover', 'created_at', 'order_count','images','seller_id')
+    serialize_rules = ('-seller.items', '-seller.items.seller', '-orders.item', '-orders.item_id')
 
     def __repr__(self):
         return f"<Item {self.id}>"
@@ -146,7 +150,9 @@ class ItemImage(db.Model, SerializerMixin):
     image_path = db.Column(db.String, nullable=False)
 
     item = db.relationship('Item', back_populates='images')
-
+    
+    serialize_only = ('id', 'image_path','item_id')
+    serialize_rules = ('-item.images',)
     def __repr__(self):
         return f"<ItemImage {self.id}>"
 
@@ -163,6 +169,8 @@ class Order(db.Model, SerializerMixin):
     seller = db.relationship('Seller',back_populates='orders')
     user = db.relationship('User',back_populates='orders')
 
+    serialize_only = ('id', 'created_at')
+    serialize_rules = ('-seller.orders', '-seller.orders.seller', '-user.orders', '-user.orders.user', '-item.orders')
     def __repr__(self):
         return f"<Order {self.id}>"
 
@@ -178,7 +186,10 @@ class Favorite(db.Model, SerializerMixin):
     user = db.relationship('User', back_populates='favorites')
 
     item = db.relationship("Item", backref="favorites")
-
+    
+    serialize_only = ('id', 'created_at')
+    serialize_rules = ('-user.favorites', '-item.favorites')
+    
     def notify_new_item(self, item):
         if self.user.email and self.user.email_notifications:
             msg = Message("New Item Alert",
