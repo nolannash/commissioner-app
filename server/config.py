@@ -8,7 +8,8 @@ from sqlalchemy import MetaData
 from flask_mail import Mail
 from werkzeug.utils import secure_filename
 from flask_jwt_extended import JWTManager
-
+import time
+import uuid
 import os
 
 app = Flask(__name__)
@@ -43,10 +44,10 @@ def allowed_file(filename):
 def save_file(file):
     if file and allowed_file(file.filename):
         filename = secure_filename(file.filename)
-        file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        unique_filename = f"{uuid.uuid4().hex}_{int(time.time())}_{filename}"
+        file_path = os.path.join(app.config['UPLOAD_FOLDER'], unique_filename)
         file.save(file_path)
-        print(file_path)
-        return filename
+        return file_path
     return None
 
 CORS(app)

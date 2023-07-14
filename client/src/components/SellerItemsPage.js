@@ -1,22 +1,25 @@
 import React, { useContext, useState, useEffect } from 'react';
 import {
   Typography,
-  Button,
   Box,
   Card,
   CardHeader,
+  CardMedia,
   CardContent,
   CardActions,
   IconButton,
   CircularProgress,
+  Button,
 } from '@mui/material';
 import { Delete, Edit } from '@mui/icons-material';
 import { AuthContext } from '../contexts/AuthContext';
+import { useHistory } from 'react-router-dom';
 
 const SellerItemsPage = () => {
   const { user, csrfToken } = useContext(AuthContext);
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
+  const history = useHistory();
 
   useEffect(() => {
     const fetchItems = async () => {
@@ -30,7 +33,8 @@ const SellerItemsPage = () => {
 
         if (response.ok) {
           const data = await response.json();
-          setItems(data.items);
+          console.log(data);
+          setItems(data);
         } else {
           console.error('Failed to fetch items');
         }
@@ -74,37 +78,67 @@ const SellerItemsPage = () => {
 
   return (
     <div>
-      <Typography variant="h6">Items</Typography>
-      {items.length === 0 ? (
-        <Typography variant="body1">No items available</Typography>
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+        <Typography variant="h6">Items</Typography>
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={() => {
+            history.push('/itemForm');
+          }}
+        >
+          New Item
+        </Button>
+      </Box>
+      {!items || items.length === 0 ? (
+        <Typography variant="body1">You do not have any items</Typography>
       ) : (
-        items.map((item) => (
-          <Card key={item.id} sx={{ marginTop: '16px' }}>
-            <CardHeader title={item.name} />
-            <CardContent>
-              <Typography variant="body1">{item.description}</Typography>
-              <Typography variant="body1">Price: ${item.price}</Typography>
-            </CardContent>
-            <CardActions>
-              <IconButton
-                color="primary"
-                aria-label="edit item"
-                onClick={() => {
-                  // Handle edit functionality here
-                }}
-              >
-                <Edit />
-              </IconButton>
-              <IconButton
-                color="error"
-                aria-label="delete item"
-                onClick={() => handleDeleteItem(item.id)}
-              >
-                <Delete />
-              </IconButton>
-            </CardActions>
-          </Card>
-        ))
+        <div style={{ display: 'flex', flexWrap: 'wrap' }}>
+          {items.map((item) => (
+            <Card key={item.id} sx={{ margin: '8px', width: '400px' }}>
+              <CardHeader title={item.name} />
+              {item.images && item.images.length > 0 ? (
+                <CardMedia sx={{ height: 100, paddingTop: '56.25%' }} title={`Item ${item.id}`}>
+                  {item.images && item.images.length > 0 ? (
+                    <CardMedia
+                      component="img"
+                      height="150"
+                      image={`/uploads/${item.images[0].image_path}`}
+                      alt={`Item ${item.id}`}
+                    />
+                  ) : (
+                    <CardHeader title="No Image" />
+                  )}
+                </CardMedia>
+              ) : (
+                <CardContent>
+                  <Typography variant="body1">No image</Typography>
+                </CardContent>
+              )}
+              <CardContent>
+                <Typography variant="body1">{item.description}</Typography>
+                <Typography variant="body1">Price: ${item.price}</Typography>
+              </CardContent>
+              <CardActions>
+                <IconButton
+                  color="primary"
+                  aria-label="edit item"
+                  onClick={() => {
+                    history.push({
+                      pathname: '/itemForm',
+                      state: { item },
+                    });
+                  }}
+                >
+                  <Edit />
+                </IconButton>
+                <IconButton color="error" aria-label="delete item" onClick={() => handleDeleteItem(item.id)}>
+                  <Delete />
+                </IconButton>
+              </CardActions>
+            </Card>
+          ))}
+        </div>
       )}
     </div>
   );
