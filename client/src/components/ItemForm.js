@@ -4,6 +4,7 @@ import { useFormik } from 'formik';
 import { TextField, Button, Box, Container, Typography } from '@mui/material';
 import { useHistory } from 'react-router-dom';
 import * as Yup from 'yup';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 
 const validationSchema = Yup.object().shape({
   name: Yup.string()
@@ -113,9 +114,11 @@ const ItemForm = () => {
     <Container maxWidth="md">
       <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
         <Box sx={{ width: '45%' }}>
-          <Typography variant="h6" gutterBottom>
+          <Typography variant="h4" gutterBottom>
             Item Info
+            <Button variant='contained' onClick={history.push('/sellerPage')}><ArrowBackIcon></ArrowBackIcon>back</Button>
           </Typography>
+          
           <form onSubmit={formik.handleSubmit}>
             <Box sx={{ marginBottom: '16px' }}>
               <TextField

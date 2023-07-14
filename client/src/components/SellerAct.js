@@ -19,6 +19,7 @@ import { DeleteSharp, Person, AddPhotoAlternate } from '@mui/icons-material';
 import { AuthContext } from '../contexts/AuthContext';
 import { Formik, Field, Form, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
+import { useHistory } from 'react-router-dom';
 
 const validationSchema = Yup.object().shape({
   email: Yup.string().email('Invalid email address').required('Email is required'),
@@ -30,10 +31,11 @@ const validationSchema = Yup.object().shape({
 });
 
 const SellerAccountInfo = () => {
+  const history = useHistory();
   const { user, csrfToken, refreshUser,logout } = useContext(AuthContext);
   const [emailNotifications, setEmailNotifications] = useState(user.email_notifications);
   const [popoverAnchorEl, setPopoverAnchorEl] = useState(null);
-  const [showUploadBanner, setShowUploadBanner] = useState(!user.logo_banner);
+  // const [showUploadBanner, setShowUploadBanner] = useState(!user.logo_banner);
   const [logoBanner, setLogoBanner] = useState(null);
   const [editMode, setEditMode] = useState(false);
   const [profilePhoto, setProfilePhoto] = useState(null);
@@ -169,6 +171,7 @@ const SellerAccountInfo = () => {
         },
       });
       if (response.ok){
+        history.replace('/')
         logout()
       }else{
         console.error('Failed To Delete Profile')

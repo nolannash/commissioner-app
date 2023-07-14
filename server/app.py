@@ -272,15 +272,21 @@ def logout():
 
 class SellerItems(Resource):
     @jwt_required()
-    def get(self, id):
+    def get(self, id, item_id=None):
         seller = Seller.query.get(id)
         if not seller:
             return {'message': 'Seller not found'}, 404
 
+        if item_id:
+            item = Item.query.filter_by(id=item_id, seller=seller).first()
+            if not item:
+                return {'message': 'Item not found'}, 404
+            return make_response(item.to_dict(), 200)
+
         items = Item.query.filter_by(seller=seller).all()
-        if len(items) == 0: 
+        if len(items) == 0:
             return {'message': 'You do not have any items'}, 204
-        else: 
+        else:
             return make_response([item.to_dict() for item in items], 200)
 
     @jwt_required()
