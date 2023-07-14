@@ -432,7 +432,8 @@ def login_seller():
     else:
         return make_response({'error': 'User not found'}, 404)
 
-@app.route('/uploads/<path:filename>')
+@app.route('/uploads/<path:filename>', methods=['GET'])
+
 def serve_uploaded_file(filename):
     print(filename)
     return send_from_directory(app.config['UPLOAD_FOLDER'], secure_filename(filename))
@@ -455,7 +456,56 @@ def upload_user_profile_photo(user_id):
         return {'message': 'Invalid file'}, 400
 
 @jwt_required()
+@app.route('/sellers/<int:seller_id>/logo_banner', methods=['PATCH'])
+def handle_seller_logo_banner(seller_id):
+    if request.method == 'PATCH':
+        return upload_seller_logo_banner(seller_id)
+    elif request.method == 'DELETE':
+        return delete_seller_logo_banner(seller_id)
+    else:
+        return jsonify({'message': 'Method not allowed'}), 405
+
+def upload_seller_logo_banner(seller_id):
+    data = request.form
+    file = request.files.get('logoBanner')
+    seller = db.session.query(Seller).get(data.get('userId'))
+    if not seller:
+        return jsonify({'message': 'Seller not found'}), 404
+
+    if not file:
+        return jsonify({'message': 'No file uploaded'}), 400
+
+    file_path = save_file(file)
+    seller.logo_banner = file_path
+    db.session.commit()
+    return jsonify({'message': 'Profile Logo Banner successfully'}), 204
+
+
+def delete_seller_p(seller_id):
+    seller = db.session.query(Seller).get(seller_id)
+    if not seller:
+        return jsonify({'message': 'Seller not found'}), 404
+
+    if not seller.logo_banner:
+        return jsonify({'message': 'Profile photo not found'}), 404
+    
+
+    seller.profile_photo = None
+    db.session.commit()
+    return jsonify({'message': 'Profile photo deleted successfully'}), 204
+    
+
+@app.route('/sellers/<int:seller_id>/profilePhoto', methods=['POST'])
+@jwt_required()
 @app.route('/sellers/<int:seller_id>/profile_photo', methods=['PATCH'])
+def handle_seller_profile_photo(seller_id):
+    if request.method == 'PATCH':
+        return upload_seller_profile_photo(seller_id)
+    elif request.method == 'DELETE':
+        return delete_seller_profile_photo(seller_id)
+    else:
+        return jsonify({'message': 'Method not allowed'}), 405
+
 def upload_seller_profile_photo(seller_id):
     data = request.form
     file = request.files.get('profilePhoto')
@@ -485,23 +535,6 @@ def delete_seller_profile_photo(seller_id):
     seller.profile_photo = None
     db.session.commit()
     return jsonify({'message': 'Profile photo deleted successfully'}), 204
-    
-
-@app.route('/sellers/<int:seller_id>/logo-banner', methods=['POST'])
-def upload_seller_logo_banner(seller_id):
-    seller = db.session.get(Seller, data.get('userId'))
-    data = request.form
-    file = request.files.get('file')
-    if not seller:
-        return {'message': 'Seller not found'}, 404
-
-    filename = save_file(file)
-    if filename:
-        seller.logo_banner = filename
-        db.session.commit()
-        return {'message': 'Logo banner uploaded successfully'}, 200
-    else:
-        return {'message': 'Failed to save file'}, 400
 
 
 @app.route('/items/<int:item_id>/images', methods=['POST'])

@@ -332,12 +332,11 @@ const SellerAccountInfo = () => {
             )}
 
             <CardContent>
-              <Box display="flex" alignItems="flex-start" justifyContent="flex-start" mb={2}>
-                {/* Profile photo overlaid as an avatar */}
+              <Box display="flex" alignItems="flex-start" justifyContent="flex-start" mb={2}
+              name='avatar_box'>
                 <Avatar
                   src={`/uploads/${user.profile_photo}`}
                   alt="Profile Photo"
-                  sx={{ width: 80, height: 80, marginRight: 2, marginTop: -40 }}
                 >
                   {!user.profile_photo && <Person />}
                 </Avatar>
@@ -347,7 +346,7 @@ const SellerAccountInfo = () => {
                 <strong>Contact:</strong> {user.email}
               </Typography>
 
-              {showUploadBanner && (
+              {user.logo_banner? <></> :(
                 <Box mt={2}>
                   <input
                     accept="image/*"
@@ -374,7 +373,7 @@ const SellerAccountInfo = () => {
                 </Box>
               )}
 
-              <Box mt={2}>
+              {user.profile_photo?<></>:<Box mt={2}>
                 <input
                   accept="image/*"
                   style={{ display: 'none' }}
@@ -397,7 +396,7 @@ const SellerAccountInfo = () => {
                 <Button variant="contained" color="primary" onClick={handleUploadProfilePhoto}>
                   Submit Photo
                 </Button>
-              </Box>
+              </Box>}
             </CardContent>
           </div>
         )}
