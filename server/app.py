@@ -1,11 +1,12 @@
-from flask import request, make_response, jsonify
+from flask import request, make_response, jsonify,send_file, send_from_directory
 from flask_restful import Resource
-from flask_jwt_extended import jwt_required, create_access_token, get_jwt_identity, set_access_cookies, set_refresh_cookies, unset_jwt_cookies
+from flask_jwt_extended import jwt_required, create_access_token, get_jwt_identity, set_access_cookies,  unset_jwt_cookies
 from datetime import datetime, timedelta
 import re
-
+from werkzeug.utils import secure_filename
 from config import app, db, api,save_file, allowed_file
 from models import User, Seller, Item, Order, Favorite, FormItem, ItemImage
+from werkzeug.utils import secure_filename
 
 
 class Users(Resource):
@@ -76,10 +77,11 @@ class Sellers(Resource):
         try:
             seller.shopname = data.get('shopname', seller.shopname)
             seller.email = data.get('email', seller.email)
-            seller.password_hash = data.get('password', seller.password_hash)
+            
             seller.email_notifications = data.get('email_notifications', seller.email_notifications)
             db.session.commit()
-            return {'message': 'Seller updated successfully'}
+            # return {'message': 'Seller updated successfully'}
+            return make_response(seller.to_dict(),204)
         except ValueError as e:
             return {'message': str(e)}, 400
 
@@ -299,7 +301,6 @@ class Recent(Resource):
 @jwt_required()
 def logout():
     response = jsonify({'message': 'Logout successful'})
-    print(response)
     unset_jwt_cookies(response)
     return response, 200
 
@@ -315,17 +316,20 @@ class SellerItems(Resource):
 
     @jwt_required()
     def post(self, id):
-        data = request.get_json()
+        data = request.form
         seller = Seller.query.get(id)
         if not seller:
             return {'message': 'Seller not found'}, 404
-        print(data)
-        item = Item(seller=seller, **data)
-        print(item)
+        item = Item(seller_id=seller.id, **data)
         try:
-            db.session.add(item)
-            db.session.commit()
-            return {'message': 'Item created successfully'}, 201
+            file = request.files['file']
+            if file and allowed_file(file.filename):
+                filepath = save_file(file)
+
+                Item.profile_photo = filepath
+                db.session.add(item)
+                db.session.commit()
+                return {'message': 'Item created successfully'}, 201
         except ValueError as e:
             return {'message': str(e)}, 400
 
@@ -365,17 +369,14 @@ class SellerItems(Resource):
 @app.route("/signup/user",methods=["POST"])
 def signupuser():
     data = request.get_json()
-    print(data)
     try: 
         user=User(username=data['username'],email=data['email'])
         user.password_hash = data['password']
         db.session.add(user)
         db.session.commit()
         token = create_access_token(identity=user.id)
-        refresh_token=create_access_token(identity=user.id)
         response = make_response({'user':user.to_dict()},201)
         set_access_cookies(response,token)
-        set_refresh_cookies(response,refresh_token)
         return response
 
     except Exception as e:
@@ -384,14 +385,11 @@ def signupuser():
 @app.route('/login/user',methods={'POST'})
 def login_user():
     data = request.get_json()
-    print (data)
     if user := User.query.filter_by(email=data.get("email", "")).first():
         if user.authenticate(data.get('password','')):
             token = create_access_token(identity=user.id)
-            refresh_token = create_access_token(identity=user.id)
             response = make_response({'user': user.to_dict()}, 201)
             set_access_cookies(response, token)
-            set_refresh_cookies(response, refresh_token)
             return response
         return make_response({'error':'Invalid Username or Password'}, 401)
     return make_response({'error': 'User not found'}, 404)
@@ -405,29 +403,39 @@ def signupseller():
         db.session.add(seller)
         db.session.commit()
         token = create_access_token(identity=seller.id)
-        refresh_token=create_access_token(identity=seller.id)
         response = make_response({'seller':seller.to_dict()},201)
         set_access_cookies(response,token)
-        set_refresh_cookies(response,refresh_token)
         return response
 
     except Exception as e:
         return make_response({'error':str(e)},400)
 
-@app.route('/login/seller',methods={'POST'})
+@app.route('/login/seller', methods=['POST'])
 def login_seller():
     data = request.get_json()
-    print (data);
-    if seller := Seller.query.filter_by(email=data.get("email", "")).first():
-        if seller.authenticate(data.get('password','')):
+    email = data.get('email', '')
+    password = data.get('password', '')
+
+    seller = Seller.query.filter_by(email=email).first()
+    user = User.query.filter_by(email=email).first()
+
+    if seller and not user:  # Check if the email belongs to a Seller and not a User
+        if seller.authenticate(password):
             token = create_access_token(identity=seller.id)
-            refresh_token=create_access_token(identity=seller.id)
-            response = make_response({'user':seller.to_dict()},201)
-            set_access_cookies(response,token)
-            set_refresh_cookies(response,refresh_token)
+            response = make_response({'seller': seller.to_dict()}, 201)
+            set_access_cookies(response, token)
             return response
-        return make_response({'error':'Invalid Username or Password'}, 401)
-    return make_response({'error': 'User not found'}, 404)
+        else:
+            return make_response({'error': 'Invalid Username or Password'}, 401)
+    elif user:
+        return make_response({'error': 'Please sign in as a user'}, 400)
+    else:
+        return make_response({'error': 'User not found'}, 404)
+
+@app.route('/uploads/<path:filename>')
+def serve_uploaded_file(filename):
+    print(filename)
+    return send_from_directory(app.config['UPLOAD_FOLDER'], secure_filename(filename))
 
 @app.route('/users/<int:user_id>/profile-photo', methods=['POST'])
 def upload_user_profile_photo(user_id):
@@ -446,40 +454,56 @@ def upload_user_profile_photo(user_id):
     else:
         return {'message': 'Invalid file'}, 400
 
-@app.route('/sellers/<int:seller_id>/profile-photo', methods=['POST'])
+@jwt_required()
+@app.route('/sellers/<int:seller_id>/profile_photo', methods=['PATCH'])
 def upload_seller_profile_photo(seller_id):
-    seller = Seller.query.get(seller_id)
+    data = request.form
+    file = request.files.get('profilePhoto')
+    seller = db.session.query(Seller).get(data.get('userId'))
     if not seller:
-        return {'message': 'Seller not found'}, 404
-    file = request.files['file']
-    if file and allowed_file(file.filename):
-        filename = save_file(file)
-        if filename:
-            seller.profile_photo = filename
-            db.session.commit()
-            return {'message': 'Profile photo uploaded successfully'}, 200
-        else:
-            return {'message': 'Failed to save file'}, 400
-    else:
-        return {'message': 'Invalid file'}, 400
+        return jsonify({'message': 'Seller not found'}), 404
+
+    if not file:
+        return jsonify({'message': 'No file uploaded'}), 400
+
+    file_path = save_file(file)
+    seller.profile_photo = file_path
+    db.session.commit()
+    return jsonify({'message': 'Profile photo uploaded successfully'}), 204
+
+
+def delete_seller_profile_photo(seller_id):
+    seller = db.session.query(Seller).get(seller_id)
+    if not seller:
+        return jsonify({'message': 'Seller not found'}), 404
+
+    if not seller.profile_photo:
+        return jsonify({'message': 'Profile photo not found'}), 404
+
+    # Delete the profile photo file from the filesystem if desired
+
+    seller.profile_photo = None
+    db.session.commit()
+    return jsonify({'message': 'Profile photo deleted successfully'}), 204
+    
 
 @jwt_required()
 @app.route('/sellers/<int:seller_id>/logo-banner', methods=['POST'])
 def upload_seller_logo_banner(seller_id):
-    seller = Seller.query.get(seller_id)
+    seller = db.session.get(Seller, data.get('userId'))
+    data = request.form
+    file = request.files.get('file')
     if not seller:
         return {'message': 'Seller not found'}, 404
-    file = request.files['file']
-    if file and allowed_file(file.filename):
-        filename = save_file(file)
-        if filename:
-            seller.logo_banner = filename
-            db.session.commit()
-            return {'message': 'Logo banner uploaded successfully'}, 200
-        else:
-            return {'message': 'Failed to save file'}, 400
+
+    filename = save_file(file)
+    if filename:
+        seller.logo_banner = filename
+        db.session.commit()
+        return {'message': 'Logo banner uploaded successfully'}, 200
     else:
-        return {'message': 'Invalid file'}, 400
+        return {'message': 'Failed to save file'}, 400
+
 
 @app.route('/items/<int:item_id>/images', methods=['POST'])
 def upload_item_images(item_id):
@@ -529,28 +553,6 @@ api.add_resource(Favorites, '/favorites', '/favorites/<int:favorite_id>')
 
 api.add_resource(FormItems, '/form-items', '/form-items/<int:form_item_id>')
 
-
-@app.route('/refresh_token/user', methods=['POST'])
-@jwt_required(refresh=True)
-def refresh_token():
-    id_ = get_jwt_identity()
-    user = db.session.get(User, id_)
-    # Generate a new access token
-    new_access_token = create_access_token(identity=id_)
-    response = make_response({"user": user.to_dict()}, 200)
-    set_access_cookies(response, new_access_token)
-    return response
-
-@app.route('/refresh_token/seller', methods=['POST'])
-@jwt_required(refresh=True)
-def refresh_token():
-    id_ = get_jwt_identity()
-    seller = db.session.get(Seller, id_)
-    # Generate a new access token
-    new_access_token = create_access_token(identity=id_)
-    response = make_response({"seller": seller.to_dict()}, 200)
-    set_access_cookies(response, new_access_token)
-    return response
 
 if __name__ == '__main__':
     app.run(port=5555, debug=True, use_debugger=True,use_reloader=False)

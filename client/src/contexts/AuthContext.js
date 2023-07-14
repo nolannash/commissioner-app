@@ -1,26 +1,35 @@
 import React, { createContext, useState } from 'react';
-import { Cookies } from 'react-cookie';
 import { useHistory } from 'react-router-dom';
 
 const AuthContext = createContext();
 
+
 const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const cookies = new Cookies();
+  const getCookie = (name) => {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) {
+      return parts.pop().split(';').shift();
+    }
+  };
+  
   const history = useHistory();
+  const csrfToken = getCookie('csrf_access_token');
 
   const handleSignUp = async (userType, userData) => {
     try {
       const response = await fetch(`/signup/${userType}`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-Token': csrfToken,
+        },
         body: JSON.stringify(userData),
       });
 
       if (response.ok) {
         const data = await response.json();
-        cookies.set('token', data.token);
-        cookies.set('refresh_token', data.refresh_token);
         setUser(data.user);
       } else {
         const errorData = await response.json();
@@ -36,15 +45,17 @@ const AuthProvider = ({ children }) => {
     try {
       const response = await fetch(`/login/${userType}`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-Token': csrfToken,
+        },
         body: JSON.stringify(credentials),
       });
 
       if (response.ok) {
         const data = await response.json();
-        cookies.set('token', data.token);
-        cookies.set('refresh_token', data.refresh_token);
-        setUser(data.user);
+
+        userType ==='seller'?setUser(data.seller):setUser(data.user);
       } else {
         const errorData = await response.json();
         throw new Error(errorData.message);
@@ -57,33 +68,44 @@ const AuthProvider = ({ children }) => {
 
   const handleLogout = async () => {
     try {
-      const token = cookies.get('token');
-      const csrfToken = cookies.get('csrf_token');
-
       const response = await fetch('/logout', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-          'X-CSRF-Token': csrfToken, 
+          'X-CSRF-Token': csrfToken,
         },
       });
-  
+
       if (response.ok) {
-        console.log(response)
+        await history.push('/')
         setUser(null);
-        cookies.remove('token');
-        cookies.remove('refresh_token');
-        history.push('/');
       } else {
         const errorData = await response.json();
-        console.log(errorData)
         throw new Error(errorData.message || 'Logout failed');
-        
       }
     } catch (error) {
-
       console.error('Logout error:', error.message);
+    }
+  };
+
+  const refreshUser = async (id, type) => {
+    try {
+      const response = await fetch(`/${type}/${id}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-Token': csrfToken,
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setUser(data)
+      } else {
+        throw new Error(`Failed to fetch ${type} data`);
+      }
+    } catch (error) {
+      console.error(`Refresh ${type} error:`, error.message);
     }
   };
 
@@ -91,9 +113,11 @@ const AuthProvider = ({ children }) => {
     <AuthContext.Provider
       value={{
         user,
+        refreshUser,
         signUp: handleSignUp,
         login: handleLogin,
         logout: handleLogout,
+        csrfToken,
       }}
     >
       {children}

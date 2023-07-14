@@ -8,9 +8,10 @@ import LandingPage from './LandingPage';
 import HomePage from './HomePage';
 import SellerPage from './Sellerpage';
 import ItemForm from './ItemForm';
+import UserPage from './UserPage';
+import Search from './Search';
 
 const App = () => {
-
 
   return (
     <AuthProvider>
@@ -41,6 +42,12 @@ const App = () => {
           </Route>
           <Route path='/itemForm'>
             <ItemForm></ItemForm>
+          </Route>
+          <Route path='/userPage'>
+            <UserPage/>
+          </Route>
+          <Route path='/search'>
+            <Search tabs={tabs}></Search>
           </Route>
         </Switch>
       </Router>

@@ -5,20 +5,15 @@ import {
     Typography,
     Button,
     InputBase,
+    IconButton,
 } from '@mui/material';
 import { Search as SearchIcon } from '@mui/icons-material';
 import { Link } from 'react-router-dom';
 import { AuthContext } from '../contexts/AuthContext';
 
 const HomePage = () => {
-    const [searchText, setSearchText] = useState('');
-    const { user, logout } = useContext(AuthContext);
 
-    const handleSearch = (event) => {
-    setSearchText(event.target.value);
-    // Handle search logic here
-    };
-    console.log(user)
+    const { user, logout } = useContext(AuthContext);
 
 
     return (
@@ -28,28 +23,27 @@ const HomePage = () => {
             <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
             Commissioner
             </Typography>
-            <div>
-            <SearchIcon />
-            <InputBase
-                placeholder="Search..."
-                value={searchText}
-                onChange={handleSearch}
-            />
-            </div>
+            <Link to={'/search'}>
+
+            <IconButton color='inherit' variant='contained' >
+                <SearchIcon/>Browse
+            </IconButton>
+
+            </Link>
             {user ? (
             <>
-            <Link to ={'/UserProfile'}>
-                <Button color='secondary'>Profile</Button>
+            <Link to ={'/userPage'}>
+                <Button variant='contained'color='secondary'>Profile</Button>
             </Link>
             <Link to ={'/'}>
-            <Button color="secondary" onClick={logout} >
+            <Button color="error" variant='contained' onClick={logout} >
                 Logout
             </Button>
             </Link>
             </>
             ) : (
             <Link to="/landing">
-                <Button color="inherit">Login/Signup</Button>
+                <Button color="inherit" variant='contained'>Login/Signup</Button>
             </Link>
             )}
         </Toolbar>
