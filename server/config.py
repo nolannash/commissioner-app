@@ -8,6 +8,7 @@ from sqlalchemy import MetaData
 from flask_mail import Mail
 from werkzeug.utils import secure_filename
 from flask_jwt_extended import JWTManager
+from datetime import timedelta
 import time
 import uuid
 import os
@@ -57,13 +58,14 @@ app.config['JWT_SECRET_KEY'] = os.environ.get('JWT_SECRET_KEY', 'dev')
 
 app.config["JWT_TOKEN_LOCATION"] = ["headers", "cookies"]
 app.config['JWT_ACCESS_COOKIE_SAMESITE'] = 'None'
+app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(hours=1)
 
 
-app.config['MAIL_SERVER'] = 'your_mail_server'
-app.config['MAIL_PORT'] = 587
+app.config['MAIL_SERVER']='sandbox.smtp.mailtrap.io'
+app.config['MAIL_PORT'] = 2525
+app.config['MAIL_USERNAME'] = 'f22dbad3accd07'
+app.config['MAIL_PASSWORD'] = '3591becb36a522'
 app.config['MAIL_USE_TLS'] = True
-app.config['MAIL_USERNAME'] = 'your_username'
-app.config['MAIL_PASSWORD'] = 'your_password'
-app.config['MAIL_DEFAULT_SENDER'] = 'your_email@example.com'
+app.config['MAIL_USE_SSL'] = False
 
 mail = Mail(app)

@@ -1,12 +1,9 @@
-from flask import request, make_response, jsonify,send_file, send_from_directory
+from flask import request, make_response, jsonify, send_from_directory
 from flask_restful import Resource
 from flask_jwt_extended import jwt_required, create_access_token, get_jwt_identity, set_access_cookies,  unset_jwt_cookies
-from datetime import datetime, timedelta
-import re
 from werkzeug.utils import secure_filename
 from config import app, db, api,save_file, allowed_file
 from models import User, Seller, Item, Order, Favorite, FormItem, ItemImage
-from werkzeug.utils import secure_filename
 import os
 
 class Users(Resource):

@@ -52,7 +52,7 @@ const ItemPage = () => {
             <Avatar src={`/uploads/${item.seller.profile_photo}`} alt="Profile Photo" />
             <Box ml={2}>
                 <Typography variant="h5">{item.seller.shopname}</Typography>
-                <Typography variant="body1">{item.seller.email}</Typography>
+                <Typography variant="body1" sx={{padding:1}}>{item.seller.email}</Typography>
                 {item.seller.bio && <Typography variant="body1">{item.seller.bio}</Typography>}
             </Box>
             <Link to ={`/shops/${item.seller.id}`}>
@@ -77,7 +77,7 @@ const ItemPage = () => {
             </Typography>
             <Typography variant="h5">{item.name}</Typography>
             <Typography variant="body1">{item.description}</Typography>
-            <Typography variant="body1">Price: {item.price}</Typography>
+            <Typography variant="body1">Price: ${item.price}</Typography>
             <Typography variant="body1">Batch Size: {item.batch_size}</Typography>
             <Typography variant='body1'>Quantity Remaining: {item.orders === 0?item.batch_size - item.orders:<> {item.batch_size} </>}</Typography>
         </Box>
