@@ -6,6 +6,7 @@ from sqlalchemy_serializer import SerializerMixin
 from config import db, bcrypt, mail
 from datetime import datetime
 import re
+from datetime import datetime, timedelta
 
 class User(db.Model, SerializerMixin):
     __tablename__ = 'users'
@@ -17,11 +18,11 @@ class User(db.Model, SerializerMixin):
     profile_photo = db.Column(db.VARCHAR)  # File path to profile photo
     email_notifications = db.Column(db.Boolean, default=False)
 
-    favorites = db.relationship('Favorite', back_populates='user')
+    favorites = db.relationship('Favorite', back_populates='user', cascade='all, delete-orphan')
     orders = db.relationship('Order', back_populates='user')
 
-    serialize_only = ('id', 'username', 'email', 'profile_photo', 'email_notifications')
-    serialize_rules = ('-favorites.user', 'favorites.user_id', '-orders.user', '-orders.user_id')
+    serialize_only = ('id', 'username', 'email', 'profile_photo', 'email_notifications','favorites.user_id', 'orders')
+    serialize_rules = ( '-orders.user', '-orders.user_id')
 
     @validates("username")
     def validate_username(self, key, username):
@@ -73,8 +74,8 @@ class Seller(db.Model, SerializerMixin):
     email_notifications = db.Column(db.Boolean, default=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
-    items = db.relationship('Item', back_populates='seller')
-    orders = db.relationship('Order', back_populates='seller')
+    items = db.relationship('Item', back_populates='seller', cascade="all, delete-orphan")
+    orders = db.relationship('Order', back_populates='seller', cascade="all, delete-orphan")
 
     serialize_only = ('id', 'shopname', 'email', 'logo_banner', 'profile_photo', 'bio', 'email_notifications','items')
     serialize_rules = ( '-items.seller_id', '-orders.seller', '-orders.seller_id')
@@ -138,6 +139,28 @@ class Item(db.Model, SerializerMixin):
     
     serialize_only = ('id', 'name', 'description', 'price', 'batch_size', 'rollover_period', 'last_rollover', 'created_at', 'order_count','images','seller_id','form_items','seller.shopname')
     serialize_rules = ( '-orders.item', '-orders.item_id', '-form_items.item', '-form_items.item_id')
+    
+    def rollover_logic(self):
+        if self.rollover_period is not None:
+            now = datetime.utcnow()
+
+            if self.last_rollover is None:
+                self.last_rollover = now
+            else:
+                time_since_last_rollover = now - self.last_rollover
+                rollover_period_timedelta = timedelta(days=self.rollover_period)
+
+                while time_since_last_rollover >= rollover_period_timedelta:
+                    self.last_rollover += rollover_period_timedelta
+                    time_since_last_rollover = now - self.last_rollover
+                    self.order_count = 0
+
+    def order_count_logic(self, key, order_count):
+        if self.rollover_period_days is not None:
+            batch_size = self.batch_size
+            if batch_size is not None and order_count > batch_size:
+                raise ValueError("Order count cannot exceed batch size during a rollover period.")
+        return order_count
 
     def __repr__(self):
         return f"<Item {self.id}>"
@@ -180,7 +203,7 @@ class Favorite(db.Model, SerializerMixin):
 
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
-    shop_id = db.Column(db.Integer, db.ForeignKey('sellers.id'))
+
     item_id = db.Column(db.Integer, db.ForeignKey('items.id'))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
@@ -188,8 +211,8 @@ class Favorite(db.Model, SerializerMixin):
 
     item = db.relationship("Item", backref="favorites")
     
-    serialize_only = ('id', 'created_at')
-    serialize_rules = ('-user.favorites', '-item.favorites')
+    serialize_only = ('id', 'created_at', 'user_id', 'item_id')
+    serialize_rules = ('-user.favorites.user_id', '-item.favorites')
     
     def notify_new_item(self, item):
         if self.user.email and self.user.email_notifications:

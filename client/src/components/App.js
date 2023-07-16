@@ -10,6 +10,8 @@ import SellerPage from './Sellerpage';
 import ItemForm from './ItemForm';
 import UserPage from './Userpage';
 import Search from './Search';
+import ShopView from './ShopView';
+import ItemPage from './ItemPage';
 
 const App = () => {
   const tabs = [
@@ -47,7 +49,13 @@ const App = () => {
             <Search tabs={tabs}></Search>
           </Route>
           <Route path='/shops/:id'>
-            <></>
+            <ShopView></ShopView>
+          </Route>
+          <Route path='/items/:id'>
+            <ItemPage></ItemPage>
+          </Route>
+          <Route path='/newOrder'>
+
           </Route>
         </Switch>
       </Router>

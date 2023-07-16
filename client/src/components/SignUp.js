@@ -9,7 +9,6 @@ export default function SignUpPage() {
     const { signUp } = useContext(AuthContext);
     const history = useHistory();
     const location = useLocation();
-
     const determineUserType = () => {
         const { pathname } = location;
 

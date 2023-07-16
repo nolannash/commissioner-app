@@ -298,7 +298,6 @@ const UserAccountInfo = () => {
                         </Popover>
 
                         <Box display="flex" alignItems="flex-start" justifyContent="flex-start" mb={2}>
-                            {/* Profile photo overlaid as an avatar */}
                             <Avatar src={`/uploads/${user.profile_photo}`} alt="Profile Photo">
                                 {!user.profile_photo && <Person />}
                             </Avatar>

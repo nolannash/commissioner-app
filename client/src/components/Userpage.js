@@ -19,8 +19,6 @@ const UserPage = () => {
   const [activeSection, setActiveSection] = useState(0);
   const history = useHistory();
 
-
-
   const handleTabChange = (event, newValue) => {
     setActiveSection(newValue);
   };

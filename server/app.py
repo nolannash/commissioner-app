@@ -20,14 +20,11 @@ class Users(Resource):
         else:
             return make_response({'error': 'User Not Found'}, 404)
 
-
     @jwt_required()
     def patch(self, user_id):
         if not (user := User.query.get(user_id)):
             return {'error': 'User not found'}, 404
-
         data = request.get_json()
-
         try:
             user.username = data.get('username', user.username)
             user.email = data.get('email', user.email)
@@ -36,7 +33,6 @@ class Users(Resource):
             return make_response(user.to_dict(), 200)
         except Exception as e:
             return make_response({'error': str(e)}, 400)
-
 
     @jwt_required()
     def delete(self, user_id):
@@ -48,7 +44,6 @@ class Users(Resource):
             return {'message': 'User not found'}, 404
 
 class Sellers(Resource):
-
     def get(self, seller_id=None):
         if seller_id:
             return (
@@ -71,7 +66,7 @@ class Sellers(Resource):
             
             seller.email_notifications = data.get('email_notifications', seller.email_notifications)
             db.session.commit()
-            # return {'message': 'Seller updated successfully'}
+            return {'message': 'Seller updated successfully'}
             return make_response(seller.to_dict(),204)
         except ValueError as e:
             return {'message': str(e)}, 400
@@ -98,6 +93,7 @@ class Items(Resource):
 
 
 class Orders(Resource):
+    @jwt_required()
     def get(self, order_id=None):
         if order_id:
             return (
@@ -108,15 +104,16 @@ class Orders(Resource):
         orders = Order.query.all()
         return [order.to_dict() for order in orders]
 
+    @jwt_required()
     def post(self):
         data = request.get_json()
         seller_id = data.get('seller_id')
         seller = db.session.get(Seller,seller_id)
         if not seller:
             return {'message': 'Seller not found'}, 404
-
         user_id = data.get('user_id')
         user = db.session.get(User,user_id)
+
         if not user:
             return {'message': 'User not found'}, 404
 
@@ -186,16 +183,51 @@ class Favorites(Resource):
         else:
             return {'message': 'Page Not Found'}, 404
 
-class UserFavorites(Resource):
-    def get(self, user_id, favorite_id):
+class Favorites(Resource):
+    @jwt_required()
+    def get(self, favorite_id=None):
         if favorite_id:
             return (
                 favorite.to_dict()
-                if (favorite := db.session.get(Favorite, favorite_id))
+                if (favorite := Favorite.query.get(favorite_id))
                 else ({'message': 'Favorite not found'}, 404)
             )
-        favorites = Favorite.query.filter_by(user_id=favorite.user_id)
+        favorites = Favorite.query.all()
         return [favorite.to_dict() for favorite in favorites]
+
+    @jwt_required()
+    def post(self):
+        data = request.get_json()
+        item_id = data.get('item_id')
+        item = db.session.get(Item, item_id)
+        if not item:
+            return {'message': 'Item not found'}, 404
+
+        current_user_id = get_jwt_identity()
+        user = db.session.get(User, current_user_id)
+        if not user:
+            return {'message': 'User not found'}, 404
+
+        favorite = Favorite.query.filter_by(user_id=current_user_id, item_id=item_id).first()
+        if favorite:
+            return {'message': 'Item already in favorites'}, 200
+
+        favorite = Favorite(user=user, item=item)
+        db.session.add(favorite)
+        db.session.commit()
+        return {'message': 'Successfully added to Favorites!'}, 201
+
+    @jwt_required()
+    def delete(self, favorite_id):
+        favorite = Favorite.query.get(favorite_id)
+        if not favorite:
+            return {'message': 'Favorite not found'}, 404
+
+        db.session.delete(favorite)
+        db.session.commit()
+        return {'message': 'Removed from Favorites'}, 204
+
+        
 
 class FormItems(Resource):
     def get(self, form_item_id=None):
@@ -291,7 +323,6 @@ class SellerItems(Resource):
         
         try:
             file = request.files.get('images')
-            print(file)
             if file and allowed_file(file.filename):
                 filepath = save_file(file)
                 
@@ -305,7 +336,6 @@ class SellerItems(Resource):
                         item_image = ItemImage(item_id=item.id, image_path=image_path)  # Set item_id and image_path here
                         item_images.append(item_image)
 
-                # Check if item_images list is not empty before bulk saving
                 if item_images:
                     db.session.bulk_save_objects(item_images)
                     db.session.commit()
@@ -415,7 +445,6 @@ def login_seller():
 
 @app.route('/uploads/<path:filename>', methods=['GET'])
 def serve_uploaded_file(filename):
-    print(filename)
     return send_from_directory(app.config['UPLOAD_FOLDER'], secure_filename(filename))
 
 @app.route('/users/<int:user_id>/profile-photo', methods=['PATCH','DELETE'])
@@ -466,7 +495,6 @@ def handle_seller_logo_banner(seller_id):
 def upload_seller_logo_banner(seller_id):
     data = request.form
     file = request.files.get('logoBanner')
-    print(file)
     seller = db.session.query(Seller).get(data.get('userId'))
     if not seller:
         return jsonify({'message': 'Seller not found'}), 404
@@ -581,7 +609,7 @@ api.add_resource(Items, '/items', '/items/<int:item_id>')
 
 api.add_resource(Orders, '/orders', '/orders/<int:order_id>')
 
-api.add_resource(Favorites, '/favorites', '/favorites/<int:favorite_id>')
+api.add_resource(Favorites, '/favorites', '/favorites/<int:favorite_id>', '/favorites/<int:seller_id>/favorites')
 
 api.add_resource(FormItems, '/form-items', '/form-items/<int:item_id>','/form-items/<int:item_id>/<int:form_item_id>')
 

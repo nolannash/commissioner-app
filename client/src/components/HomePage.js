@@ -39,34 +39,51 @@ const HomePage = () => {
         },
         });
         if (response.ok) {
+
         const data = await response.json();
         setMainItems(data);
+
         } else {
+
         setError('Failed to fetch items');
+
         }
+
     } catch (error) {
+
         setError('Failed to fetch items');
+        
     }
     };
 
-  // Function to fetch new items and update state
     const fetchNewItems = async () => {
-    // Implement the API request to fetch new items
+
     try {
+
         const response = await fetch('/recent', {
         method: 'GET',
         headers: {
             'X-CSRF-TOKEN': csrfToken,
         },
+
         });
         if (response.ok) {
+
         const data = await response.json();
         setNewItems(data.recent_items);
+        console.log(data+'4');
+        console.log(data.recent_items+'3');
+        console.log(data.recent_shops+'2');
+
         setNewShops(data.recent_shops);
+
         } else {
+
         setError('Failed to fetch new items');
+
         }
     } catch (error) {
+        
         setError('Failed to fetch new items');
     }
     };
@@ -77,7 +94,7 @@ const HomePage = () => {
     }
 
     try {
-        const response = await fetch(`/users/${user.id}/favorites`, {
+        const response = await fetch(`/favorites`, {
         method: 'GET',
         headers: {
             'X-CSRF-TOKEN': csrfToken,
@@ -85,9 +102,10 @@ const HomePage = () => {
         });
         if (response.ok) {
         const data = await response.json();
-        setUserFavorites(data);
+        console.log(data+'5');
+        setUserFavorites(data.items);
         } else {
-        {user.favorites.length() <1?<></>:setError('Something went wrong')}
+        setError('Something went wrong')
         }
     } catch (error) {
         console.error('Failed to fetch user favorites');
@@ -141,7 +159,7 @@ const HomePage = () => {
                 <Typography variant="h5">Generic Item List</Typography>
                 <ItemList items={mainItems} />
             </Grid>
-            ) : userFavorites.length > 0 ? (
+            ) : userFavorites ? (
             <Grid item xs={12} sm={4}>
                 <Typography variant="h5">User Favorites</Typography>
                 <ItemList items={userFavorites} />

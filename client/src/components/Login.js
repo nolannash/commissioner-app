@@ -1,14 +1,16 @@
-import React, { useContext } from 'react';
+import React, { useContext, useState } from 'react';
 import { AuthContext } from '../contexts/AuthContext';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
-import { Button, TextField, Typography } from '@mui/material';
+import { Button, TextField, Typography, Alert } from '@mui/material';
 import { useHistory, useLocation } from 'react-router-dom';
 
 export default function LoginPage() {
     const { login } = useContext(AuthContext);
-    const history = useHistory()
+    const history = useHistory();
     const location = useLocation();
+  const [alertType, setAlertType] = useState(null); 
+    const [alertMessage, setAlertMessage] = useState('');
 
     const determineUserType = () => {
     const { pathname } = location;
@@ -25,10 +27,13 @@ export default function LoginPage() {
     const handleLogin = async (values) => {
     try {
         await login(determineUserType(), values);
-        (determineUserType()==='user'?history.push('/'):history.push('/sellerPage'));
+        setAlertType('success');
+        setAlertMessage('Login successful!');
+        determineUserType() === 'user' ? history.push('/') : history.push('/sellerPage');
     } catch (error) {
         console.error(error);
-        throw(error);
+        setAlertType('error');
+        setAlertMessage('Login failed. Please check your credentials and try again.');
     }
     };
 
@@ -42,6 +47,11 @@ export default function LoginPage() {
         <Typography variant="h4" component="h1" gutterBottom>
         Login
         </Typography>
+        {alertType && (
+        <Alert severity={alertType} onClose={() => setAlertType(null)}>
+            {alertMessage}
+        </Alert>
+        )}
         <Formik
         initialValues={{
             email: '',
@@ -63,7 +73,7 @@ export default function LoginPage() {
                 error={touched.email && errors.email}
                 helperText={touched.email && errors.email}
                 />
-                <ErrorMessage name="email"component="div" />
+                <ErrorMessage name="email" component="div" />
             </div>
             <div>
                 <Field
@@ -78,10 +88,11 @@ export default function LoginPage() {
                 />
                 <ErrorMessage name="password" component="div" />
             </div>
-            <Button variant="contained" type='submit'>
+            <Button variant='outlined' onClick={()=>history.push('/landing')}>Back</Button>
+            <Button variant="contained" type="submit">
                 Login
             </Button>
-        </Form>
+            </Form>
         )}
         </Formik>
     </div>

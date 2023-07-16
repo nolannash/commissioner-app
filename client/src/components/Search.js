@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useContext, useState, useEffect } from 'react';
 import {
     AppBar,
     Toolbar,
@@ -13,21 +13,22 @@ import { Search as SearchIcon, Checkroom, Store, ArrowBack } from '@mui/icons-ma
 import { Link } from 'react-router-dom';
 import ItemList from './ItemList';
 import ShopList from './ShopList';
+import { AuthContext } from '../contexts/AuthContext';
+
 
 const Search = ({ tabs }) => {
-    const [searchType, setSearchType] = useState(tabs[0].type); // Default search type is the first tab
+    const [searchType, setSearchType] = useState(tabs[0].type); 
     const [searchQuery, setSearchQuery] = useState('');
     const [items, setItems] = useState([]);
     const [shops, setShops] = useState([]);
-    const [filteredItems, setFilteredItems] = useState([]); // State variable for filtered items
-    const [filteredShops, setFilteredShops] = useState([]); // State variable for filtered shops
-    console.log(shops)
+    const [filteredItems, setFilteredItems] = useState([]); 
+    const [filteredShops, setFilteredShops] = useState([]); 
+    const { user, csrfToken } = useContext(AuthContext);
     const handleSearchTypeChange = (type) => {
         setSearchType(type);
     };
 
     const handleSearch = () => {
-        // Implement your search logic here (no need to use this function for real-time search)
         console.log('Performing search...');
         if (searchType === 'items') {
             const filteredItems = items.filter(
@@ -35,12 +36,10 @@ const Search = ({ tabs }) => {
                     item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                     item.seller.shopname.toLowerCase().includes(searchQuery.toLowerCase())
             );
-            console.log('Filtered Items:', filteredItems);
-            setFilteredItems(filteredItems); // Update the filtered items state
+            setFilteredItems(filteredItems); 
         } else if (searchType === 'sellers') {
             const filteredShops = shops.filter((shop) => shop.shopname.toLowerCase().includes(searchQuery.toLowerCase()));
-            console.log('Filtered Shops:', filteredShops);
-            setFilteredShops(filteredShops); // Update the filtered shops state
+            setFilteredShops(filteredShops); 
         }
     };
 
@@ -48,27 +47,27 @@ const Search = ({ tabs }) => {
         const inputValue = event.target.value;
         setSearchQuery(inputValue);
 
-        // Filter items and shops based on the search query and search type ('items' or 'sellers')
+ 
         if (searchType === 'items') {
             const filteredItems = items.filter(
                 (item) =>
                     item.name.toLowerCase().includes(inputValue.toLowerCase()) ||
                     item.seller.shopname.toLowerCase().includes(inputValue.toLowerCase())
             );
-            setFilteredItems(filteredItems); // Update the filtered items state
+            setFilteredItems(filteredItems);
         } else if (searchType === 'sellers') {
             const filteredShops = shops.filter((shop) => shop.shopname.toLowerCase().includes(inputValue.toLowerCase()));
-            setFilteredShops(filteredShops); // Update the filtered shops state
+            setFilteredShops(filteredShops); 
         }
     };
 
     useEffect(() => {
-        // Fetch items from the API when the component mounts
-        fetch('/items') // Replace '/items' with the appropriate API endpoint to fetch the items from the backend
+
+        fetch('/items') 
             .then((response) => response.json())
             .then((data) => {
                 setItems(data);
-                setFilteredItems(data); // Initialize filtered items with all items initially
+                setFilteredItems(data); 
             })
             .catch((error) => console.error('Error fetching items:', error));
 
@@ -77,7 +76,6 @@ const Search = ({ tabs }) => {
             .then((response) => response.json())
             .then((data) => {
                 setShops(data);
-                console.log(data);
                 setFilteredShops(data); 
             })
             .catch((error) => console.error('Error fetching sellers:', error));
