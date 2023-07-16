@@ -320,8 +320,18 @@ const SellerItemsPage = () => {
                   <Typography variant="body1">Price: ${item.price}</Typography>
                   <Typography variant="body1">Batch Size: {item.batch_size} Per Rollover</Typography>
                   <Typography variant="body1">Rollover Period: {item.rollover_period} days</Typography>
+                  {item.form_items && item.form_items.length > 0 && (
+                <CardContent>
+                  <Typography variant="h6">Customization Questions</Typography>
+                  <ul>
+                    {item.form_items.map((formItem) => (
+                      <li key={formItem.id}>{formItem.seller_question}</li>
+                    ))}
+                  </ul>
                 </CardContent>
               )}
+            </CardContent>
+          )}
 
               <CardActions>
                 {!editItemId && (
