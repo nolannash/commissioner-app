@@ -112,7 +112,7 @@ const ItemList = ({ items }) => {
               <Typography variant='body1'>{item.description}</Typography>
             </CardContent>
             <CardContent>
-              <Link to={`'/items/${item.id}`}>
+              <Link to={`/items/${item.id}`}>
                 <Button variant="contained" color="primary">View Item</Button>
               </Link>
             </CardContent>

@@ -12,6 +12,7 @@ import os
 class Users(Resource):
     @jwt_required()
     def get(self, user_id=None):
+
         if not user_id:
             users = User.query.all()
             return make_response([user.to_dict() for user in users], 200)

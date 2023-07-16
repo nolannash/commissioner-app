@@ -16,7 +16,7 @@ const ShopList = ({ shops }) => {
   return (
     <div style={{ height: '100%', width: '100%' }}>
       {shops.map((shop) => (
-        <Card key={shop.id} sx={{ margin: '8px', width: '600px' }}>
+        <Card key={shop.id} sx={{ margin: '8px', width: '500px' }}>
           <CardHeader title={shop.shopname} />
           <CardMedia
             component="img"

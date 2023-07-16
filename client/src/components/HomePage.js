@@ -27,7 +27,7 @@ const HomePage = () => {
     fetchUserFavorites();
     }, []);
 
-    const { user, logout, csrfToken } = useContext(AuthContext);
+    const { user, logout, csrfToken, refreshUser } = useContext(AuthContext);
 
 
     const fetchItems = async () => {
@@ -71,9 +71,7 @@ const HomePage = () => {
 
         const data = await response.json();
         setNewItems(data.recent_items);
-        console.log(data+'4');
-        console.log(data.recent_items+'3');
-        console.log(data.recent_shops+'2');
+
 
         setNewShops(data.recent_shops);
 
@@ -102,7 +100,7 @@ const HomePage = () => {
         });
         if (response.ok) {
         const data = await response.json();
-        console.log(data+'5');
+
         setUserFavorites(data.items);
         } else {
         setError('Something went wrong')

@@ -12,8 +12,6 @@ import { ArrowBack } from '@mui/icons-material';
 import { Link, useParams } from 'react-router-dom';
 import ItemList from './ItemList';
 
-
-
 const ShopView = () => {
 
     const [seller, setSeller] = useState('');
