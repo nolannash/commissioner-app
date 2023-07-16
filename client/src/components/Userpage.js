@@ -12,10 +12,14 @@ import { ViewList, Receipt, AccountBox } from '@mui/icons-material';
 import { AuthContext } from '../contexts/AuthContext';
 import UserAccountInfo from './UserAct';
 import ItemList from './itemList';
+import { useHistory } from 'react-router-dom/cjs/react-router-dom.min';
 
 const UserPage = () => {
   const { user, logout } = useContext(AuthContext);
   const [activeSection, setActiveSection] = useState(0);
+  const history = useHistory();
+
+
 
   const handleTabChange = (event, newValue) => {
     setActiveSection(newValue);
@@ -41,6 +45,7 @@ const UserPage = () => {
           {user.shopname}
         </Typography>
         <Box sx={{ display: 'flex', alignItems: 'center', textAlign: 'center' }}>
+          <Button variant='contained' onClick={()=>history.push('/')}>Home</Button>
           <Button variant="contained" onClick={logout} sx={{ ml: 2 }}>
             Logout
           </Button>

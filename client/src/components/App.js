@@ -46,6 +46,9 @@ const App = () => {
           <Route path='/search'>
             <Search tabs={tabs}></Search>
           </Route>
+          <Route path='/shops/:id'>
+            <></>
+          </Route>
         </Switch>
       </Router>
     </AuthProvider>

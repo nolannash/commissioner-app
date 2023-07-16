@@ -1,17 +1,17 @@
 import React from "react";
 import { AuthContext } from '../contexts/AuthContext';
 
-const ItemList = ({ items }) => {
+const ShopList = ({ shops }) => {
     const { user } = React.useContext(AuthContext);
-    console.log(items)
+    console.log(shops)
     return (
         <ul>
             <p>TEST</p>
-            {items.map(item => (
-                <li key={item.id}>{item.name}</li>
+            {shops.map(shop => (
+                <li key={shop.id}>{shop.shopname}</li>
             ))}
         </ul>
     );
 };
 
-export default ItemList;
+export default ShopList;

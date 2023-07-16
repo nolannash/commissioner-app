@@ -20,13 +20,6 @@ class Users(Resource):
         else:
             return make_response({'error': 'User Not Found'}, 404)
 
-    def update_profile_photo(self, user, file):
-        if file and allowed_file(file.filename):
-            filename = secure_filename(file.filename)
-            file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-            file.save(file_path)
-            user.profile_photo = file_path
-            db.session.commit()
 
     @jwt_required()
     def patch(self, user_id):
@@ -34,14 +27,11 @@ class Users(Resource):
             return {'error': 'User not found'}, 404
 
         data = request.get_json()
-        file = request.files.get('profile_photo')
 
         try:
             user.username = data.get('username', user.username)
             user.email = data.get('email', user.email)
-            user.password_hash = data.get('password', user.password_hash)
             user.email_notifications = data.get('email_notifications', user.email_notifications)
-            self.update_profile_photo(user, file)
             db.session.commit()
             return make_response(user.to_dict(), 200)
         except Exception as e:
@@ -428,22 +418,40 @@ def serve_uploaded_file(filename):
     print(filename)
     return send_from_directory(app.config['UPLOAD_FOLDER'], secure_filename(filename))
 
-@app.route('/users/<int:user_id>/profile-photo', methods=['POST'])
+@app.route('/users/<int:user_id>/profile-photo', methods=['PATCH','DELETE'])
+def handle_user_profile_photo(user_id):
+    if request.method == 'PATCH':
+        return upload_user_profile_photo(user_id)
+    elif request.method == 'DELETE':
+            return delete_user_profile_photo(user_id)
+    else:
+            return jsonify({'message': 'Method not allowed'}), 405
 def upload_user_profile_photo(user_id):
-    user = User.query.get(user_id)
+    data = request.form
+    user = db.session.query(User).get(data.get('userId'))
     if not user:
         return {'message': 'User not found'}, 404
-    file = request.files['file']
-    if file and allowed_file(file.filename):
-        filename = save_file(file)
-        if filename:
-            user.profile_photo = filename
-            db.session.commit()
-            return {'message': 'Profile photo uploaded successfully'}, 200
-        else:
-            return {'message': 'Failed to save file'}, 400
-    else:
-        return {'message': 'Invalid file'}, 400
+    file = request.files.get('profilePhoto')
+    if not file:
+        return {'message': 'No file uploaded'}, 400
+    file_path = save_file(file)
+    user.profile_photo = file_path
+    db.session.commit()
+    return jsonify({'message': 'Profile Photo successfully'}), 204
+
+def delete_user_profile_photo(user_id):
+    user = db.session.query(User).get(user_id)
+    if not user:
+        return {'message': 'User not found'}, 404
+    if not user.profile_photo:
+            return jsonify({'message': 'Profile photo not found'}), 404
+    file_path = user.profile_photo
+    if os.path.exists(file_path):
+        os.remove(file_path)
+    user.profile_photo = None
+    db.session.commit()
+    return jsonify({'message': 'Profile Photo successfully'}), 204
+    
 
 @jwt_required()
 @app.route('/sellers/<int:seller_id>/logo_banner', methods=['PATCH','DELETE'])

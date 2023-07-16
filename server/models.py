@@ -163,6 +163,7 @@ class Order(db.Model, SerializerMixin):
     seller_id = db.Column(db.INTEGER, db.ForeignKey('sellers.id'))
     user_id = db.Column(db.INTEGER, db.ForeignKey('users.id'))
     item_id = db.Column(db.INTEGER, db.ForeignKey('items.id'))
+    user_response = db.Column(db.String)
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
 
     item = db.relationship("Item", back_populates="orders")
@@ -214,13 +215,10 @@ class FormItem(db.Model, SerializerMixin):
 
     id = db.Column(db.Integer, primary_key=True)
     item_id = db.Column(db.Integer, db.ForeignKey('items.id'))
-    component_type = db.Column(db.String, nullable=False)
-    options = db.Column(db.String)
+    seller_question = db.Column(db.String)
 
     item = db.relationship('Item', back_populates='form_items')
 
     def __repr__(self):
         return f"<FormItem {self.id}>"
 
-# class OrderChat(db.Model, SerializerMixin):
-#     pass
