@@ -7,14 +7,17 @@ import {
   CardContent,
   IconButton,
   Button,
+  Alert,
 } from '@mui/material';
-import { Star, StarBorder } from '@mui/icons-material';
+import { Star, StarBorder, CheckCircleOutline } from '@mui/icons-material';
 import { AuthContext } from '../contexts/AuthContext';
 import { Link } from 'react-router-dom';
 
 const ItemList = ({ items }) => {
   const { user, csrfToken, refreshUser } = useContext(AuthContext);
   const [favoriteItemIds, setFavoriteItemIds] = useState([]);
+  const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(null);
 
   useEffect(() => {
     if (user && user.favorites) {
@@ -23,8 +26,9 @@ const ItemList = ({ items }) => {
   }, [user]);
 
   useEffect(() => {
-
-    const initialFavorites = items.filter((item) => favoriteItemIds.includes(item.id));
+    const initialFavorites = items.filter((item) =>
+      favoriteItemIds.includes(item.id)
+    );
     initialFavorites.forEach((item) => {
       const updatedItemIds = [...favoriteItemIds, item.id];
       setFavoriteItemIds(updatedItemIds);
@@ -44,30 +48,46 @@ const ItemList = ({ items }) => {
       },
       body: JSON.stringify({ item_id: itemId }),
     })
-      .then((response) => response.json())
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error('Failed to add item to favorites.');
+        }
+        return response.json();
+      })
       .then((data) => {
         setFavoriteItemIds([...favoriteItemIds, itemId]);
-        refreshUser(user.id,'user');
+        setSuccess('Item added to favorites successfully.');
+        setError(null);
+        refreshUser(user.id, 'user');
       })
       .catch((error) => {
-
+        setError('Failed to add item to favorites.');
+        setSuccess(null);
         console.error(error);
       });
   };
 
   const removeFromFavorites = (itemId) => {
-
     fetch(`/favorites/${itemId}`, {
       method: 'DELETE',
       headers: {
         'X-CSRF-Token': csrfToken,
       },
     })
-      .then((response) => response.json())
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error('Failed to remove item from favorites.');
+        }
+        return response.json();
+      })
       .then((data) => {
         setFavoriteItemIds(favoriteItemIds.filter((id) => id !== itemId));
+        setSuccess('Item removed from favorites successfully.');
+        setError(null);
       })
       .catch((error) => {
+        setError('Failed to remove item from favorites.');
+        setSuccess(null);
         console.error(error);
       });
   };
@@ -109,16 +129,28 @@ const ItemList = ({ items }) => {
               </CardContent>
             )}
             <CardContent>
-              <Typography variant='body1'>{item.description}</Typography>
+              <Typography variant="body1">{item.description}</Typography>
             </CardContent>
             <CardContent>
               <Link to={`/items/${item.id}`}>
-                <Button variant="contained" color="primary">View Item</Button>
+                <Button variant="contained" color="primary">
+                  View Item
+                </Button>
               </Link>
             </CardContent>
           </Card>
         </div>
       ))}
+      {error && (
+        <Alert severity="error" onClose={() => setError(null)}>
+          {error}
+        </Alert>
+      )}
+      {success && (
+        <Alert severity="success" onClose={() => setSuccess(null)}>
+          {success}
+        </Alert>
+      )}
     </div>
   );
 };

@@ -54,9 +54,7 @@ const App = () => {
           <Route path='/items/:id'>
             <ItemPage></ItemPage>
           </Route>
-          <Route path='/newOrder'>
 
-          </Route>
         </Switch>
       </Router>
     </AuthProvider>

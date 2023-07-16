@@ -1,4 +1,4 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import {
   AppBar,
   Toolbar,
@@ -15,8 +15,9 @@ import ItemList from './ItemList';
 import { useHistory } from 'react-router-dom/cjs/react-router-dom.min';
 
 const UserPage = () => {
-  const { user, logout } = useContext(AuthContext);
+  const { user, logout,csrfToken } = useContext(AuthContext);
   const [activeSection, setActiveSection] = useState(0);
+  const [orders, setOrders] = useState([]);
   const history = useHistory();
 
   const handleTabChange = (event, newValue) => {
@@ -35,6 +36,36 @@ const UserPage = () => {
         return <UserAccountInfo></UserAccountInfo>;
     }
   };
+
+  useEffect(() => {
+    fetchOrders();
+  }, []);
+
+  const fetchOrders = async () => {
+    try {
+        const response = await fetch(`/users/${user.id}/orders`, {
+        method: 'GET',
+        headers: {
+            'X-CSRF-TOKEN': csrfToken,
+        },
+        });
+        if (response.ok) {
+
+        const data = await response.json();
+        setOrders(data);
+
+        } else {
+
+        console.error('Failed to fetch items');
+
+        }
+
+    } catch (error) {
+
+        console.error('Failed to fetch items');
+        
+    }
+    };
 
   return (
     <AppBar position="static">
@@ -75,7 +106,7 @@ const Orders = () => {
   return (
     <div>
       <Typography variant="h6">Orders</Typography>
-      {/* Render orders */}
+      {/* Render ordersList */}
     </div>
   );
 };

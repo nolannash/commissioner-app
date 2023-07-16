@@ -151,7 +151,7 @@ const HomePage = () => {
             {error}
             </Alert>
         )}
-        <Grid container spacing={2}>
+        <Grid container spacing={3}>
             {!user ? (
             <Grid item xs={12} sm={4}>
                 <Typography variant="h5">Generic Item List</Typography>

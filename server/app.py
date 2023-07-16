@@ -102,6 +102,7 @@ class Orders(Resource):
         orders = Order.query.all()
         return [order.to_dict() for order in orders]
 
+
     @jwt_required()
     def post(self):
         data = request.get_json()
@@ -119,21 +120,32 @@ class Orders(Resource):
         item = db.session.get(Item, item_id)
         if not item:
             return {'message': 'Item not found'}, 404
-        if item.rollover_period_days is not None:
-            batch_size = item.batch_size
-            order_quantity = data.get('order_quantity', 1)
-            if item.order_count + order_quantity > batch_size:
-                return {'message': 'Order quantity exceeds the batch size during a rollover period'}, 400
+
+        form_responses = data.get('form_responses', [])
+        if not form_responses:
+            return {'message': 'Form responses are required'}, 400
 
         order = Order(seller=seller, user=user, item=item)
         try:
             db.session.add(order)
             db.session.commit()
-            item.order_count += order_quantity
+
+            for response_data in form_responses:
+                form_item_id = response_data.get('form_item_id')
+                response_text = response_data.get('response')
+
+                form_item = db.session.get(FormItem, form_item_id)
+                if form_item:
+                    order_response = OrderResponse(order=order, form_item=form_item, response=response_text)
+                    db.session.add(order_response)
+
+            db.session.commit()
+
+            item.order_count += 1
             item.rollover_logic()
             db.session.commit()
 
-            return {'message': 'Order created successfully'}, 201
+            return {'message': 'Order and form responses created successfully'}, 201
         except ValueError as e:
             return {'message': str(e)}, 400
 
@@ -614,6 +626,26 @@ def upload_item_images(item_id):
 
     return make_response(item.to_dict(), 201)
 
+@jwt_required()
+@app.route('/users/<int:user_id>/orders', methods=['GET'])
+def get_user_orders(user_id):
+    user = User.query.get(user_id)
+    if user:
+        orders = user.orders
+        return jsonify([order.to_diict() for order in orders])
+    else:
+        return jsonify({"message": "User not found"}), 404
+
+@jwt_required()
+@app.route('/sellers/<int:seller_id>/orders', methods=['GET'])
+def get_seller_orders(seller_id):
+    seller = Seller.query.get(seller_id)
+    if seller:
+        orders = seller.orders
+        return jsonify([order.serialize() for order in orders])
+    else:
+        return jsonify({"message": "Seller not found"}), 404
+
 api.add_resource(SellerItems, '/sellers/<int:id>/items', '/sellers/<int:id>/items/<int:item_id>')
 
 api.add_resource(Users, '/users', '/users/<int:user_id>')
@@ -624,7 +656,7 @@ api.add_resource(Recent, '/recent')
 
 api.add_resource(Items, '/items', '/items/<int:item_id>')
 
-api.add_resource(Orders, '/orders', '/orders/<int:order_id>')
+# api.add_resource(Orders, '/orders', '/orders/<int:order_id>')
 
 api.add_resource(Favorites, '/favorites', '/favorites/<int:favorite_id>', '/favorites/<int:seller_id>/favorites')
 

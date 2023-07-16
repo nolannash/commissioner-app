@@ -1,7 +1,14 @@
 import React, { useContext, useState } from 'react';
 import { AuthContext } from '../contexts/AuthContext';
 import { useFormik } from 'formik';
-import { TextField, Button, Box, Container, Typography } from '@mui/material';
+import {
+  TextField,
+  Button,
+  Box,
+  Container,
+  Typography,
+  Alert,
+} from '@mui/material';
 import { useHistory } from 'react-router-dom';
 import * as Yup from 'yup';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
@@ -16,10 +23,14 @@ const validationSchema = Yup.object().shape({
   price: Yup.number()
     .typeError('Price must be a number')
     .positive('Price must be a positive number')
-    .test('decimal-places', 'Price must have up to 2 decimal places', (value) => {
-      if (!value) return true;
-      return /^(\d+(\.\d{1,2})?)?$/.test(value.toString());
-    })
+    .test(
+      'decimal-places',
+      'Price must have up to 2 decimal places',
+      (value) => {
+        if (!value) return true;
+        return /^(\d+(\.\d{1,2})?)?$/.test(value.toString());
+      }
+    )
     .required('Price is required'),
   images: Yup.array()
     .min(1, 'At least one image is required')
@@ -51,6 +62,8 @@ const ItemForm = () => {
   };
 
   const [imagePreviews, setImagePreviews] = useState([]);
+  const [alertMessage, setAlertMessage] = useState(null);
+  const [alertSeverity, setAlertSeverity] = useState('success');
 
   const formik = useFormik({
     initialValues,
@@ -78,9 +91,17 @@ const ItemForm = () => {
         if (response.ok) {
           history.push('/sellerPage');
         } else {
-          console.error('Form submission failed:', response.status, response.statusText);
+          setAlertMessage('Form submission failed.');
+          setAlertSeverity('error');
+          console.error(
+            'Form submission failed:',
+            response.status,
+            response.statusText
+          );
         }
       } catch (error) {
+        setAlertMessage('An error occurred.');
+        setAlertSeverity('error');
         console.error('An error occurred:', error);
       }
     },
@@ -117,8 +138,19 @@ const ItemForm = () => {
         <Box sx={{ width: '45%' }}>
           <Typography variant="h4" gutterBottom>
             Item Info
-            <Button variant='contained' onClick={() => history.push('/sellerPage')}><ArrowBackIcon />back</Button>
+            <Button
+              variant="contained"
+              onClick={() => history.push('/sellerPage')}
+            >
+              <ArrowBackIcon />back
+            </Button>
           </Typography>
+
+          {alertMessage && (
+            <Alert severity={alertSeverity} onClose={() => setAlertMessage(null)}>
+              {alertMessage}
+            </Alert>
+          )}
 
           <form onSubmit={formik.handleSubmit}>
             <Box sx={{ marginBottom: '16px' }}>

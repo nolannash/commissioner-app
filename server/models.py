@@ -1,3 +1,4 @@
+from datetime import timezone
 from flask import current_app
 from flask_mail import Message
 from sqlalchemy.ext.hybrid import hybrid_property
@@ -142,7 +143,7 @@ class Item(db.Model, SerializerMixin):
     
     def rollover_logic(self):
         if self.rollover_period is not None:
-            now = datetime.utcnow()
+            now = datetime.now(timezone.utc)
 
             if self.last_rollover is None:
                 self.last_rollover = now
@@ -190,11 +191,16 @@ class Order(db.Model, SerializerMixin):
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
 
     item = db.relationship("Item", back_populates="orders")
-    seller = db.relationship('Seller',back_populates='orders')
-    user = db.relationship('User',back_populates='orders')
+    seller = db.relationship('Seller', back_populates='orders')
+    user = db.relationship('User', back_populates='orders')
 
     serialize_only = ('id', 'created_at')
     serialize_rules = ('-seller.orders', '-seller.orders.seller', '-user.orders', '-user.orders.user', '-item.orders')
+
+    def rollback_order_count(self):
+        if self.item.rollover_period is not None:
+            self.item.order_count -= 1
+
     def __repr__(self):
         return f"<Order {self.id}>"
 

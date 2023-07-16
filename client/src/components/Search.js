@@ -8,8 +8,15 @@ import {
     IconButton,
     Avatar,
     Box,
+    Alert,
+    Stack,
 } from '@mui/material';
-import { Search as SearchIcon, Checkroom, Store, ArrowBack } from '@mui/icons-material';
+import {
+    Search as SearchIcon,
+    Checkroom,
+    Store,
+    ArrowBack,
+} from '@mui/icons-material';
 import { Link } from 'react-router-dom';
 import ItemList from './ItemList';
 import ShopList from './ShopList';
@@ -17,13 +24,16 @@ import { AuthContext } from '../contexts/AuthContext';
 
 
 const Search = ({ tabs }) => {
-    const [searchType, setSearchType] = useState(tabs[0].type); 
+    const [searchType, setSearchType] = useState(tabs[0].type);
     const [searchQuery, setSearchQuery] = useState('');
     const [items, setItems] = useState([]);
     const [shops, setShops] = useState([]);
-    const [filteredItems, setFilteredItems] = useState([]); 
-    const [filteredShops, setFilteredShops] = useState([]); 
+    const [filteredItems, setFilteredItems] = useState([]);
+    const [filteredShops, setFilteredShops] = useState([]);
     const { user, csrfToken } = useContext(AuthContext);
+    const [alertMessage, setAlertMessage] = useState(null);
+    const [alertSeverity, setAlertSeverity] = useState('success');
+
     const handleSearchTypeChange = (type) => {
         setSearchType(type);
     };
@@ -36,18 +46,21 @@ const Search = ({ tabs }) => {
                     item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                     item.seller.shopname.toLowerCase().includes(searchQuery.toLowerCase())
             );
-            setFilteredItems(filteredItems); 
+            setFilteredItems(filteredItems);
         } else if (searchType === 'sellers') {
-            const filteredShops = shops.filter((shop) => shop.shopname.toLowerCase().includes(searchQuery.toLowerCase()));
-            setFilteredShops(filteredShops); 
+            const filteredShops = shops.filter((shop) =>
+                shop.shopname.toLowerCase().includes(searchQuery.toLowerCase())
+            );
+            setFilteredShops(filteredShops);
         }
+        setAlertMessage('Search performed successfully.');
+        setAlertSeverity('success');
     };
 
     const handleSearchInputChange = (event) => {
         const inputValue = event.target.value;
         setSearchQuery(inputValue);
 
- 
         if (searchType === 'items') {
             const filteredItems = items.filter(
                 (item) =>
@@ -56,29 +69,37 @@ const Search = ({ tabs }) => {
             );
             setFilteredItems(filteredItems);
         } else if (searchType === 'sellers') {
-            const filteredShops = shops.filter((shop) => shop.shopname.toLowerCase().includes(inputValue.toLowerCase()));
-            setFilteredShops(filteredShops); 
+            const filteredShops = shops.filter((shop) =>
+                shop.shopname.toLowerCase().includes(inputValue.toLowerCase())
+            );
+            setFilteredShops(filteredShops);
         }
     };
 
     useEffect(() => {
-
-        fetch('/items') 
+        fetch('/items')
             .then((response) => response.json())
             .then((data) => {
                 setItems(data);
-                setFilteredItems(data); 
+                setFilteredItems(data);
             })
-            .catch((error) => console.error('Error fetching items:', error));
-
+            .catch((error) => {
+                console.error('Error fetching items:', error);
+                setAlertMessage('Error fetching items.');
+                setAlertSeverity('error');
+            });
 
         fetch('/sellers')
             .then((response) => response.json())
             .then((data) => {
                 setShops(data);
-                setFilteredShops(data); 
+                setFilteredShops(data);
             })
-            .catch((error) => console.error('Error fetching sellers:', error));
+            .catch((error) => {
+                console.error('Error fetching sellers:', error);
+                setAlertMessage('Error fetching sellers.');
+                setAlertSeverity('error');
+            });
     }, []);
 
     return (
@@ -93,6 +114,11 @@ const Search = ({ tabs }) => {
                     </Typography>
                 </Toolbar>
             </AppBar>
+            {alertMessage && (
+                <Stack sx={{ marginTop: 2 }} spacing={2}>
+                    <Alert severity={alertSeverity}>{alertMessage}</Alert>
+                </Stack>
+            )}
             <Box display="flex" justifyContent="center" mt={2}>
                 <Box maxWidth="600px" width="100%" position="relative">
                     <InputBase
@@ -134,7 +160,7 @@ const Search = ({ tabs }) => {
                     ))}
                 </Toolbar>
             </AppBar>
-            {searchType === 'items' ? <ItemList items={filteredItems}  /> : <ShopList shops={filteredShops} />}
+            {searchType === 'items' ? <ItemList items={filteredItems} /> : <ShopList shops={filteredShops} />}
         </div>
     );
 };
