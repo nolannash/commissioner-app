@@ -99,7 +99,7 @@ class Orders(Resource):
             return (
                 order.to_dict()
                 if (order := Order.query.get(order_id))
-                else ({'message': 'Order not found'}, 404)
+                else {'message': 'Order not found'}, 404
             )
         orders = Order.query.all()
         return [order.to_dict() for order in orders]
@@ -108,35 +108,52 @@ class Orders(Resource):
     def post(self):
         data = request.get_json()
         seller_id = data.get('seller_id')
-        seller = db.session.get(Seller,seller_id)
+        seller = db.session.get(Seller, seller_id)
         if not seller:
             return {'message': 'Seller not found'}, 404
-        user_id = data.get('user_id')
-        user = db.session.get(User,user_id)
 
+        user_id = data.get('user_id')
+        user = db.session.get(User, user_id)
         if not user:
             return {'message': 'User not found'}, 404
 
         item_id = data.get('item_id')
-        item = db.session.get(Item,item_id)
+        item = db.session.get(Item, item_id)
         if not item:
             return {'message': 'Item not found'}, 404
+        if item.rollover_period_days is not None:
+            batch_size = item.batch_size
+            order_quantity = data.get('order_quantity', 1)
+            if item.order_count + order_quantity > batch_size:
+                return {'message': 'Order quantity exceeds the batch size during a rollover period'}, 400
 
         order = Order(seller=seller, user=user, item=item)
         try:
             db.session.add(order)
             db.session.commit()
+            item.order_count += order_quantity
+            item.rollover_logic()
+            db.session.commit()
+
             return {'message': 'Order created successfully'}, 201
         except ValueError as e:
             return {'message': str(e)}, 400
 
+    @jwt_required()
     def delete(self, order_id):
-        if order := db.session.get(Order,order_id):
+        if order := db.session.get(Order, order_id):
             db.session.delete(order)
             db.session.commit()
+
+            item = order.item
+            item.order_count -= order.order_quantity
+            item.rollover_logic()
+            db.session.commit()
+
             return {'message': 'Order deleted successfully'}
         else:
             return {'message': 'Order not found'}, 404
+
 
 class Favorites(Resource):
     def get(self, favorite_id=None):
@@ -328,6 +345,7 @@ class SellerItems(Resource):
                 
                 db.session.add(item)
                 db.session.commit()
+                item.rollover_logic()
 
                 item_images = []
                 for image_file in request.files.getlist('images'):
@@ -359,6 +377,7 @@ class SellerItems(Resource):
             item.batch_size = data.get('batch_size', item.batch_size)
             item.rollover_period = data.get('rollover_period', item.rollover_period)
             db.session.commit()
+            item.rollover_logic()
             return {'message': 'Item updated successfully'}
         except ValueError as e:
             return {'message': str(e)}, 400
