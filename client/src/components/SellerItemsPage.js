@@ -169,9 +169,7 @@ const SellerItemsPage = () => {
     setOpenCommissionItemId(itemId);
     setCommissionOption('');
   };
-  console.log(user.items)
-  console.log(user)
-  console.log(user.items.item)
+
   const handleAddCommissionOption = async (item_id) => {
     try {
       const commissionOptionData = {

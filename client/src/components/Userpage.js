@@ -11,7 +11,7 @@ import {
 import { ViewList, Receipt, AccountBox } from '@mui/icons-material';
 import { AuthContext } from '../contexts/AuthContext';
 import UserAccountInfo from './UserAct';
-import ItemList from './itemList';
+import ItemList from './ItemList';
 import { useHistory } from 'react-router-dom/cjs/react-router-dom.min';
 
 const UserPage = () => {

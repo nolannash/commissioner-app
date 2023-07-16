@@ -14,7 +14,7 @@ import Search from './Search';
 const App = () => {
   const tabs = [
     { type: 'items', label: 'Items' },
-    { type: 'store', label: 'Store' },
+    { type: 'sellers', label: 'Shops' },
 ];
 
   return (

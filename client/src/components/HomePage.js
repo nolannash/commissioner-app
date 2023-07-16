@@ -1,16 +1,17 @@
 import React, { useState, useContext, useEffect } from 'react';
 import {
-  AppBar,
-  Toolbar,
-  Typography,
-  Button,
-  InputBase,
-  IconButton,
+    AppBar,
+    Toolbar,
+    Typography,
+    Button,
+    IconButton,
+    Grid,
+    Alert,
 } from '@mui/material';
 import { Search as SearchIcon } from '@mui/icons-material';
 import { Link } from 'react-router-dom';
 import { AuthContext } from '../contexts/AuthContext';
-import ItemList from './itemList';
+import ItemList from './ItemList';
 import ShopList from './ShopList';
 
 const HomePage = () => {
@@ -18,14 +19,17 @@ const HomePage = () => {
     const [newItems, setNewItems] = useState([]);
     const [userFavorites, setUserFavorites] = useState([]);
     const [newShops, setNewShops] = useState([]);
+    const [error, setError] = useState(null);
 
     useEffect(() => {
     fetchItems();
+    fetchNewItems();
+    fetchUserFavorites();
     }, []);
 
-    const { user, logout, refreshUser, csrfToken } = useContext(AuthContext);
+    const { user, logout, csrfToken } = useContext(AuthContext);
 
-  // Function to fetch items and update state
+
     const fetchItems = async () => {
     try {
         const response = await fetch('/items', {
@@ -38,11 +42,10 @@ const HomePage = () => {
         const data = await response.json();
         setMainItems(data);
         } else {
-        console.error(response.statusText);
-        console.error('Failed to fetch items');
+        setError('Failed to fetch items');
         }
     } catch (error) {
-        console.error(error);
+        setError('Failed to fetch items');
     }
     };
 
@@ -61,22 +64,18 @@ const HomePage = () => {
         setNewItems(data.recent_items);
         setNewShops(data.recent_shops);
         } else {
-        console.error(response.statusText);
-        console.error('Failed to fetch new items');
+        setError('Failed to fetch new items');
         }
     } catch (error) {
-        console.error(error);
+        setError('Failed to fetch new items');
     }
     };
 
-  // Function to fetch user favorites and update state
     const fetchUserFavorites = async () => {
-    // Check if the user is signed in before making the request
     if (!user) {
         return;
     }
 
-    // Implement the API request to fetch user favorites
     try {
         const response = await fetch(`/users/${user.id}/favorites`, {
         method: 'GET',
@@ -88,19 +87,12 @@ const HomePage = () => {
         const data = await response.json();
         setUserFavorites(data);
         } else {
-        console.error(response.statusText);
-        console.error('Failed to fetch user favorites');
+        {user.favorites.length() <1?<></>:setError('Something went wrong')}
         }
     } catch (error) {
-        console.error(error);
+        console.error('Failed to fetch user favorites');
     }
     };
-
-  // Call the functions to fetch new items and user favorites whenever needed
-    useEffect(() => {
-    fetchNewItems();
-    fetchUserFavorites();
-  }, [user]); // The useEffect will be triggered whenever the user state changes (sign-in/sign-out)
 
     return (
     <div>
@@ -110,7 +102,7 @@ const HomePage = () => {
             Commissioner
             </Typography>
             <Link to={'/search'}>
-            <IconButton color="inherit" variant="contained">
+            <IconButton color="inherit" variant="contained" sx={{text_align: "centered"}}>
                 <SearchIcon />Browse
             </IconButton>
             </Link>
@@ -137,16 +129,40 @@ const HomePage = () => {
         </Toolbar>
         </AppBar>
 
-        <div>
-        <ul>
-            <li>Generic Item List Goes Here</li>
-            <ItemList items={mainItems}></ItemList>
-            <li>"New Items" item list goes here</li>
-            <ItemList items={newItems}></ItemList>
-            <li>New Shops Go Here</li>
-            <ShopList shops={newShops}></ShopList>
-            {user ? <ItemList items={userFavorites}></ItemList> : <></>}
-        </ul>
+        <div style={{ padding: '16px' }}>
+        {error && (
+            <Alert severity="error" onClose={() => setError(null)}>
+            {error}
+            </Alert>
+        )}
+        <Grid container spacing={2}>
+            {!user ? (
+            <Grid item xs={12} sm={4}>
+                <Typography variant="h5">Generic Item List</Typography>
+                <ItemList items={mainItems} />
+            </Grid>
+            ) : userFavorites.length > 0 ? (
+            <Grid item xs={12} sm={4}>
+                <Typography variant="h5">User Favorites</Typography>
+                <ItemList items={userFavorites} />
+            </Grid>
+            ) : (
+            <Grid item xs={12} sm={4}>
+                <Typography variant="h5">User Favorites</Typography>
+                <Typography variant="body1">You Don't Have Any Favorites Yet</Typography>
+            </Grid>
+            )}
+
+            <Grid item xs={12} sm={4}>
+            <Typography variant="h5">New Shops</Typography>
+            <ShopList shops={newShops} />
+            </Grid>
+
+            <Grid item xs={12} sm={4}>
+            <Typography variant="h5">New Items</Typography>
+            <ItemList items={newItems} />
+            </Grid>
+        </Grid>
         </div>
     </div>
     );
