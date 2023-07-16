@@ -13,7 +13,7 @@ import {
   Popover,
   TextField,
 } from '@mui/material';
-import { Delete, Edit } from '@mui/icons-material';
+import { Delete, Edit, AddCircle } from '@mui/icons-material';
 import { AuthContext } from '../contexts/AuthContext';
 import { useHistory } from 'react-router-dom';
 
@@ -35,6 +35,9 @@ const SellerItemsPage = () => {
   const [deleteItemId, setDeleteItemId] = useState(null);
   const [isDeletePopoverOpen, setIsDeletePopoverOpen] = useState(false);
   const history = useHistory();
+
+  const [openCommissionItemId, setOpenCommissionItemId] = useState(null);
+  const [commissionOption, setCommissionOption] = useState('');
 
   useEffect(() => {
     const fetchItems = async () => {
@@ -106,8 +109,8 @@ const SellerItemsPage = () => {
       name: item.name,
       description: item.description,
       price: item.price,
-      batchSize: item.batchSize || '',
-      rolloverPeriod: item.rolloverPeriod || '',
+      batchSize: item.batch_size,
+      rolloverPeriod: item.rollover_period,
     });
   };
 
@@ -133,6 +136,7 @@ const SellerItemsPage = () => {
       batchSize: '',
       rolloverPeriod: '',
     });
+    setIsDeletePopoverOpen(false);
   };
 
   const handleEditItemSubmit = async () => {
@@ -159,6 +163,82 @@ const SellerItemsPage = () => {
     } catch (error) {
       console.error('Edit Item Error:', error);
     }
+  };
+
+  const handleOpenCommissionOption = (itemId) => {
+    setOpenCommissionItemId(itemId);
+    setCommissionOption('');
+  };
+  console.log(user.items)
+  console.log(user)
+  console.log(user.items.item)
+  const handleAddCommissionOption = async (item_id) => {
+    try {
+      const commissionOptionData = {
+        item_id: openCommissionItemId,
+        seller_question: commissionOption,
+        
+      };
+
+      const response = await fetch(`/form-items/${item_id}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(commissionOptionData),
+      });
+
+      if (response.ok) {
+        console.log('Commission option added successfully');
+        const updatedItems = items.map((item) => {
+          if (item.id === openCommissionItemId) {
+            return {
+              ...item,
+              commissionOptions: item.commissionOptions ? [...item.commissionOptions, commissionOption] : [commissionOption],
+            };
+          }
+          return item;
+        });
+        setItems(updatedItems);
+        setCommissionOption('');
+        setOpenCommissionItemId(null);
+      } else {
+        console.error('Failed to add commission option');
+      }
+    } catch (error) {
+      console.error('Add Commission Option Error:', error);
+    }
+  };
+
+  const handleEditCommissionOption = (itemId, oldOption, newOption) => {
+    const updatedItems = items.map((item) => {
+      if (item.id === itemId) {
+        const updatedCommissionOptions = item.commissionOptions.map((option) =>
+          option === oldOption ? newOption : option
+        );
+        return {
+          ...item,
+          commissionOptions: updatedCommissionOptions,
+        };
+      }
+      return item;
+    });
+
+    setItems(updatedItems);
+  };
+
+  const handleDeleteCommissionOption = (itemId, option) => {
+    const updatedItems = items.map((item) => {
+      if (item.id === itemId) {
+        return {
+          ...item,
+          commissionOptions: item.commissionOptions.filter((opt) => opt !== option),
+        };
+      }
+      return item;
+    });
+
+    setItems(updatedItems);
   };
 
   if (loading) {
@@ -238,22 +318,82 @@ const SellerItemsPage = () => {
                 <CardContent>
                   <Typography variant="body1">{item.description}</Typography>
                   <Typography variant="body1">Price: ${item.price}</Typography>
-                  {item.batchSize && <Typography variant="body1">Batch Size: {item.batchSize}</Typography>}
-                  {item.rolloverPeriod && <Typography variant="body1">Rollover Period: {item.rolloverPeriod} days</Typography>}
+                  <Typography variant="body1">Batch Size: {item.batch_size} Per Rollover</Typography>
+                  <Typography variant="body1">Rollover Period: {item.rollover_period} days</Typography>
                 </CardContent>
               )}
+
               <CardActions>
                 {!editItemId && (
                   <>
-                    <IconButton color="primary" aria-label="edit item" onClick={() => handleEditButtonClick(item)}>
+                    <IconButton
+                      color="primary"
+                      aria-label="edit item"
+                      onClick={() => handleEditButtonClick(item)}
+                    >
                       <Edit />
                     </IconButton>
-                    <IconButton color="error" aria-label="delete item" onClick={() => handleDeleteItem(item.id)}>
+                    <IconButton
+                      color="error"
+                      aria-label="delete item"
+                      onClick={() => handleDeleteItem(item.id)}
+                    >
                       <Delete />
+                    </IconButton>
+                    {/* Add Commission Option Button */}
+                    <IconButton
+                      color="primary"
+                      aria-label="add commission option"
+                      onClick={() => handleOpenCommissionOption(item.id)}
+                    >
+                      <AddCircle />
+                      <Typography variant="body1">Add Commission Option</Typography>
                     </IconButton>
                   </>
                 )}
               </CardActions>
+
+              {/* Commission Option Input Box */}
+              {openCommissionItemId === item.id && (
+                <CardContent>
+                  <TextField
+                    label="Commission Option"
+                    value={commissionOption}
+                    onChange={(e) => setCommissionOption(e.target.value)}
+                  />
+                  <Button variant="contained" color="primary" onClick={()=>handleAddCommissionOption(item.id)}>
+                    Submit
+                  </Button>
+                </CardContent>
+              )}
+
+              {/* Commission Options List */}
+              {item.commissionOptions && (
+                <CardContent>
+                  <Typography variant="h6">Commission Options:</Typography>
+                  <ul>
+                    {item.commissionOptions.map((option, index) => (
+                      <li key={index}>
+                        {option}
+                        <IconButton
+                          color="primary"
+                          aria-label="edit commission option"
+                          onClick={() => handleEditCommissionOption(item.id, option)}
+                        >
+                          <Edit />
+                        </IconButton>
+                        <IconButton
+                          color="error"
+                          aria-label="delete commission option"
+                          onClick={() => handleDeleteCommissionOption(item.id, option)}
+                        >
+                          <Delete />
+                        </IconButton>
+                      </li>
+                    ))}
+                  </ul>
+                </CardContent>
+              )}
             </Card>
           ))}
         </div>

@@ -76,7 +76,7 @@ class Seller(db.Model, SerializerMixin):
     items = db.relationship('Item', back_populates='seller')
     orders = db.relationship('Order', back_populates='seller')
 
-    serialize_only = ('id', 'shopname', 'email', 'logo_banner', 'profile_photo', 'bio', 'email_notifications')
+    serialize_only = ('id', 'shopname', 'email', 'logo_banner', 'profile_photo', 'bio', 'email_notifications','items')
     serialize_rules = ('-items.seller', '-items.seller_id', '-orders.seller', '-orders.seller_id')
     
     @validates("shopname")
@@ -136,8 +136,8 @@ class Item(db.Model, SerializerMixin):
     form_items = db.relationship("FormItem", back_populates="item", cascade="all, delete-orphan")
     images = db.relationship("ItemImage", back_populates="item", cascade="all, delete-orphan")
     
-    serialize_only = ('id', 'name', 'description', 'price', 'batch_size', 'rollover_period', 'last_rollover', 'created_at', 'order_count','images','seller_id')
-    serialize_rules = ('-seller.items', '-seller.items.seller', '-orders.item', '-orders.item_id')
+    serialize_only = ('id', 'name', 'description', 'price', 'batch_size', 'rollover_period', 'last_rollover', 'created_at', 'order_count','images','seller_id','form_items')
+    serialize_rules = ('-seller.items', '-seller.items.seller', '-orders.item', '-orders.item_id', '-form_items.item', '-form_items.item_id')
 
     def __repr__(self):
         return f"<Item {self.id}>"

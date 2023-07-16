@@ -208,10 +208,10 @@ class FormItems(Resource):
         form_items = FormItem.query.get()
         return [form_item.to_dict() for form_item in form_items]
 
-    def post(self):
+    def post(self, item_id):
         data = request.get_json()
         item_id = data.get('item_id')
-        item = db.session.get(FormItem,item_id)
+        item = db.session.get(Item,item_id)
         if not item:
             return {'message': 'Item not found'}, 404
 
@@ -583,7 +583,7 @@ api.add_resource(Orders, '/orders', '/orders/<int:order_id>')
 
 api.add_resource(Favorites, '/favorites', '/favorites/<int:favorite_id>')
 
-api.add_resource(FormItems, '/form-items', '/form-items/<int:form_item_id>')
+api.add_resource(FormItems, '/form-items', '/form-items/<int:item_id>','/form-items/<int:item_id>/<int:form_item_id>')
 
 
 
