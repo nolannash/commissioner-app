@@ -15,22 +15,24 @@ import {
   AccountBox,
 } from '@mui/icons-material';
 import { AuthContext } from '../contexts/AuthContext';
-
 import SellerItems from './SellerItemsPage';
 import SellerAccountInfo from './SellerAct';
+import { useHistory } from 'react-router-dom';
 
 const SellerPage = () => {
 
   const { user, logout } = useContext(AuthContext);
   const [activeSection, setActiveSection] = useState(0);
+  const history = useHistory();
 
 
 
   const handleTabChange = (event, newValue) => {
     setActiveSection(newValue);
+
   };
 
-  
+
   const renderSection = () => {
     switch (activeSection) {
       case 0:
@@ -50,7 +52,7 @@ const SellerPage = () => {
     <AppBar position="static">
       <Toolbar>
         <Typography variant="h4" component="div" sx={{ flexGrow: 1, textAlign:'center'}}>
-          {user.shopname} 
+          {user.shopname || user.seller.shopname} 
         </Typography>
         <Box sx={{ display: 'flex', alignItems: 'center', textAlign: 'center' }}>
 

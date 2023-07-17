@@ -8,7 +8,9 @@ from sqlalchemy import MetaData
 from flask_mail import Mail
 from werkzeug.utils import secure_filename
 from flask_jwt_extended import JWTManager
-
+from datetime import timedelta
+import time
+import uuid
 import os
 
 app = Flask(__name__)
@@ -26,7 +28,7 @@ metadata = MetaData(naming_convention={
 })
 
 db = SQLAlchemy(metadata=metadata)
-migrate = Migrate(app, db,render_as_batch=False)
+migrate = Migrate(app, db,render_as_batch=True)
 db.init_app(app)
 bcrypt = Bcrypt(app)
 
@@ -43,10 +45,10 @@ def allowed_file(filename):
 def save_file(file):
     if file and allowed_file(file.filename):
         filename = secure_filename(file.filename)
-        file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        unique_filename = f"{uuid.uuid4().hex}_{int(time.time())}_{filename}"
+        file_path = os.path.join(app.config['UPLOAD_FOLDER'], unique_filename)
         file.save(file_path)
-        print(file_path)
-        return filename
+        return unique_filename
     return None
 
 CORS(app)
@@ -56,7 +58,7 @@ app.config['JWT_SECRET_KEY'] = os.environ.get('JWT_SECRET_KEY', 'dev')
 
 app.config["JWT_TOKEN_LOCATION"] = ["headers", "cookies"]
 app.config['JWT_ACCESS_COOKIE_SAMESITE'] = 'None'
-
+app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(hours=1)
 
 
 app.config['MAIL_SERVER']='sandbox.smtp.mailtrap.io'

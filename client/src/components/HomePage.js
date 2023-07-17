@@ -1,20 +1,114 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import {
     AppBar,
     Toolbar,
     Typography,
     Button,
-    InputBase,
     IconButton,
+    Grid,
+    Alert,
 } from '@mui/material';
 import { Search as SearchIcon } from '@mui/icons-material';
 import { Link } from 'react-router-dom';
 import { AuthContext } from '../contexts/AuthContext';
+import ItemList from './ItemList';
+import ShopList from './ShopList';
 
 const HomePage = () => {
+    const [mainItems, setMainItems] = useState([]);
+    const [newItems, setNewItems] = useState([]);
+    const [userFavorites, setUserFavorites] = useState([]);
+    const [newShops, setNewShops] = useState([]);
+    const [error, setError] = useState(null);
 
-    const { user, logout } = useContext(AuthContext);
+    useEffect(() => {
+    fetchItems();
+    fetchNewItems();
+    fetchUserFavorites();
+    }, []);
 
+    const { user, logout, csrfToken, refreshUser } = useContext(AuthContext);
+
+
+    const fetchItems = async () => {
+    try {
+        const response = await fetch('/items', {
+        method: 'GET',
+        headers: {
+            'X-CSRF-TOKEN': csrfToken,
+        },
+        });
+        if (response.ok) {
+
+        const data = await response.json();
+        setMainItems(data);
+
+        } else {
+
+        setError('Failed to fetch items');
+
+        }
+
+    } catch (error) {
+
+        setError('Failed to fetch items');
+        
+    }
+    };
+
+    const fetchNewItems = async () => {
+
+    try {
+
+        const response = await fetch('/recent', {
+        method: 'GET',
+        headers: {
+            'X-CSRF-TOKEN': csrfToken,
+        },
+
+        });
+        if (response.ok) {
+
+        const data = await response.json();
+        setNewItems(data.recent_items);
+
+
+        setNewShops(data.recent_shops);
+
+        } else {
+
+        setError('Failed to fetch new items');
+
+        }
+    } catch (error) {
+        
+        setError('Failed to fetch new items');
+    }
+    };
+
+    const fetchUserFavorites = async () => {
+    if (!user) {
+        return;
+    }
+
+    try {
+        const response = await fetch(`/favorites`, {
+        method: 'GET',
+        headers: {
+            'X-CSRF-TOKEN': csrfToken,
+        },
+        });
+        if (response.ok) {
+        const data = await response.json();
+
+        setUserFavorites(data.items);
+        } else {
+        setError('Something went wrong')
+        }
+    } catch (error) {
+        console.error('Failed to fetch user favorites');
+    }
+    };
 
     return (
     <div>
@@ -24,37 +118,67 @@ const HomePage = () => {
             Commissioner
             </Typography>
             <Link to={'/search'}>
-
-            <IconButton color='inherit' variant='contained' >
-                <SearchIcon/>Browse
+            <IconButton color="inherit" variant="contained" sx={{text_align: "centered"}}>
+                <SearchIcon />Browse
             </IconButton>
-
             </Link>
             {user ? (
             <>
-            <Link to ={'/userPage'}>
-                <Button variant='contained'color='secondary'>Profile</Button>
-            </Link>
-            <Link to ={'/'}>
-            <Button color="error" variant='contained' onClick={logout} >
-                Logout
-            </Button>
-            </Link>
+                <Link to="/userPage">
+                <Button variant="contained" color="secondary">
+                    Profile
+                </Button>
+                </Link>
+                <Link to="/">
+                <Button color="error" variant="contained" onClick={logout}>
+                    Logout
+                </Button>
+                </Link>
             </>
             ) : (
             <Link to="/landing">
-                <Button color="inherit" variant='contained'>Login/Signup</Button>
+                <Button color="inherit" variant="contained">
+                Login/Signup
+                </Button>
             </Link>
             )}
         </Toolbar>
         </AppBar>
 
-        <div>
-        <ul>
-            <li>Generic Item List Goes Here</li>
-            <li>"New Items" item list goes here</li>
-            {user ? <li>favorites (items/shops) go here</li>:<></>}
-        </ul>
+        <div style={{ padding: '16px' }}>
+        {error && (
+            <Alert severity="error" onClose={() => setError(null)}>
+            {error}
+            </Alert>
+        )}
+        <Grid container spacing={3}>
+            {!user ? (
+            <Grid item xs={12} sm={4}>
+                <Typography variant="h5">Generic Item List</Typography>
+                <ItemList items={mainItems} />
+            </Grid>
+            ) : userFavorites ? (
+            <Grid item xs={12} sm={4}>
+                <Typography variant="h5">User Favorites</Typography>
+                <ItemList items={userFavorites} />
+            </Grid>
+            ) : (
+            <Grid item xs={12} sm={4}>
+                <Typography variant="h5">User Favorites</Typography>
+                <Typography variant="body1">You Don't Have Any Favorites Yet</Typography>
+            </Grid>
+            )}
+
+            <Grid item xs={12} sm={4}>
+            <Typography variant="h5">New Shops</Typography>
+            <ShopList shops={newShops} />
+            </Grid>
+
+            <Grid item xs={12} sm={4}>
+            <Typography variant="h5">New Items</Typography>
+            <ItemList items={newItems} />
+            </Grid>
+        </Grid>
         </div>
     </div>
     );

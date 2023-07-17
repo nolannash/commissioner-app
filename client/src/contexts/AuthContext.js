@@ -1,11 +1,14 @@
 import React, { createContext, useState } from 'react';
-import { useHistory } from 'react-router-dom';
+import { useHistory } from "react-router-dom";
 
 const AuthContext = createContext();
 
 
 const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
+  const history = useHistory();
+
+
   const getCookie = (name) => {
     const value = `; ${document.cookie}`;
     const parts = value.split(`; ${name}=`);
@@ -14,7 +17,6 @@ const AuthProvider = ({ children }) => {
     }
   };
   
-  const history = useHistory();
   const csrfToken = getCookie('csrf_access_token');
 
   const handleSignUp = async (userType, userData) => {
@@ -30,7 +32,9 @@ const AuthProvider = ({ children }) => {
 
       if (response.ok) {
         const data = await response.json();
-        setUser(data.user);
+
+        userType === 'seller'?setUser(data.seller ):setUser(data.user);
+
       } else {
         const errorData = await response.json();
         throw new Error(errorData.message);
@@ -77,8 +81,11 @@ const AuthProvider = ({ children }) => {
       });
 
       if (response.ok) {
-        await history.push('/')
-        setUser(null);
+        
+        history.replace('/');
+        
+        await history.go(0); 
+        setUser(null); 
       } else {
         const errorData = await response.json();
         throw new Error(errorData.message || 'Logout failed');

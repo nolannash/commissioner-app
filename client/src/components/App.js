@@ -8,10 +8,17 @@ import LandingPage from './LandingPage';
 import HomePage from './HomePage';
 import SellerPage from './Sellerpage';
 import ItemForm from './ItemForm';
-import UserPage from './UserPage';
+import UserPage from './Userpage';
 import Search from './Search';
+import ShopView from './ShopView';
+import ItemPage from './ItemPage';
 
 const App = () => {
+
+  const tabs = [
+    { type: 'items', label: 'Items' },
+    { type: 'sellers', label: 'Shops' },
+];
 
   return (
     <AuthProvider>
@@ -49,6 +56,13 @@ const App = () => {
           <Route path='/search'>
             <Search tabs={tabs}></Search>
           </Route>
+          <Route path='/shops/:id'>
+            <ShopView></ShopView>
+          </Route>
+          <Route path='/items/:id'>
+            <ItemPage></ItemPage>
+          </Route>
+
         </Switch>
       </Router>
     </AuthProvider>

@@ -13,11 +13,13 @@ import {
   Popover,
   IconButton,
   TextField,
+  Grid,
 } from '@mui/material';
 import { DeleteSharp, Person, AddPhotoAlternate } from '@mui/icons-material';
 import { AuthContext } from '../contexts/AuthContext';
 import { Formik, Field, Form, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
+import { useHistory } from 'react-router-dom';
 
 const validationSchema = Yup.object().shape({
   email: Yup.string().email('Invalid email address').required('Email is required'),
@@ -29,10 +31,10 @@ const validationSchema = Yup.object().shape({
 });
 
 const SellerAccountInfo = () => {
-  const { user, csrfToken, refreshUser } = useContext(AuthContext);
+  const history = useHistory();
+  const { user, csrfToken, refreshUser,logout } = useContext(AuthContext);
   const [emailNotifications, setEmailNotifications] = useState(user.email_notifications);
   const [popoverAnchorEl, setPopoverAnchorEl] = useState(null);
-  const [showUploadBanner, setShowUploadBanner] = useState(!user.logo_banner);
   const [logoBanner, setLogoBanner] = useState(null);
   const [editMode, setEditMode] = useState(false);
   const [profilePhoto, setProfilePhoto] = useState(null);
@@ -43,42 +45,24 @@ const SellerAccountInfo = () => {
 
   const handleEmailNotificationsChange = async (event) => {
     const checked = event.target.checked;
-    if (checked) {
-      setEmailNotifications(true);
-      try {
-        const response = await fetch(`/sellers/${user.id}`, {
-          method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-Token': csrfToken,
-          },
-          body: JSON.stringify({ email_notifications: true }),
-        });
-        if (!response.ok) {
-          throw new Error('Failed to update email notifications');
-        }
-      } catch (error) {
-        console.error('Email Notifications Error:', error);
-        // Handle the error, show a notification, etc.
+    setEmailNotifications(checked);
+
+    try {
+      const response = await fetch(`/sellers/${user.id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-Token': csrfToken,
+        },
+        body: JSON.stringify({ email_notifications: checked }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update email notifications');
       }
-    } else {
-      setEmailNotifications(false);
-      try {
-        const response = await fetch(`/sellers/${user.id}`, {
-          method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-Token': csrfToken,
-          },
-          body: JSON.stringify({ email_notifications: false }),
-        });
-        if (!response.ok) {
-          throw new Error('Failed to update email notifications');
-        }
-      } catch (error) {
-        console.error('Email Notifications Error:', error);
-        // Handle the error, show a notification, etc.
-      }
+    } catch (error) {
+      console.error('Email Notifications Error:', error);
+      // Handle the error, show a notification, etc.
     }
   };
 
@@ -86,7 +70,7 @@ const SellerAccountInfo = () => {
     setPopoverAnchorEl(null);
   };
 
-  const handleConfirmToggleNotifications = (confirm) => {
+  const handleConfirmToggleNotifications = async (confirm) => {
     if (confirm) {
       setEmailNotifications(false);
     }
@@ -94,12 +78,55 @@ const SellerAccountInfo = () => {
   };
 
   const handleLogoBannerChange = (event) => {
-    setLogoBanner(event.target.files[0]);
+    const file = event.target.files[0];
+    setLogoBanner(file);
   };
 
-  const handleUploadBanner = () => {
-    // Implement the logic to upload the logo banner
-    // On successful upload, update the "user.logo_banner" in the backend and set "showUploadBanner" to false
+  const handleUploadBanner = async () => {
+    if (logoBanner) {
+      const formData = new FormData();
+      formData.append('userId', user.id);
+      formData.append('logoBanner', logoBanner);
+
+      try {
+        const response = await fetch(`/sellers/${user.id}/logo_banner`, {
+          method: 'PATCH',
+          headers: {
+            'X-CSRF-Token': csrfToken,
+          },
+          body: formData,
+        });
+
+        if (response.ok) {
+          console.log('Logo Banner uploaded successfully');
+          refreshUser(user.id, 'sellers');
+        } else {
+          console.error('Failed to upload logo banner');
+        }
+      } catch (error) {
+        console.error('Upload Logo Banner Error:', error);
+      }
+    }
+  };
+
+  const handleDeleteBanner = async () => {
+    try {
+      const response = await fetch(`/sellers/${user.id}/logo_banner`, {
+        method: 'DELETE',
+        headers: {
+          'X-CSRF-Token': csrfToken,
+        },
+      });
+
+      if (response.ok) {
+        console.log('Logo Banner deleted successfully');
+        refreshUser(user.id, 'sellers');
+      } else {
+        console.error('Failed to delete logo banner');
+      }
+    } catch (error) {
+      console.error('Delete Logo Banner Error:', error);
+    }
   };
 
   const handleProfilePhotoChange = (event) => {
@@ -112,15 +139,14 @@ const SellerAccountInfo = () => {
       const formData = new FormData();
       formData.append('userId', user.id);
       formData.append('profilePhoto', profilePhoto);
-      console.log(formData);
-      console.log(profilePhoto);
+
       try {
         const response = await fetch(`/sellers/${user.id}/profile_photo`, {
           method: 'PATCH',
           headers: {
             'X-CSRF-Token': csrfToken,
           },
-          body: formData, profilePhoto, user
+          body: formData,
         });
 
         if (response.ok) {
@@ -135,7 +161,44 @@ const SellerAccountInfo = () => {
     }
   };
 
-  const open = Boolean(popoverAnchorEl);
+  const handleDeleteProfile = async () =>{
+    try{
+      const response = await fetch(`/sellers/${user.id}`,{
+        method:'DELETE',
+        headers:{
+          'X-CSRF-Token':csrfToken,
+        },
+      });
+      if (response.ok){
+        history.replace('/')
+        logout()
+      }else{
+        console.error('Failed To Delete Profile')
+      }
+    }catch (error){
+      console.error('Error Deleting Profile')
+    }
+  }
+
+  const handleDeleteProfilePhoto = async () => {
+    try {
+      const response = await fetch(`/sellers/${user.id}/profile_photo`, {
+        method: 'DELETE',
+        headers: {
+          'X-CSRF-Token': csrfToken,
+        },
+      });
+
+      if (response.ok) {
+        console.log('Profile photo deleted successfully');
+        refreshUser(user.id, 'sellers');
+      } else {
+        console.error('Failed to delete profile photo');
+      }
+    } catch (error) {
+      console.error('Delete Profile Photo Error:', error);
+    }
+  };
 
   const toggleEditMode = () => {
     setEditMode(!editMode);
@@ -143,7 +206,7 @@ const SellerAccountInfo = () => {
 
   const handleProfileEdit = async (values) => {
     try {
-      const { shopname, email } = values;
+      const { shopname, email, bio } = values;
 
       const response = await fetch(`/sellers/${user.id}`, {
         method: 'PATCH',
@@ -151,7 +214,7 @@ const SellerAccountInfo = () => {
           'Content-Type': 'application/json',
           'X-CSRF-Token': csrfToken,
         },
-        body: JSON.stringify({ shopname, email }),
+        body: JSON.stringify({ shopname, email, bio }),
       });
 
       if (response.ok) {
@@ -173,7 +236,8 @@ const SellerAccountInfo = () => {
           <Button variant="contained" size="medium" color="secondary" onClick={toggleEditMode}>
             {editMode ? 'Cancel' : 'Edit Profile'}
           </Button>
-          <Button variant="contained" color="error" size="medium" startIcon={<DeleteSharp />}>
+          <Button variant="contained" color="error" size="medium" startIcon={<DeleteSharp 
+          onClick={()=>handleDeleteProfile}/>}>
             Delete Profile
           </Button>
         </Box>
@@ -186,11 +250,12 @@ const SellerAccountInfo = () => {
               initialValues={{
                 email: user.email,
                 shopname: user.shopname,
+                bio: user.bio,
               }}
               validationSchema={validationSchema}
               onSubmit={handleProfileEdit}
             >
-              {({ touched, errors }) => (
+              {({ touched, errors, isSubmitting }) => (
                 <Form>
                   <div>
                     <Field
@@ -218,8 +283,23 @@ const SellerAccountInfo = () => {
                     />
                     <ErrorMessage name="shopname" component="div" />
                   </div>
+                  <div>
+                    <Field
+                      as={TextField}
+                      type="text"
+                      name="bio"
+                      label="Bio"
+                      variant="outlined"
+                      fullWidth
+                      multiline
+                      rows={4}
+                      error={touched.bio && errors.bio}
+                      helperText={touched.bio && errors.bio}
+                    />
+                    <ErrorMessage name="bio" component="div" />
+                  </div>
                   <Box mt={2} display="flex" justifyContent="space-between">
-                    <Button variant="contained" type="submit">
+                    <Button variant="contained" type="submit" disabled={isSubmitting}>
                       Save
                     </Button>
                     <Button variant="contained" onClick={toggleEditMode}>
@@ -230,7 +310,7 @@ const SellerAccountInfo = () => {
               )}
             </Formik>
             <Popover
-              open={open}
+              open={Boolean(popoverAnchorEl)}
               anchorEl={popoverAnchorEl}
               onClose={handlePopoverClose}
               anchorOrigin={{
@@ -288,7 +368,7 @@ const SellerAccountInfo = () => {
             />
 
             <Popover
-              open={open}
+              open={Boolean(popoverAnchorEl)}
               anchorEl={popoverAnchorEl}
               onClose={handlePopoverClose}
               anchorOrigin={{
@@ -324,30 +404,51 @@ const SellerAccountInfo = () => {
               </Box>
             </Popover>
 
-            {/* Logo banner as the header background */}
             {user.logo_banner ? (
-              <CardMedia component="img" height="150" image={user.logo_banner} alt="Logo Banner" />
+              <CardMedia
+                component="img"
+                height="150"
+                image={`/uploads/${user.logo_banner}`}
+                alt="Logo Banner"
+              />
             ) : (
               <CardHeader title="Logo Banner Here" />
             )}
 
             <CardContent>
-              <Box display="flex" alignItems="flex-start" justifyContent="flex-start" mb={2}>
-                {/* Profile photo overlaid as an avatar */}
-                <Avatar
-                  src={`/uploads/${user.profile_photo}`}
-                  alt="Profile Photo"
-                  sx={{ width: 80, height: 80, marginRight: 2, marginTop: -40 }}
-                >
-                  {!user.profile_photo && <Person />}
-                </Avatar>
-                <Typography variant="h6">{user.shopname}</Typography>
-              </Box>
-              <Typography variant="body1">
-                <strong>Contact:</strong> {user.email}
-              </Typography>
-
-              {showUploadBanner && (
+              <Grid container spacing={2}>
+                <Grid item xs={12} md={8}>
+                  <Box display="flex" alignItems="flex-start" justifyContent="flex-start" mb={2}>
+                    <Avatar src={`/uploads/${user.profile_photo}`} alt="Profile Photo">
+                      {!user.profile_photo && <Person />}
+                    </Avatar>
+                    <Typography variant="h6">{user.shopname}</Typography>
+                  </Box>
+                  <Typography variant="body1">
+                    <strong>Contact:</strong> {user.email}
+                  </Typography>
+                  {user.bio ? (
+                    <Typography variant="body1">
+                      <strong>Bio:</strong> {user.bio}
+                    </Typography>
+                  ) : (
+                    <Box mt={2}>
+                      <Typography variant="body1">Please edit your profile and create a bio.</Typography>
+                      <Button variant="contained" color="primary" onClick={toggleEditMode}>
+                        Edit Profile
+                      </Button>
+                    </Box>
+                  )}
+                </Grid>
+              </Grid>
+              <Box>
+              {user.logo_banner ? (
+                <Box mt={2}>
+                  <Button variant="contained" color="error" onClick={handleDeleteBanner}>
+                    Delete Logo Banner
+                  </Button>
+                </Box>
+              ) : (
                 <Box mt={2}>
                   <input
                     accept="image/*"
@@ -373,31 +474,39 @@ const SellerAccountInfo = () => {
                   </Button>
                 </Box>
               )}
-
-              <Box mt={2}>
-                <input
-                  accept="image/*"
-                  style={{ display: 'none' }}
-                  id="profile-photo-upload"
-                  type="file"
-                  onChange={handleProfilePhotoChange}
-                />
-                <label htmlFor="profile-photo-upload">
-                  <IconButton
-                    size="small"
-                    color="primary"
-                    aria-label="upload profile photo"
-                    component="span"
-                    startIcon={<AddPhotoAlternate />}
-                  >
-                    Click Here to Select Profile Photo
-                  </IconButton>
-                </label>
-                {profilePhoto && <Typography variant="body2">{profilePhoto.name}</Typography>}
-                <Button variant="contained" color="primary" onClick={handleUploadProfilePhoto}>
-                  Submit Photo
-                </Button>
-              </Box>
+          </Box>
+              {user.profile_photo ? (
+                <Box mt={2}>
+                  <Button variant="contained" color="error" onClick={handleDeleteProfilePhoto}>
+                    Delete Profile Photo
+                  </Button>
+                </Box>
+              ) : (
+                <Box mt={2}>
+                  <input
+                    accept="image/*"
+                    style={{ display: 'none' }}
+                    id="profile-photo-upload"
+                    type="file"
+                    onChange={handleProfilePhotoChange}
+                  />
+                  <label htmlFor="profile-photo-upload">
+                    <IconButton
+                      size="small"
+                      color="primary"
+                      aria-label="upload profile photo"
+                      component="span"
+                      startIcon={<AddPhotoAlternate />}
+                    >
+                      Click Here to Select Profile Photo
+                    </IconButton>
+                  </label>
+                  {profilePhoto && <Typography variant="body2">{profilePhoto.name}</Typography>}
+                  <Button variant="contained" color="primary" onClick={handleUploadProfilePhoto}>
+                    Submit Photo
+                  </Button>
+                </Box>
+              )}
             </CardContent>
           </div>
         )}
