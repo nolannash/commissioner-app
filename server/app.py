@@ -64,7 +64,6 @@ class Sellers(Resource):
             
             seller.email_notifications = data.get('email_notifications', seller.email_notifications)
             db.session.commit()
-            return {'message': 'Seller updated successfully'}
             return make_response(seller.to_dict(),204)
         except ValueError as e:
             return {'message': str(e)}, 400
@@ -96,7 +95,7 @@ class Items(Resource):
         if not seller:
             return {'message': 'Seller not found'}, 404
 
-        # Create the item
+
         item = Item(seller=seller, **data)
         try:
             db.session.add(item)
@@ -169,11 +168,7 @@ class Orders(Resource):
             for response_data in form_responses:
                 form_item_id = response_data.get('form_item_id')
                 response_text = response_data.get('response')
-
-                form_item = db.session.get(FormItem, form_item_id)
-                if form_item:
-                    order_response = OrderResponse(order=order, form_item=form_item, response=response_text)
-                    db.session.add(order_response)
+            # this is where im lost
 
             db.session.commit()
 
