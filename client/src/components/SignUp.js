@@ -3,7 +3,8 @@ import { AuthContext } from '../contexts/AuthContext';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
 import { Button, TextField, Typography } from '@mui/material';
-import {  useHistory, useLocation } from 'react-router-dom';
+import { useHistory, useLocation } from 'react-router-dom';
+
 
 export default function SignUpPage() {
     const { signUp } = useContext(AuthContext);
@@ -22,16 +23,26 @@ export default function SignUpPage() {
     };
 
 
-    const handleSignUp = async (values) => {
+    if (pathname.includes('/signup/seller') || pathname.includes('/login/seller')) {
+      return 'seller';
+    } else if (pathname.includes('/signup/user') || pathname.includes('/login/user')) {
+      return 'user';
+    } else {
+      return 'none';
+    }
+  };
+
+  const handleSignUp = async (values) => {
     const { confirmPassword, ...signupData } = values;
     try {
-        await signUp(determineUserType(),signupData);
-        (determineUserType()==='user'?history.push('/'):history.push('/sellerPage'));
+      await signUp(determineUserType(), signupData);
+      determineUserType() === 'user' ? history.push('/') : history.push('/sellerPage');
     } catch (error) {
-        console.error(error);
-        throw error;
+      console.error(error);
+      throw error;
     }
-    };
+  };
+
 
     const validationSchema = Yup.object().shape({
         email: Yup.string().email('Invalid email address').required('Email is required'),
@@ -64,27 +75,21 @@ export default function SignUpPage() {
         }),
         });
 
-    return (
+  return (
     <div>
-        <Typography variant="h4" component="h1" gutterBottom>
+      <Typography variant="h4" component="h1" gutterBottom>
         Enter Account Information Below
-        </Typography>
-        <Formik
-        initialValues={{
-            email: '',
-            password: '',
-            confirmPassword: '',
-            username: '',
-            shopname: '',
-        }}
+      </Typography>
+      <Formik
+        initialValues={initialValues}
         validationSchema={validationSchema}
         onSubmit={handleSignUp}
         debugger
-        >
+      >
         {({ touched, errors }) => (
-            <Form >
+          <Form>
             <div>
-                <Field
+              <Field
                 as={TextField}
                 type="email"
                 name="email"
@@ -93,11 +98,11 @@ export default function SignUpPage() {
                 fullWidth
                 error={touched.email && errors.email}
                 helperText={touched.email && errors.email}
-                />
-                <ErrorMessage name="email" component="div" />
+              />
+              <ErrorMessage name="email" component="div" />
             </div>
             <div>
-                <Field
+              <Field
                 as={TextField}
                 type="password"
                 name="password"
@@ -106,11 +111,11 @@ export default function SignUpPage() {
                 fullWidth
                 error={touched.password && errors.password}
                 helperText={touched.password && errors.password}
-                />
-                <ErrorMessage name="password" component="div" />
+              />
+              <ErrorMessage name="password" component="div" />
             </div>
             <div>
-                <Field
+              <Field
                 as={TextField}
                 type="password"
                 name="confirmPassword"
@@ -119,42 +124,45 @@ export default function SignUpPage() {
                 fullWidth
                 error={touched.confirmPassword && errors.confirmPassword}
                 helperText={touched.confirmPassword && errors.confirmPassword}
-                />
-                <ErrorMessage name="confirmPassword" component="div" />
+              />
+              <ErrorMessage name="confirmPassword" component="div" />
             </div>
-            {determineUserType() ==='user' &&(<div>
-                    <Field
-                    as={TextField}
-                    type="text"
-                    name="username"
-                    label="Username"
-                    variant="outlined"
-                    fullWidth
-                    error={touched.username && errors.username}
-                    helperText={touched.username && errors.username}
-                    />
-                    <ErrorMessage name="username" component="div" />
-                </div>)}
-            {determineUserType() === 'seller' && (
-                <div>
+            {determineUserType() === 'user' && (
+              <div>
                 <Field
-                    as={TextField}
-                    type="text"
-                    name="shopname"
-                    label="Shop Name"
-                    variant="outlined"
-                    fullWidth
-                    error={touched.shopname && errors.shopname}
-                    helperText={touched.shopname && errors.shopname}
+                  as={TextField}
+                  type="text"
+                  name="username"
+                  label="Username"
+                  variant="outlined"
+                  fullWidth
+                  error={touched.username && errors.username}
+                  helperText={touched.username && errors.username}
+                />
+                <ErrorMessage name="username" component="div" />
+              </div>
+            )}
+            {determineUserType() === 'seller' && (
+              <div>
+                <Field
+                  as={TextField}
+                  type="text"
+                  name="shopname"
+                  label="Shop Name"
+                  variant="outlined"
+                  fullWidth
+                  error={touched.shopname && errors.shopname}
+                  helperText={touched.shopname && errors.shopname}
                 />
                 <ErrorMessage name="shopname" component="div" />
-                </div>)}
-                <Button variant="contained" type='submit'>
-                Sign Up
-                </Button>
-            </Form>
+              </div>
+            )}
+            <Button variant="contained" type="submit">
+              Sign Up
+            </Button>
+          </Form>
         )}
-        </Formik>
+      </Formik>
     </div>
-    );
+  );
 }

@@ -65,7 +65,7 @@ app.config['MAIL_SERVER']='sandbox.smtp.mailtrap.io'
 app.config['MAIL_PORT'] = 2525
 app.config['MAIL_USERNAME'] = 'f22dbad3accd07'
 app.config['MAIL_PASSWORD'] = '3591becb36a522'
+
 app.config['MAIL_USE_TLS'] = True
 app.config['MAIL_USE_SSL'] = False
-
 mail = Mail(app)

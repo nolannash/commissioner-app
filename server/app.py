@@ -89,6 +89,42 @@ class Items(Resource):
         items = Item.query.all()
         return [item.to_dict() for item in items]
 
+    def post(self):
+        data = request.get_json()
+        seller_id = data.get('seller_id')
+        seller = Seller.query.get(seller_id)
+        if not seller:
+            return {'message': 'Seller not found'}, 404
+
+        # Create the item
+        item = Item(seller=seller, **data)
+        try:
+            db.session.add(item)
+            db.session.commit()
+            return {'message': 'Item created successfully', 'item': item.to_dict()}, 201
+        except ValueError as e:
+            return {'message': str(e)}, 400
+
+    def patch(self, item_id):
+        if not (item := Item.query.get(item_id)):
+            return {'message': 'Item not found'}, 404
+        data = request.get_json()
+        try:
+            item.batch_size = data.get('batch_size', item.batch_size)
+            item.rollover_period = data.get('rollover_period', item.rollover_period)
+            db.session.commit()
+            return {'message': 'Item updated successfully'}
+        except ValueError as e:
+            return {'message': str(e)}, 400
+
+    def delete(self, item_id):
+        if item := Item.query.get(item_id):
+            db.session.delete(item)
+            db.session.commit()
+            return {'message': 'Item deleted successfully'}, 204
+        else:
+            return {'message': 'Item not found'}, 404
+
 
 class Orders(Resource):
     @jwt_required()
@@ -596,7 +632,6 @@ def delete_seller_profile_photo(seller_id):
     db.session.commit()
     return jsonify({'message': 'Profile photo deleted successfully'}), 204
 
-
 @app.route('/items/<int:item_id>/images', methods=['POST'])
 def upload_item_images(item_id):
     item = Item.query.get(item_id)
@@ -661,8 +696,6 @@ api.add_resource(Items, '/items', '/items/<int:item_id>')
 api.add_resource(Favorites, '/favorites', '/favorites/<int:favorite_id>', '/favorites/<int:seller_id>/favorites')
 
 api.add_resource(FormItems, '/form-items', '/form-items/<int:item_id>','/form-items/<int:item_id>/<int:form_item_id>')
-
-
 
 
 if __name__ == '__main__':

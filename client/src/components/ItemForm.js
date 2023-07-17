@@ -48,11 +48,14 @@ const validationSchema = Yup.object().shape({
     }),
 });
 
+
 const ItemForm = () => {
+
   const { user, csrfToken } = useContext(AuthContext);
 
   const history = useHistory();
   const initialValues = {
+
     name: '',
     description: '',
     price: '',
@@ -80,12 +83,18 @@ const ItemForm = () => {
           formData.append('images', image);
         });
 
+
+        formData.append('seller_id', user.id);
+
+
         const response = await fetch(`/sellers/${user.id}/items`, {
           method: 'POST',
           headers: {
             'X-CSRF-Token': csrfToken,
+
           },
           body: formData,
+
         });
 
         if (response.ok) {
