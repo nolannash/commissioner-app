@@ -1,7 +1,7 @@
 import React from 'react';
 import { Card, CardHeader, CardContent, Typography } from '@mui/material';
 
-const OrderList = ({ orders }) => {
+const OrderListUsers = ({ orders }) => {
     return (
     <div>
         {orders.map((order, index) => (
@@ -14,6 +14,7 @@ const OrderList = ({ orders }) => {
             <Typography variant="body1">
                 <strong>Price:</strong> ${order.item.price}
             </Typography>
+            <Typography variant ='body1'>Placed at: {order.created_at}</Typography>
             </CardContent>
         </Card>
         ))}
@@ -21,4 +22,4 @@ const OrderList = ({ orders }) => {
     );
 };
 
-export default OrderList;
+export default OrderListUsers;

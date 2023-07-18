@@ -27,8 +27,8 @@ const UserPage = () => {
   const renderSection = () => {
     switch (activeSection) {
       case 0:
-        return <ItemList items={[]} />;
-        // return <>test</>
+        // return <ItemList items={[]} />;
+        return <>This doesnt work yet</>
       case 1:
         return <UserOrders orders={user.orders}></UserOrders>;
       case 2:
