@@ -110,7 +110,7 @@ const ItemPage = () => {
             )}
             {user ? (
                 <Box mt={2}>
-                    <Link to ={`/items/${id}/order`}>
+                    <Link to ={`/NewOrder/${id}`}>
                     <Button variant='outlined' color='success'>Commission </Button></Link>
                 </Box>
             ) : (

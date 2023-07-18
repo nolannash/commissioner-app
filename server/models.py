@@ -16,7 +16,7 @@ class User(db.Model, SerializerMixin):
     username = db.Column(db.VARCHAR(20), unique=True, nullable=False)
     email = db.Column(db.String, unique=True, nullable=False)
     _password_hash = db.Column(db.String)
-    profile_photo = db.Column(db.VARCHAR)  # File path to profile photo
+    profile_photo = db.Column(db.VARCHAR)
     email_notifications = db.Column(db.Boolean, default=False)
 
     favorites = db.relationship('Favorite', back_populates='user', cascade='all, delete-orphan')
@@ -69,7 +69,7 @@ class Seller(db.Model, SerializerMixin):
     shopname = db.Column(db.VARCHAR(25), unique=True, nullable=False)
     email = db.Column(db.String, unique=True, nullable=False)
     _password_hash = db.Column(db.String)
-    logo_banner = db.Column(db.VARCHAR)  # the ~varchar~ is the file path to the photo
+    logo_banner = db.Column(db.VARCHAR) 
     profile_photo = db.Column(db.VARCHAR)  
     bio = db.Column(db.String)
     email_notifications = db.Column(db.Boolean, default=True)
@@ -187,7 +187,7 @@ class Order(db.Model, SerializerMixin):
     seller_id = db.Column(db.INTEGER, db.ForeignKey('sellers.id'))
     user_id = db.Column(db.INTEGER, db.ForeignKey('users.id'))
     item_id = db.Column(db.INTEGER, db.ForeignKey('items.id'))
-    # user_response = db.Column(db.String)
+    user_response = db.Column(db.String)
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
 
     item = db.relationship("Item", back_populates="orders")

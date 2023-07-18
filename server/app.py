@@ -489,7 +489,7 @@ def login_seller():
     seller = Seller.query.filter_by(email=email).first()
     user = User.query.filter_by(email=email).first()
 
-    if seller and not user:  # Check if the email belongs to a Seller and not a User
+    if seller and not user: 
         if seller.authenticate(password):
             token = create_access_token(identity=seller.id)
             response = make_response({'seller': seller.to_dict()}, 201)
@@ -680,8 +680,7 @@ class ItemFormItems(Resource):
     def get (self, item_id=None):
         item = Item.query.get(item_id)
         if item:
-            print(item.form_items)
-            form_items = item.form_items
+            form_items = FormItem.query.filter_by(item_id=item_id).all()
             return make_response([fi.to_dict() for fi in form_items],200)
         return {'error':'Could Not Find Form Items'},404
     
@@ -719,10 +718,11 @@ api.add_resource(Recent, '/recent')
 
 api.add_resource(Items, '/items', '/items/<int:item_id>')
 
+api.add_resource(Orders, '/orders', '/orders/<int:order_id>')
 
 api.add_resource(Favorites, '/favorites', '/favorites/<int:favorite_id>', '/favorites/<int:seller_id>/favorites')
 
-api.add_resource(FormItems, '/form-items', '/form-items/<int:item_id>','/form-items/<int:item_id>/<int:form_item_id>')
+api.add_resource(FormItems, '/form-items', '/form-items/<int:item_id>',)
 
 
 if __name__ == '__main__':

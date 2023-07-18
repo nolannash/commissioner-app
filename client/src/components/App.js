@@ -56,7 +56,7 @@ const App = () => {
           <Route path='/items/:id'>
             <ItemPage></ItemPage>
           </Route>
-          <Route path='/items/:id/order'>
+          <Route path='/NewOrder/:item_id'>
             <OrderForm></OrderForm>
           </Route>
         </Switch>
