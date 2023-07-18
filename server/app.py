@@ -285,7 +285,6 @@ class Favorites(Resource):
         db.session.commit()
         return {'message': 'Removed from Favorites'}, 204
 
-        
 
 class FormItems(Resource):
     def get(self, form_item_id=None):
@@ -582,7 +581,6 @@ def delete_seller_logo_banner(seller_id):
     seller.logo_banner = None
     db.session.commit()
     return jsonify({'message': 'Profile photo deleted successfully'}), 204
-    
 
 
 @jwt_required()
@@ -686,7 +684,6 @@ api.add_resource(Recent, '/recent')
 
 api.add_resource(Items, '/items', '/items/<int:item_id>')
 
-# api.add_resource(Orders, '/orders', '/orders/<int:order_id>')
 
 api.add_resource(Favorites, '/favorites', '/favorites/<int:favorite_id>', '/favorites/<int:seller_id>/favorites')
 

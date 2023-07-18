@@ -32,14 +32,7 @@ const App = () => {
             <LoginPage />
           </Route>
           <Route path="/signup">
-            <SignUpPage initialValues={{
-            email: '',
-            password: '',
-            confirmPassword: '',
-            username: '',
-            shopname: '',
-            }}
-            />
+            <SignUpPage />
           </Route>
           <Route path="/landing">
             <LandingPage />
