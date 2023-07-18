@@ -1,9 +1,9 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect} from 'react';
 import { Box, Typography, TextField, Button, CircularProgress, Alert } from '@mui/material';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
 import { AuthContext } from '../contexts/AuthContext';
-import { useHistory, Link } from 'react-router-dom';
+import { useHistory, Link, useParams } from 'react-router-dom';
 
 const validationSchema = Yup.object().shape({
     response: Yup.string()
@@ -12,13 +12,42 @@ const validationSchema = Yup.object().shape({
         .required('Response is required'),
 });
 
-const OrderForm = ({ item }) => {
+const OrderForm = () => {
     const { user } = useContext(AuthContext);
     const history = useHistory();
     const [submitting, setSubmitting] = useState(false);
+    const [item, setItem] = useState([]);
     const [submissionError, setSubmissionError] = useState(null);
+    const [formItems, setFormItems] = useState([])
+    const { itemId } = useParams();
 
-    
+    useEffect(() =>{
+        (async () =>{
+            const res = await fetch(`/items/${itemId}/form_items`);
+            if (res.ok){
+                const data = await res.json()
+                setFormItems(data);
+                console.log(formItems)
+            }else{
+                console.error('An issue occured');
+
+            }
+        })()
+    },[item,formItems])
+
+    useEffect(() =>{
+        (async () =>{
+            const res = await fetch(`/items/${itemId}`);
+            if (res.ok){
+                const data = await res.json()
+                setItem(data);
+                console.log(formItems)
+            }else{
+                console.error('An issue occured');
+
+            }
+        })()
+    },[item])
 
     const handleSubmit = async (values, { setSubmitting, resetForm }, formItemId) => {
         setSubmitting(true);
@@ -49,8 +78,8 @@ const OrderForm = ({ item }) => {
     };
 
     return (
-        <>
-            {item && !item.form_items  ? (
+        <div>
+            {item && !formItems  ? (
                 <Box mt={2}>
                     <Typography variant="h6" component="h2">
                         Please leave a note for the seller
@@ -109,6 +138,7 @@ const OrderForm = ({ item }) => {
                         <Typography variant="h6" component="h2">
                             {formItem.seller_question}
                         </Typography>
+                    {/* formik is mapping out one whole form for each item and not a form q component --> remap */}
                         <Formik
                             initialValues={{
                                 response: '',
@@ -159,7 +189,8 @@ const OrderForm = ({ item }) => {
                     </Box>
                 ))
             )}
-        </>
+            <p>Hi</p>
+        </div>
     );
 };
 

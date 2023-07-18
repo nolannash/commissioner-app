@@ -165,6 +165,8 @@ const SellerItemsPage = () => {
     }
   };
 
+  
+
   const handleOpenCommissionOption = (itemId) => {
     setOpenCommissionItemId(itemId);
     setCommissionOption('');

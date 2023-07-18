@@ -25,7 +25,7 @@ const ShopView = () => {
             setSeller(data);
 
             } else {
-            console.error("Unable to set concerts");
+            console.error("Unable to Sellers Items");
             }
         })();
         }, [id]);

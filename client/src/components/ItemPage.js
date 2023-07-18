@@ -12,7 +12,6 @@ import {
 import { ArrowBack } from '@mui/icons-material';
 import { Link, useParams } from 'react-router-dom';
 import { AuthContext } from '../contexts/AuthContext';
-import OrderForm from './OrderForm';
 
 const ItemPage = () => {
     const { user } = useContext(AuthContext);
@@ -111,7 +110,8 @@ const ItemPage = () => {
             )}
             {user ? (
                 <Box mt={2}>
-                    <Button onClick={()=>{return<OrderForm item={item} />}}>Commission </Button>
+                    <Link to ={`/items/${id}/order`}>
+                    <Button variant='outlined' color='success'>Commission </Button></Link>
                 </Box>
             ) : (
                 <Box my={2}>

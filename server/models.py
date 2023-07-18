@@ -22,7 +22,7 @@ class User(db.Model, SerializerMixin):
     favorites = db.relationship('Favorite', back_populates='user', cascade='all, delete-orphan')
     orders = db.relationship('Order', back_populates='user')
 
-    serialize_only = ('id', 'username', 'email', 'profile_photo', 'email_notifications','favorites.user_id', 'orders')
+    serialize_only = ('id', 'username', 'email', 'profile_photo', 'email_notifications','favorites.user_id', 'orders','favorites')
     serialize_rules = ( '-orders.user', '-orders.user_id')
 
     @validates("username")
@@ -138,7 +138,7 @@ class Item(db.Model, SerializerMixin):
     form_items = db.relationship("FormItem", back_populates="item", cascade="all, delete-orphan")
     images = db.relationship("ItemImage", back_populates="item", cascade="all, delete-orphan")
     
-    serialize_only = ('id', 'name', 'description', 'price', 'batch_size', 'rollover_period', 'last_rollover', 'created_at', 'order_count','images','seller_id','form_items','seller.shopname')
+    serialize_only = ('id', 'name', 'description', 'price', 'batch_size', 'rollover_period', 'last_rollover', 'created_at', 'order_count','images','seller_id','form_items','seller.shopname','seller.profile_photo')
     serialize_rules = ( '-orders.item', '-orders.item_id', '-form_items.item', '-form_items.item_id')
     
     def rollover_logic(self):
@@ -187,7 +187,7 @@ class Order(db.Model, SerializerMixin):
     seller_id = db.Column(db.INTEGER, db.ForeignKey('sellers.id'))
     user_id = db.Column(db.INTEGER, db.ForeignKey('users.id'))
     item_id = db.Column(db.INTEGER, db.ForeignKey('items.id'))
-    user_response = db.Column(db.String)
+    # user_response = db.Column(db.String)
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
 
     item = db.relationship("Item", back_populates="orders")

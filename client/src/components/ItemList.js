@@ -119,7 +119,7 @@ const ItemList = ({ items }) => {
             {item.images && item.images.length > 0 ? (
               <CardMedia
                 component="img"
-                style={{ height: '150px', paddingTop: '2%' }}
+                height={100}
                 image={`/uploads/${item.images[0].image_path}`}
                 alt={`Item ${item.id}`}
               />
