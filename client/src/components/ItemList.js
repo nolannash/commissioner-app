@@ -9,7 +9,7 @@ import {
   Button,
   Alert,
 } from '@mui/material';
-import { Star, StarBorder, CheckCircleOutline } from '@mui/icons-material';
+import { Star, StarBorder} from '@mui/icons-material';
 import { AuthContext } from '../contexts/AuthContext';
 import { Link } from 'react-router-dom';
 

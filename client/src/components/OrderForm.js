@@ -6,16 +6,14 @@ import { AuthContext } from '../contexts/AuthContext';
 import { useHistory, Link, useParams } from 'react-router-dom';
 
 const validationSchema = Yup.object().shape({
-    response: Yup.string()
-    .max(250, 'Response must be at most 250 characters')
-    .matches(/^[a-zA-Z0-9 ]*$/, 'No special characters allowed')
-    .required('Response is required'),
+    responses: Yup.array()
+    .of(Yup.string().required('Response is required'))
+    .min(1, 'At least one response is required'),
 });
 
 const OrderForm = () => {
-    const { user } = useContext(AuthContext);
+    const { user, csrfToken } = useContext(AuthContext);
     const history = useHistory();
-    const [submitting, setSubmitting] = useState(false);
     const [item, setItem] = useState([]);
     const [formItems, setFormItems] = useState([]);
     const [formResponses, setFormResponses] = useState([]);
@@ -58,10 +56,9 @@ const OrderForm = () => {
     }, [item_id]);
 
     const handleSubmit = async (values) => {
-    setSubmitting(true);
     try {
         const formData = {
-        seller_id: item.seller.id,
+        seller_id: item.seller_id,
         user_id: user.id,
         item_id: item.id,
         form_responses: formResponses.map((response, index) => ({
@@ -69,37 +66,40 @@ const OrderForm = () => {
             response: response,
         })),
         };
-        const resp = await fetch('/your-backend-route', {
+        const resp = await fetch('/orders', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
+            'X-CSRF-Token': csrfToken,
         },
         body: JSON.stringify(formData),
         });
 
         if (resp.ok) {
-        // Handle successful submission, e.g., show a success message or redirect
-        // to a thank-you page.
+
+        alert('Order submitted successfully');
+        history.push('/');
         } else {
-        // Handle errors, e.g., show an error message.
+
+        alert('There was an issue submitting the order');
         }
     } catch (error) {
-      // Handle unexpected errors, e.g., show an error message.
+
+        alert('An unexpected error occurred');
     }
-    setSubmitting(false);
     };
 
     return (
     <div>
-        <h1>Complete Your Comission:</h1>
-        <p>Write your answers in the boxes provided:</p>
+        <h1>Please Answer The following Questions:</h1>
+        <p>Write your answers in the box provided</p>
         <Formik
         initialValues={{ responses: Array(formItems.length).fill('') }}
         validationSchema={validationSchema}
         onSubmit={handleSubmit}
         >
         {({ values, handleChange, handleSubmit, errors }) => (
-            <Form>
+            <Form onSubmit={handleSubmit}>
             {formItems.map((formItem, index) => (
                 <div key={formItem.id}>
                 <p>{formItem.seller_question}</p>
@@ -109,28 +109,17 @@ const OrderForm = () => {
                     value={values.responses[index]}
                     onChange={(e) => {
                     handleChange(e);
-                    const newResponses = [...formResponses];
+                    const newResponses = [...values.responses];
                     newResponses[index] = e.target.value;
                     setFormResponses(newResponses);
                     }}
-                    error={
-                    Boolean(errors.responses) && Boolean(errors.responses[index])
-                    }
-                    helperText={
-                    errors.responses && errors.responses[index]
-                        ? errors.responses[index]
-                        : ''
-                    }
+                    error={Boolean(errors.responses) && Boolean(errors.responses[index])}
+                    helperText={errors.responses && errors.responses[index] ? errors.responses[index] : ''}
                 />
                 </div>
             ))}
-            <Button
-                type="submit"
-                disabled={submitting}
-                variant="contained"
-                color="primary"
-            >
-                {submitting ? <CircularProgress size={24} /> : 'Submit'}
+            <Button type="submit" variant="contained" color="primary">
+                Submit
             </Button>
             </Form>
         )}

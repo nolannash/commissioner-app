@@ -27,7 +27,8 @@ const UserPage = () => {
   const renderSection = () => {
     switch (activeSection) {
       case 0:
-        return <ItemList items={user.favorites} />;
+        return <ItemList items={[]} />;
+        // return <>test</>
       case 1:
         return <Orders />;
       case 2:
@@ -66,12 +67,12 @@ const UserPage = () => {
         
     }
     };
-
+    console.log(user)
   return (
     <AppBar position="static">
       <Toolbar>
         <Typography variant="h4" component="div" sx={{ flexGrow: 1 }}>
-          {user.shopname}
+          {user.username}
         </Typography>
         <Box sx={{ display: 'flex', alignItems: 'center', textAlign: 'center' }}>
           <Button variant='contained' onClick={()=>history.push('/')}>Home</Button>

@@ -78,8 +78,8 @@ class Seller(db.Model, SerializerMixin):
     items = db.relationship('Item', back_populates='seller', cascade="all, delete-orphan")
     orders = db.relationship('Order', back_populates='seller', cascade="all, delete-orphan")
 
-    serialize_only = ('id', 'shopname', 'email', 'logo_banner', 'profile_photo', 'bio', 'email_notifications','items')
-    serialize_rules = ( '-items.seller_id', '-orders.seller', '-orders.seller_id')
+    serialize_only = ('id', 'shopname', 'email', 'logo_banner', 'profile_photo', 'bio', 'email_notifications','items','orders')
+    serialize_rules = ( '-items.seller_id', '-orders.seller_id')
     
     @validates("shopname")
     def validate_shopname(self, key, shopname):

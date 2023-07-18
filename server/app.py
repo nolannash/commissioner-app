@@ -660,7 +660,7 @@ def get_user_orders(user_id):
     user = User.query.get(user_id)
     if user:
         orders = user.orders
-        return jsonify([order.to_diict() for order in orders])
+        return jsonify([order.to_dict() for order in orders])
     else:
         return jsonify({"message": "User not found"}), 404
 
@@ -674,7 +674,6 @@ def get_seller_orders(seller_id):
     else:
         return jsonify({"message": "Seller not found"}), 404
 
-
 class ItemFormItems(Resource):
     @jwt_required()
     def get (self, item_id=None):
@@ -683,7 +682,29 @@ class ItemFormItems(Resource):
             form_items = FormItem.query.filter_by(item_id=item_id).all()
             return make_response([fi.to_dict() for fi in form_items],200)
         return {'error':'Could Not Find Form Items'},404
-    
+
+# class UserOrders(Resource):
+#     @jwt_required()
+#     def get(self, user_id=None):
+#         user = User.query.get(user_id)
+
+#         if user:
+#             orders = user.orders
+#             return make_response([order.to_dict() for order in orders])
+
+# api.add_resource(UserOrders, '/users/<int:user_id>/orders')
+
+# class SellerOrders(Resource):
+#     @jwt_required()
+#     def get(self, seller_id=None):
+
+#         seller = Seller.query.get(seller_id)
+#         if seller:
+#             orders = seller.orders
+#             return make_response([order.to_dict() for order in orders])
+
+# api.add_resource(UserOrders, '/sellers/<int:seller_id>/orders')
+
 @app.route('/refresh_token', methods=['POST'])
 @jwt_required(refresh=True)
 def refresh_token():
