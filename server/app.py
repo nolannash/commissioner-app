@@ -692,7 +692,7 @@ class ItemFormItems(Resource):
 #             orders = user.orders
 #             return make_response([order.to_dict() for order in orders])
 
-# api.add_resource(UserOrders, '/users/<int:user_id>/orders')
+# api.add_resource(UserOrders, '/UserOrders/<int:user_id>')
 
 # class SellerOrders(Resource):
 #     @jwt_required()
@@ -703,7 +703,7 @@ class ItemFormItems(Resource):
 #             orders = seller.orders
 #             return make_response([order.to_dict() for order in orders])
 
-# api.add_resource(UserOrders, '/sellers/<int:seller_id>/orders')
+# api.add_resource(UserOrders, '/SellerOrders/<int:seller_id>')
 
 @app.route('/refresh_token', methods=['POST'])
 @jwt_required(refresh=True)

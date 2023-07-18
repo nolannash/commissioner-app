@@ -1,19 +1,24 @@
-import React, { useContext, useState, useEffect } from 'react';
-import {
-    Typography,
-    Card,
-    CardHeader,
-    CardMedia,
-    CardContent,
-    IconButton,
-    Button,
-    Alert,
-} from '@mui/material';
-import { AuthContext } from '../contexts/AuthContext';
-import { Link } from 'react-router-dom';
+import React from 'react';
+import { Card, CardHeader, CardContent, Typography } from '@mui/material';
 
-const OrderList = ({orders}) =>{
-    const {user, csrfToken} = useContext(AuthContext);
-}
+const OrderList = ({ orders }) => {
+    return (
+    <div>
+        {orders.map((order, index) => (
+        <Card key={index} sx={{ marginBottom: '1rem' }}>
+            <CardHeader title={`Your Order with ${order.item.seller.shopname}`} />
+            <CardContent>
+            <Typography variant="body1">
+                <strong>Item:</strong> {order.item.name}
+            </Typography>
+            <Typography variant="body1">
+                <strong>Price:</strong> ${order.item.price}
+            </Typography>
+            </CardContent>
+        </Card>
+        ))}
+    </div>
+    );
+};
 
 export default OrderList;

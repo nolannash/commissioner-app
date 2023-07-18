@@ -22,7 +22,7 @@ class User(db.Model, SerializerMixin):
     favorites = db.relationship('Favorite', back_populates='user', cascade='all, delete-orphan')
     orders = db.relationship('Order', back_populates='user')
 
-    serialize_only = ('id', 'username', 'email', 'profile_photo', 'email_notifications','favorites.user_id', 'orders','favorites')
+    serialize_only = ('id', 'username', 'email', 'profile_photo', 'email_notifications','favorites.user_id', 'orders','favorites','orders.seller.shopname','orders.item.name','orders.item.price')
     serialize_rules = ( '-orders.user', '-orders.user_id')
 
     @validates("username")
@@ -194,7 +194,7 @@ class Order(db.Model, SerializerMixin):
     seller = db.relationship('Seller', back_populates='orders')
     user = db.relationship('User', back_populates='orders')
 
-    serialize_only = ('id', 'created_at')
+    serialize_only = ('id', 'created_at','seller.shopname','user.username','item.name','item.price')
     serialize_rules = ('-seller.orders', '-seller.orders.seller', '-user.orders', '-user.orders.user', '-item.orders')
 
     def rollback_order_count(self):
