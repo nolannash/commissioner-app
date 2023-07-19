@@ -79,7 +79,7 @@ class Seller(db.Model, SerializerMixin):
     orders = db.relationship('Order', back_populates='seller', cascade="all, delete-orphan")
 
     serialize_only = ('id', 'shopname', 'email', 'logo_banner', 'profile_photo', 'bio', 'email_notifications','items','orders')
-    serialize_rules = ( '-items.seller_id', '-orders.seller_id')
+    serialize_rules = ( '-items.seller_id', '-orders.seller_id','-orders.seller')
     
     @validates("shopname")
     def validate_shopname(self, key, shopname):
@@ -194,7 +194,7 @@ class Order(db.Model, SerializerMixin):
     seller = db.relationship('Seller', back_populates='orders')
     user = db.relationship('User', back_populates='orders')
 
-    serialize_only = ('id', 'created_at','seller.shopname','user.username','item.name','item.price')
+    serialize_only = ('id', 'created_at','seller.shopname','user.username','item.name','item.price','user_response')
     serialize_rules = ('-seller.orders', '-seller.orders.seller', '-user.orders', '-user.orders.user', '-item.orders')
 
     def rollback_order_count(self):
