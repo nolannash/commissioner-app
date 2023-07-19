@@ -1,4 +1,4 @@
-import React, { createContext, useState } from 'react';
+import React, { createContext, useState, useEffect } from 'react';
 import { useHistory } from "react-router-dom";
 
 const AuthContext = createContext();
@@ -7,7 +7,7 @@ const AuthContext = createContext();
 const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const history = useHistory();
-
+  const updateUser = (user) => { setUser(user) }
 
   const getCookie = (name) => {
     const value = `; ${document.cookie}`;
@@ -95,9 +95,9 @@ const AuthProvider = ({ children }) => {
     }
   };
 
-  const refreshUser = async (id, type) => {
+  const refreshUser = async (id, userType) => {
     try {
-      const response = await fetch(`/${type}/${id}`, {
+      const response = await fetch(`/${userType}/${id}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -109,12 +109,48 @@ const AuthProvider = ({ children }) => {
         const data = await response.json();
         setUser(data)
       } else {
-        throw new Error(`Failed to fetch ${type} data`);
+        throw new Error(`Failed to fetch ${userType} data`);
       }
     } catch (error) {
-      console.error(`Refresh ${type} error:`, error.message);
+      console.error(`Refresh ${userType} error:`, error.message);
     }
   };
+
+  useEffect(() => {
+    (
+      async () => {
+        const options = {
+          method: 'GET',
+          credentials: 'same-origin',
+          headers: {
+            'X-CSRF-TOKEN': getCookie('csrf_access_token'),
+          },
+        };
+        const resp = await fetch("/me", options)
+        if (resp.ok) {
+          const data = await resp.json()
+          updateUser(data)
+        } else {
+          (async () => {
+              const resp = await fetch("/refresh_token", {
+                method: "POST",
+                credentials: 'same-origin',
+                headers: {
+                    'X-CSRF-TOKEN': getCookie('csrf_refresh_token'),
+                },
+              })
+              if (resp.ok) {
+                const data = await resp.json()
+
+                setUser(data)
+              } else {
+                console.error("Please log in again")
+              }
+          })()
+        }
+      }
+    )()
+  }, [])
 
   return (
     <AuthContext.Provider

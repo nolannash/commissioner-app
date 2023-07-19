@@ -12,6 +12,7 @@ import UserPage from './Userpage';
 import Search from './Search';
 import ShopView from './ShopView';
 import ItemPage from './ItemPage';
+import OrderForm from './OrderForm';
 
 const App = () => {
 
@@ -55,7 +56,9 @@ const App = () => {
           <Route path='/items/:id'>
             <ItemPage></ItemPage>
           </Route>
-
+          <Route path='/NewOrder/:item_id'>
+            <OrderForm></OrderForm>
+          </Route>
         </Switch>
       </Router>
     </AuthProvider>

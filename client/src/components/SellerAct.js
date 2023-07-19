@@ -21,6 +21,7 @@ import { Formik, Field, Form, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
 import { useHistory } from 'react-router-dom';
 
+
 const validationSchema = Yup.object().shape({
   email: Yup.string().email('Invalid email address').required('Email is required'),
   shopname: Yup.string()
@@ -62,7 +63,6 @@ const SellerAccountInfo = () => {
       }
     } catch (error) {
       console.error('Email Notifications Error:', error);
-      // Handle the error, show a notification, etc.
     }
   };
 

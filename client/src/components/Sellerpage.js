@@ -18,6 +18,7 @@ import { AuthContext } from '../contexts/AuthContext';
 import SellerItems from './SellerItemsPage';
 import SellerAccountInfo from './SellerAct';
 import { useHistory } from 'react-router-dom';
+import OrderListSellers from './SellerOrders';
 
 const SellerPage = () => {
 
@@ -25,7 +26,7 @@ const SellerPage = () => {
   const [activeSection, setActiveSection] = useState(0);
   const history = useHistory();
 
-
+  console.log(user);
 
   const handleTabChange = (event, newValue) => {
     setActiveSection(newValue);
@@ -38,7 +39,7 @@ const SellerPage = () => {
       case 0:
         return <SellerItems />;
       case 1:
-        return <Orders />;
+        return <OrderListSellers orders={user.orders} />;
 
       case 2:
         return <SellerAccountInfo />;

@@ -12,12 +12,12 @@ import { ViewList, Receipt, AccountBox } from '@mui/icons-material';
 import { AuthContext } from '../contexts/AuthContext';
 import UserAccountInfo from './UserAct';
 import ItemList from './ItemList';
+import UserOrders from './UserOrders';
 import { useHistory } from 'react-router-dom/cjs/react-router-dom.min';
 
 const UserPage = () => {
   const { user, logout,csrfToken } = useContext(AuthContext);
   const [activeSection, setActiveSection] = useState(0);
-  const [orders, setOrders] = useState([]);
   const history = useHistory();
 
   const handleTabChange = (event, newValue) => {
@@ -27,9 +27,10 @@ const UserPage = () => {
   const renderSection = () => {
     switch (activeSection) {
       case 0:
-        return <ItemList items={user.favorites} />;
+        // return <ItemList items={[]} />;
+        return <>This doesnt work yet</>
       case 1:
-        return <Orders />;
+        return <UserOrders orders={user.orders}></UserOrders>;
       case 2:
         return <UserAccountInfo></UserAccountInfo>;
       default:
@@ -37,41 +38,12 @@ const UserPage = () => {
     }
   };
 
-  useEffect(() => {
-    fetchOrders();
-  }, []);
-
-  const fetchOrders = async () => {
-    try {
-        const response = await fetch(`/users/${user.id}/orders`, {
-        method: 'GET',
-        headers: {
-            'X-CSRF-TOKEN': csrfToken,
-        },
-        });
-        if (response.ok) {
-
-        const data = await response.json();
-        setOrders(data);
-
-        } else {
-
-        console.error('Failed to fetch items');
-
-        }
-
-    } catch (error) {
-
-        console.error('Failed to fetch items');
-        
-    }
-    };
 
   return (
     <AppBar position="static">
       <Toolbar>
         <Typography variant="h4" component="div" sx={{ flexGrow: 1 }}>
-          {user.shopname}
+          {user.username}
         </Typography>
         <Box sx={{ display: 'flex', alignItems: 'center', textAlign: 'center' }}>
           <Button variant='contained' onClick={()=>history.push('/')}>Home</Button>
@@ -102,13 +74,5 @@ const UserPage = () => {
   );
 };
 
-const Orders = () => {
-  return (
-    <div>
-      <Typography variant="h6">Orders</Typography>
-      {/* Render ordersList */}
-    </div>
-  );
-};
 
 export default UserPage;

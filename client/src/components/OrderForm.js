@@ -1,165 +1,132 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import { Box, Typography, TextField, Button, CircularProgress, Alert } from '@mui/material';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
 import { AuthContext } from '../contexts/AuthContext';
-import { useHistory, Link } from 'react-router-dom';
+import { useHistory, Link, useParams } from 'react-router-dom';
 
 const validationSchema = Yup.object().shape({
-    response: Yup.string()
-        .max(250, 'Response must be at most 250 characters')
-        .matches(/^[a-zA-Z0-9 ]*$/, 'No special characters allowed')
-        .required('Response is required'),
+    responses: Yup.array()
+    .of(Yup.string().required('Response is required'))
+    .min(1, 'At least one response is required'),
 });
 
-const OrderForm = ({ item }) => {
-    const { user } = useContext(AuthContext);
+const OrderForm = () => {
+    const { user, csrfToken, refreshUser } = useContext(AuthContext);
     const history = useHistory();
-    const [submitting, setSubmitting] = useState(false);
-    const [submissionError, setSubmissionError] = useState(null);
+    const [item, setItem] = useState([]);
+    const [formItems, setFormItems] = useState([]);
+    const [formResponses, setFormResponses] = useState([]);
+    const { item_id } = useParams();
 
-    
-
-    const handleSubmit = async (values, { setSubmitting, resetForm }, formItemId) => {
-        setSubmitting(true);
-        setSubmissionError(null);
-
+    useEffect(() => {
+    const fetchFormItems = async () => {
         try {
-            const response = await fetch('/orders', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ item_id: item.id, user_response: values.response, user_id: user.id, seller_id: item.seller_id, form_item_id: formItemId }),
-            });
-
-            if (response.ok) {
-                console.log('Order submitted successfully!');
-                resetForm();
-            } else {
-                const data = await response.json();
-                setSubmissionError(data.message || 'Error submitting order.');
-            }
-        } catch (error) {
-            setSubmissionError('Error submitting order. Please try again later.');
-            console.error('Error submitting order:', error);
+        const resp = await fetch(`/items/${item_id}/form_items`);
+        if (resp.ok) {
+            const data = await resp.json();
+            console.log(data);
+            setFormItems(data);
+        } else {
+            console.log('There was an issue');
         }
+        } catch (error) {
+        console.error(error.message);
+        }
+    };
+    fetchFormItems();
+    }, [item_id]);
 
-        setSubmitting(false);
+    useEffect(() => {
+    const fetchItem = async () => {
+        try {
+        const resp = await fetch(`/items/${item_id}`);
+
+        if (resp.ok) {
+            const data = await resp.json();
+            setItem(data);
+        } else {
+            console.log('There was an issue');
+        }
+        } catch (error) {
+        console.error(error.message);
+        }
+    };
+    fetchItem();
+    }, [item_id]);
+    console.log(user)
+    const handleSubmit = async (values) => {
+    try {
+        const formData = {
+        seller_id: item.seller_id,
+        user_id: user.id,
+        item_id: item.id,
+        form_responses: formResponses.map((response, index) => ({
+            form_item_id: formItems[index].id,
+            response: response,
+        })),
+        };
+        const resp = await fetch('/orders', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-Token': csrfToken,
+        },
+        body: JSON.stringify(formData),
+        });
+
+        if (resp.ok) {
+
+        alert('Order submitted successfully');
+        
+        history.push('/');
+        refreshUser(user.id,'users');
+        } else {
+
+        alert('There was an issue submitting the order');
+        }
+    } catch (error) {
+
+        alert('An unexpected error occurred');
+    }
     };
 
     return (
-        <>
-            {item && !item.form_items  ? (
-                <Box mt={2}>
-                    <Typography variant="h6" component="h2">
-                        Please leave a note for the seller
-                    </Typography>
-                    <Formik
-                        initialValues={{
-                            response: '',
-                        }}
-                        validationSchema={validationSchema}
-                        onSubmit={(values, { setSubmitting, resetForm }) => handleSubmit(values, { setSubmitting, resetForm })}
-                    >
-                        {({ touched, errors, isSubmitting }) => (
-                            <Form>
-                                <Box mt={2}>
-                                    <Field
-                                        as={TextField}
-                                        type="text"
-                                        name="response"
-                                        label="Response"
-                                        variant="outlined"
-                                        fullWidth
-                                        multiline
-                                        rows={4}
-                                        error={touched.response && errors.response}
-                                        helperText={touched.response && errors.response}
-                                    />
-                                    <ErrorMessage name="response" component="div" />
-                                </Box>
-                                <Box mt={2} display="flex" justifyContent="space-between">
-                                    <Button variant="contained" type="submit" disabled={isSubmitting}>
-                                        {submitting ? <CircularProgress size={24} /> : 'Submit'}
-                                    </Button>
-                                    <Button variant="outlined" type="reset" disabled={isSubmitting}>
-                                        Reset
-                                    </Button>
-                                    <Button
-                                        variant="outlined"
-                                        color="secondary"
-                                        onClick={() => history.push(`/userPage`)}
-                                    >
-                                        Cancel
-                                    </Button>
-                                </Box>
-                                {submissionError && (
-                                    <Box mt={2}>
-                                        <Alert severity="error">{submissionError}</Alert>
-                                    </Box>
-                                )}
-                            </Form>
-                        )}
-                    </Formik>
-                </Box>
-            ) : (
-                item.form_items.map((formItem, index) => (
-                    <Box key={index} mt={2}>
-                        <Typography variant="h6" component="h2">
-                            {formItem.seller_question}
-                        </Typography>
-                        <Formik
-                            initialValues={{
-                                response: '',
-                            }}
-                            validationSchema={validationSchema}
-                            onSubmit={(values, { setSubmitting, resetForm }) => handleSubmit(values, { setSubmitting, resetForm }, formItem.id)}
-                        >
-                            {({ touched, errors, isSubmitting }) => (
-                                <Form>
-                                    <Box mt={2}>
-                                        <Field
-                                            as={TextField}
-                                            type="text"
-                                            name="response"
-                                            label="Response"
-                                            variant="outlined"
-                                            fullWidth
-                                            multiline
-                                            rows={4}
-                                            error={touched.response && errors.response}
-                                            helperText={touched.response && errors.response}
-                                        />
-                                        <ErrorMessage name="response" component="div" />
-                                    </Box>
-                                    <Box mt={2} display="flex" justifyContent="space-between">
-                                        <Button variant="contained" type="submit" disabled={isSubmitting}>
-                                            {submitting ? <CircularProgress size={24} /> : 'Submit'}
-                                        </Button>
-                                        <Button variant="outlined" type="reset" disabled={isSubmitting}>
-                                            Reset
-                                        </Button>
-                                        <Button
-                                            variant="outlined"
-                                            color="secondary"
-                                            onClick={() => history.push(`/userPage`)}
-                                        >
-                                            Cancel
-                                        </Button>
-                                    </Box>
-                                    {submissionError && (
-                                        <Box mt={2}>
-                                            <Alert severity="error">{submissionError}</Alert>
-                                        </Box>
-                                    )}
-                                </Form>
-                            )}
-                        </Formik>
-                    </Box>
-                ))
-            )}
-        </>
+    <div>
+        <h1>Please Answer The following Questions:</h1>
+        <p>Write your answers in the box provided</p>
+        <Formik
+        initialValues={{ responses: Array(formItems.length).fill('') }}
+        validationSchema={validationSchema}
+        onSubmit={handleSubmit}
+        >
+        {({ values, handleChange, handleSubmit, errors }) => (
+            <Form onSubmit={handleSubmit}>
+            {formItems.map((formItem, index) => (
+                <div key={formItem.id}>
+                <p>{formItem.seller_question}</p>
+                <Field
+                    as={TextField}
+                    name={`responses[${index}]`}
+                    value={values.responses[index]}
+                    onChange={(e) => {
+                    handleChange(e);
+                    const newResponses = [...values.responses];
+                    newResponses[index] = e.target.value;
+                    setFormResponses(newResponses);
+                    }}
+                    error={Boolean(errors.responses) && Boolean(errors.responses[index])}
+                    helperText={errors.responses && errors.responses[index] ? errors.responses[index] : ''}
+                />
+                </div>
+            ))}
+            <Button type="submit" variant="contained" color="primary">
+                Submit
+            </Button>
+            </Form>
+        )}
+        </Formik>
+    </div>
     );
 };
 

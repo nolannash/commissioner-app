@@ -16,13 +16,13 @@ class User(db.Model, SerializerMixin):
     username = db.Column(db.VARCHAR(20), unique=True, nullable=False)
     email = db.Column(db.String, unique=True, nullable=False)
     _password_hash = db.Column(db.String)
-    profile_photo = db.Column(db.VARCHAR)  # File path to profile photo
+    profile_photo = db.Column(db.VARCHAR)
     email_notifications = db.Column(db.Boolean, default=False)
 
     favorites = db.relationship('Favorite', back_populates='user', cascade='all, delete-orphan')
     orders = db.relationship('Order', back_populates='user')
 
-    serialize_only = ('id', 'username', 'email', 'profile_photo', 'email_notifications','favorites.user_id', 'orders')
+    serialize_only = ('id', 'username', 'email', 'profile_photo', 'email_notifications','favorites.user_id', 'orders','favorites','orders.seller.shopname','orders.item.name','orders.item.price','orders.created_at')
     serialize_rules = ( '-orders.user', '-orders.user_id')
 
     @validates("username")
@@ -69,7 +69,7 @@ class Seller(db.Model, SerializerMixin):
     shopname = db.Column(db.VARCHAR(25), unique=True, nullable=False)
     email = db.Column(db.String, unique=True, nullable=False)
     _password_hash = db.Column(db.String)
-    logo_banner = db.Column(db.VARCHAR)  # the ~varchar~ is the file path to the photo
+    logo_banner = db.Column(db.VARCHAR) 
     profile_photo = db.Column(db.VARCHAR)  
     bio = db.Column(db.String)
     email_notifications = db.Column(db.Boolean, default=True)
@@ -78,8 +78,8 @@ class Seller(db.Model, SerializerMixin):
     items = db.relationship('Item', back_populates='seller', cascade="all, delete-orphan")
     orders = db.relationship('Order', back_populates='seller', cascade="all, delete-orphan")
 
-    serialize_only = ('id', 'shopname', 'email', 'logo_banner', 'profile_photo', 'bio', 'email_notifications','items')
-    serialize_rules = ( '-items.seller_id', '-orders.seller', '-orders.seller_id')
+    serialize_only = ('id', 'shopname', 'email', 'logo_banner', 'profile_photo', 'bio', 'email_notifications','items','orders')
+    serialize_rules = ( '-items.seller_id', '-orders.seller_id','-orders.seller')
     
     @validates("shopname")
     def validate_shopname(self, key, shopname):
@@ -138,12 +138,12 @@ class Item(db.Model, SerializerMixin):
     form_items = db.relationship("FormItem", back_populates="item", cascade="all, delete-orphan")
     images = db.relationship("ItemImage", back_populates="item", cascade="all, delete-orphan")
     
-    serialize_only = ('id', 'name', 'description', 'price', 'batch_size', 'rollover_period', 'last_rollover', 'created_at', 'order_count','images','seller_id','form_items','seller.shopname')
+    serialize_only = ('id', 'name', 'description', 'price', 'batch_size', 'rollover_period', 'last_rollover', 'created_at', 'order_count','images','seller_id','form_items','seller.shopname','seller.profile_photo')
     serialize_rules = ( '-orders.item', '-orders.item_id', '-form_items.item', '-form_items.item_id')
     
     def rollover_logic(self):
         if self.rollover_period is not None:
-            now = datetime.now(timezone.utc)
+            now = datetime.now()
 
             if self.last_rollover is None:
                 self.last_rollover = now
@@ -194,7 +194,7 @@ class Order(db.Model, SerializerMixin):
     seller = db.relationship('Seller', back_populates='orders')
     user = db.relationship('User', back_populates='orders')
 
-    serialize_only = ('id', 'created_at')
+    serialize_only = ('id', 'created_at','seller.shopname','user.username','item.name','item.price','user_response')
     serialize_rules = ('-seller.orders', '-seller.orders.seller', '-user.orders', '-user.orders.user', '-item.orders')
 
     def rollback_order_count(self):

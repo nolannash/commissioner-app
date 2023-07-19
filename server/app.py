@@ -160,15 +160,12 @@ class Orders(Resource):
         if not form_responses:
             return {'message': 'Form responses are required'}, 400
 
-        order = Order(seller=seller, user=user, item=item)
+        user_response = ','.join(response_data.get('response') for response_data in form_responses)
+
+        order = Order(seller=seller, user=user, item=item, user_response=user_response)
         try:
             db.session.add(order)
             db.session.commit()
-
-            for response_data in form_responses:
-                form_item_id = response_data.get('form_item_id')
-                response_text = response_data.get('response')
-            # this is where im lost
 
             db.session.commit()
 
@@ -376,7 +373,7 @@ class SellerItems(Resource):
         if not seller:
             return {'message': 'Seller not found'}, 404
         
-        item = Item(seller_id=seller.id, **data)
+        item = Item( **data)
         
         try:
             file = request.files.get('images')
@@ -489,7 +486,7 @@ def login_seller():
     seller = Seller.query.filter_by(email=email).first()
     user = User.query.filter_by(email=email).first()
 
-    if seller and not user:  # Check if the email belongs to a Seller and not a User
+    if seller and not user: 
         if seller.authenticate(password):
             token = create_access_token(identity=seller.id)
             response = make_response({'seller': seller.to_dict()}, 201)
@@ -660,7 +657,7 @@ def get_user_orders(user_id):
     user = User.query.get(user_id)
     if user:
         orders = user.orders
-        return jsonify([order.to_diict() for order in orders])
+        return jsonify([order.to_dict() for order in orders])
     else:
         return jsonify({"message": "User not found"}), 404
 
@@ -670,9 +667,43 @@ def get_seller_orders(seller_id):
     seller = Seller.query.get(seller_id)
     if seller:
         orders = seller.orders
-        return jsonify([order.serialize() for order in orders])
+        return jsonify([order.to_dict() for order in orders])
     else:
         return jsonify({"message": "Seller not found"}), 404
+
+class ItemFormItems(Resource):
+    @jwt_required()
+    def get (self, item_id=None):
+        item = Item.query.get(item_id)
+        if item:
+            form_items = FormItem.query.filter_by(item_id=item_id).all()
+            return make_response([fi.to_dict() for fi in form_items],200)
+        return {'error':'Could Not Find Form Items'},404
+
+
+@app.route('/refresh_token', methods=['POST'])
+@jwt_required(refresh=True)
+def refresh_token():
+    id_ = get_jwt_identity()
+    user = db.session.get(User, id_)
+    seller = db.session.get(Seller, id_)
+    new_access_token = create_access_token(identity=id_)
+    if user:
+        response = make_response({"user": user.to_dict()}, 200)
+    if seller:
+        response = make_response({"seller": seller.to_dict()}, 200)
+    set_access_cookies(response, new_access_token)
+    return response
+
+@app.route("/me", methods=["GET"])
+@jwt_required()
+def me():
+    if id_ := get_jwt_identity():
+        if user := db.session.get(User, id_):
+            return make_response(user.to_dict(), 200)
+    return make_response({"error": "Unauthorized"}, 401)
+
+api.add_resource(ItemFormItems, '/items/<int:item_id>/form_items')
 
 api.add_resource(SellerItems, '/sellers/<int:id>/items', '/sellers/<int:id>/items/<int:item_id>')
 
@@ -684,10 +715,11 @@ api.add_resource(Recent, '/recent')
 
 api.add_resource(Items, '/items', '/items/<int:item_id>')
 
+api.add_resource(Orders, '/orders', '/orders/<int:order_id>')
 
 api.add_resource(Favorites, '/favorites', '/favorites/<int:favorite_id>', '/favorites/<int:seller_id>/favorites')
 
-api.add_resource(FormItems, '/form-items', '/form-items/<int:item_id>','/form-items/<int:item_id>/<int:form_item_id>')
+api.add_resource(FormItems, '/form-items', '/form-items/<int:item_id>',)
 
 
 if __name__ == '__main__':

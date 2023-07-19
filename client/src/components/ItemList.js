@@ -9,7 +9,7 @@ import {
   Button,
   Alert,
 } from '@mui/material';
-import { Star, StarBorder, CheckCircleOutline } from '@mui/icons-material';
+import { Star, StarBorder} from '@mui/icons-material';
 import { AuthContext } from '../contexts/AuthContext';
 import { Link } from 'react-router-dom';
 
@@ -119,7 +119,7 @@ const ItemList = ({ items }) => {
             {item.images && item.images.length > 0 ? (
               <CardMedia
                 component="img"
-                style={{ height: '150px', paddingTop: '2%' }}
+                height={100}
                 image={`/uploads/${item.images[0].image_path}`}
                 alt={`Item ${item.id}`}
               />
