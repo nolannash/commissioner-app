@@ -32,7 +32,7 @@ const HomePage = () => {
 
     const fetchItems = async () => {
     try {
-        const response = await fetch('/items', {
+        const response = await fetch('/api/v1/items', {
         method: 'GET',
         headers: {
             'X-CSRF-TOKEN': csrfToken,
@@ -60,7 +60,7 @@ const HomePage = () => {
 
     try {
 
-        const response = await fetch('/recent', {
+        const response = await fetch('/api/v1/recent', {
         method: 'GET',
         headers: {
             'X-CSRF-TOKEN': csrfToken,
@@ -92,7 +92,7 @@ const HomePage = () => {
     }
 
     try {
-        const response = await fetch(`/favorites`, {
+        const response = await fetch(`/api/v1/favorites`, {
         method: 'GET',
         headers: {
             'X-CSRF-TOKEN': csrfToken,

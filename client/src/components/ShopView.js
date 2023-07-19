@@ -20,9 +20,8 @@ const ShopView = () => {
     useEffect(() => {
         (async () => {
             try {
-                const resp = await fetch(`/sellers/${id}`);
+                const resp = await fetch(`/api/v1/sellers/${id}`);
                 if (!resp.ok) {
-                    // throw new Error('Unable to fetch Seller\'s Items');
                     setAlertType('error');
                     setAlertMessage('Failed to fetch Seller\'s Items. Please try again.');
                 }
@@ -35,9 +34,6 @@ const ShopView = () => {
             }
         })();
     }, [id]);
-
-    console.log(seller);
-    console.log(seller.items);
 
     return (
         <Container maxWidth="md">

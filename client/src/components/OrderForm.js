@@ -24,7 +24,7 @@ const OrderForm = () => {
     useEffect(() => {
         const fetchFormItems = async () => {
             try {
-                const resp = await fetch(`/items/${item_id}/form_items`);
+                const resp = await fetch(`/api/v1/items/${item_id}/form_items`);
                 if (resp.ok) {
                     const data = await resp.json();
                     console.log(data);
@@ -42,7 +42,7 @@ const OrderForm = () => {
     useEffect(() => {
         const fetchItem = async () => {
             try {
-                const resp = await fetch(`/items/${item_id}`);
+                const resp = await fetch(`/api/v1/items/${item_id}`);
 
                 if (resp.ok) {
                     const data = await resp.json();
@@ -68,7 +68,7 @@ const OrderForm = () => {
                     response: response,
                 })),
             };
-            const resp = await fetch('/orders', {
+            const resp = await fetch('/api/v1/orders', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

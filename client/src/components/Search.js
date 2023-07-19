@@ -77,7 +77,7 @@ const Search = ({ tabs }) => {
     };
 
     useEffect(() => {
-        fetch('/items')
+        fetch('/api/v1/items')
             .then((response) => response.json())
             .then((data) => {
                 setItems(data);
@@ -89,7 +89,7 @@ const Search = ({ tabs }) => {
                 setAlertSeverity('error');
             });
 
-        fetch('/sellers')
+        fetch('/api/v1/sellers')
             .then((response) => response.json())
             .then((data) => {
                 setShops(data);

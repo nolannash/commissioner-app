@@ -42,7 +42,7 @@ const SellerItemsPage = () => {
   useEffect(() => {
     const fetchItems = async () => {
       try {
-        const response = await fetch(`/sellers/${user.id}/items`, {
+        const response = await fetch(`/api/v1/sellers/${user.id}/items`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
@@ -79,7 +79,7 @@ const SellerItemsPage = () => {
 
   const handleConfirmDelete = async () => {
     try {
-      const response = await fetch(`/sellers/${user.id}/items/${deleteItemId}`, {
+      const response = await fetch(`/api/v1/sellers/${user.id}/items/${deleteItemId}`, {
         method: 'DELETE',
         headers: {
           'X-CSRF-Token': csrfToken,
@@ -141,7 +141,7 @@ const SellerItemsPage = () => {
 
   const handleEditItemSubmit = async () => {
     try {
-      const response = await fetch(`/sellers/${user.id}/items/${editItemData.id}`, {
+      const response = await fetch(`/api/v1/sellers/${user.id}/items/${editItemData.id}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -180,7 +180,7 @@ const SellerItemsPage = () => {
         
       };
 
-      const response = await fetch(`/form-items/${item_id}`, {
+      const response = await fetch(`/api/v1/form-items/${item_id}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

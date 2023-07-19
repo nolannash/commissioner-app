@@ -22,7 +22,7 @@ const ItemPage = () => {
     useEffect(() => {
         const fetchItem = async () => {
             try {
-                const resp = await fetch(`/items/${id}`);
+                const resp = await fetch(`/api/v1/items/${id}`);
                 if (resp.ok) {
                     const data = await resp.json();
                     setItem(data);

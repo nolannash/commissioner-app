@@ -40,7 +40,7 @@ const ItemList = ({ items }) => {
   };
 
   const addToFavorites = (itemId) => {
-    fetch(`/favorites`, {
+    fetch(`/api/v1/favorites`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -68,7 +68,7 @@ const ItemList = ({ items }) => {
   };
 
   const removeFromFavorites = (itemId) => {
-    fetch(`/favorites/${itemId}`, {
+    fetch(`/api/v1/favorites/${itemId}`, {
       method: 'DELETE',
       headers: {
         'X-CSRF-Token': csrfToken,
