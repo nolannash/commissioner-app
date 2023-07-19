@@ -9,7 +9,7 @@ export default function LoginPage() {
     const { login } = useContext(AuthContext);
     const history = useHistory();
     const location = useLocation();
-  const [alertType, setAlertType] = useState(null); 
+    const [alertType, setAlertType] = useState(null); 
     const [alertMessage, setAlertMessage] = useState('');
 
     const determineUserType = () => {

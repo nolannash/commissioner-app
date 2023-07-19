@@ -11,6 +11,7 @@ import {
     Popover,
     IconButton,
     TextField,
+    Alert,
 } from '@mui/material';
 import { DeleteSharp, Person, AddPhotoAlternate } from '@mui/icons-material';
 import { AuthContext } from '../contexts/AuthContext';
@@ -34,7 +35,8 @@ const UserAccountInfo = () => {
     const [popoverAnchorEl, setPopoverAnchorEl] = useState(null);
     const [profilePhoto, setProfilePhoto] = useState(null);
     const [editMode, setEditMode] = useState(false);
-    
+    const [alertType, setAlertType] = useState(null);
+    const [alertMessage, setAlertMessage] = useState('');
 
     useEffect(() => {
         setEmailNotifications(user.email_notifications);
@@ -59,7 +61,6 @@ const UserAccountInfo = () => {
             }
         } catch (error) {
             console.error('Email Notifications Error:', error);
-            // Handle the error, show a notification, etc.
         }
     };
 
@@ -97,11 +98,17 @@ const UserAccountInfo = () => {
                 if (response.ok) {
                     console.log('Profile photo uploaded successfully');
                     refreshUser(user.id, 'users');
+                    setAlertType('success');
+                    setAlertMessage('Profile photo uploaded successfully!');
                 } else {
                     console.error('Failed to upload profile photo');
+                    setAlertType('error');
+                    setAlertMessage('Failed to upload profile photo. Please try again.');
                 }
             } catch (error) {
                 console.error('Upload Profile Photo Error:', error);
+                setAlertType('error');
+                setAlertMessage('Failed to upload profile photo. Please try again.');
             }
         }
     };
@@ -118,11 +125,17 @@ const UserAccountInfo = () => {
             if (response.ok) {
                 console.log('Profile photo deleted successfully');
                 refreshUser(user.id, 'users');
+                setAlertType('success');
+                setAlertMessage('Profile photo deleted successfully!');
             } else {
                 console.error('Failed to delete profile photo');
+                setAlertType('error');
+                setAlertMessage('Failed to delete profile photo. Please try again.');
             }
         } catch (error) {
             console.error('Delete Profile Photo Error:', error);
+            setAlertType('error');
+            setAlertMessage('Failed to delete profile photo. Please try again.');
         }
     };
 
@@ -144,43 +157,66 @@ const UserAccountInfo = () => {
             });
 
             if (response.ok) {
-                toggleEditMode();
+                setEditMode(false);
                 refreshUser(user.id, 'users');
+                setAlertType('success');
+                setAlertMessage('Profile updated successfully!');
             } else {
                 const errorData = await response.json();
                 throw new Error(errorData.message);
             }
         } catch (error) {
             console.error('Profile Edit Error:', error);
+            setAlertType('error');
+            setAlertMessage('Failed to update profile. Please try again.');
         }
     };
-    const handleDeleteProfile = async () =>{
-        try{
-            const response = await fetch(`/users/${user.id}`,{
-            method:'DELETE',
-            headers:{
-                'X-CSRF-Token':csrfToken,
-            },
+
+    const handleDeleteProfile = async () => {
+        try {
+            const response = await fetch(`/users/${user.id}`, {
+                method: 'DELETE',
+                headers: {
+                    'X-CSRF-Token': csrfToken,
+                },
             });
-            if (response.ok){
-            history.replace('/')
-            logout()
-            }else{
-            console.error('Failed To Delete Profile')
+
+            if (response.ok) {
+                history.replace('/');
+                logout();
+                setAlertType('success');
+                setAlertMessage('Profile deleted successfully!');
+            } else {
+                console.error('Failed To Delete Profile');
+                setAlertType('error');
+                setAlertMessage('Failed to delete profile. Please try again.');
             }
-        }catch (error){
-            console.error('Error Deleting Profile')
+        } catch (error) {
+            console.error('Error Deleting Profile', error);
+            setAlertType('error');
+            setAlertMessage('Failed to delete profile. Please try again.');
         }
-        }
+    };
 
     return (
         <Card>
             <CardContent>
+                {alertType && (
+                    <Alert severity={alertType} onClose={() => setAlertType(null)}>
+                        {alertMessage}
+                    </Alert>
+                )}
                 <Box mb={2}>
                     <Button variant="contained" size="medium" color="secondary" onClick={toggleEditMode}>
                         {editMode ? 'Cancel' : 'Edit Profile'}
                     </Button>
-                    <Button variant="contained" color="error" size="medium" startIcon={<DeleteSharp />} onClick={handleDeleteProfile}>
+                    <Button
+                        variant="contained"
+                        color="error"
+                        size="medium"
+                        startIcon={<DeleteSharp />}
+                        onClick={handleDeleteProfile}
+                    >
                         Delete Profile
                     </Button>
                 </Box>

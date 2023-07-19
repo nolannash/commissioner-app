@@ -20,8 +20,7 @@ app.secret_key = os.environ.get('JWT_SECRET_KEY', 'dev')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.json.compact = False
 
-UPLOAD_FOLDER = os.path.join(app.root_path, 'UPLOAD_FOLDER')
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
 
 metadata = MetaData(naming_convention={
     "fk": "fk_%(table_name)s_%(column_0_name)s_%(referred_table_name)s",
@@ -34,6 +33,9 @@ bcrypt = Bcrypt(app)
 
 api = Api(app)
 
+
+UPLOAD_FOLDER = os.path.join(app.root_path, 'UPLOAD_FOLDER')
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
 
