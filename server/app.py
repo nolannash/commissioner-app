@@ -88,21 +88,6 @@ class Items(Resource):
         items = Item.query.all()
         return [item.to_dict() for item in items]
 
-    def post(self):
-        data = request.get_json()
-        seller_id = data.get('seller_id')
-        seller = Seller.query.get(seller_id)
-        if not seller:
-            return {'message': 'Seller not found'}, 404
-
-
-        item = Item(seller=seller, **data)
-        try:
-            db.session.add(item)
-            db.session.commit()
-            return {'message': 'Item created successfully', 'item': item.to_dict()}, 201
-        except ValueError as e:
-            return {'message': str(e)}, 400
 
     def patch(self, item_id):
         if not (item := Item.query.get(item_id)):
@@ -339,7 +324,7 @@ class Recent(Resource):
 
         return {'recent_shops': recent_shops_data, 'recent_items': recent_items_data}
 
-@app.route('/logout', methods=['POST'])
+@app.route('/api/v1/logout', methods=['POST'])
 @jwt_required()
 def logout():
     response = jsonify({'message': 'Logout successful'})
@@ -378,7 +363,7 @@ class SellerItems(Resource):
         try:
             file = request.files.get('images')
             if file and allowed_file(file.filename):
-                filepath = save_file(file)
+                # filepath = save_file(file)
                 
                 db.session.add(item)
                 db.session.commit()
@@ -433,7 +418,7 @@ class SellerItems(Resource):
         db.session.commit()
         return {'message': 'Item deleted successfully'}
 
-@app.route("/signup/user",methods=["POST"])
+@app.route("/api/v1/signup/user",methods=["POST"])
 def signupuser():
     data = request.get_json()
     try: 
@@ -449,7 +434,7 @@ def signupuser():
     except Exception as e:
         return make_response({'error':str(e)},400)
 
-@app.route('/login/user',methods={'POST'})
+@app.route('/api/v1/login/user',methods={'POST'})
 def login_user():
     data = request.get_json()
     if user := User.query.filter_by(email=data.get("email", "")).first():
@@ -461,7 +446,7 @@ def login_user():
         return make_response({'error':'Invalid Username or Password'}, 401)
     return make_response({'error': 'User not found'}, 404)
 
-@app.route("/signup/seller",methods=["POST"])
+@app.route("/api/v1/signup/seller",methods=["POST"])
 def signupseller():
     data = request.get_json()
     try: 
@@ -477,7 +462,7 @@ def signupseller():
     except Exception as e:
         return make_response({'error':str(e)},400)
 
-@app.route('/login/seller', methods=['POST'])
+@app.route('/api/v1/login/seller', methods=['POST'])
 def login_seller():
     data = request.get_json()
     email = data.get('email', '')
@@ -499,11 +484,11 @@ def login_seller():
     else:
         return make_response({'error': 'User not found'}, 404)
 
-@app.route('/uploads/<path:filename>', methods=['GET'])
+@app.route('/api/v1/uploads/<path:filename>', methods=['GET'])
 def serve_uploaded_file(filename):
-    return send_from_directory(app.config['UPLOAD_FOLDER'], secure_filename(filename))
+    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
-@app.route('/users/<int:user_id>/profile-photo', methods=['PATCH','DELETE'])
+@app.route('/api/v1/users/<int:user_id>/profile-photo', methods=['PATCH','DELETE'])
 def handle_user_profile_photo(user_id):
     if request.method == 'PATCH':
         return upload_user_profile_photo(user_id)
@@ -539,7 +524,7 @@ def delete_user_profile_photo(user_id):
     
 
 @jwt_required()
-@app.route('/sellers/<int:seller_id>/logo_banner', methods=['PATCH','DELETE'])
+@app.route('/api/v1/sellers/<int:seller_id>/logo_banner', methods=['PATCH','DELETE'])
 def handle_seller_logo_banner(seller_id):
     if request.method == 'PATCH':
         return upload_seller_logo_banner(seller_id)
@@ -581,7 +566,7 @@ def delete_seller_logo_banner(seller_id):
 
 
 @jwt_required()
-@app.route('/sellers/<int:seller_id>/profile_photo', methods=['PATCH','DELETE'])
+@app.route('/api/v1/sellers/<int:seller_id>/profile_photo', methods=['PATCH','DELETE'])
 def handle_seller_profile_photo(seller_id):
     if request.method == 'PATCH':
         return upload_seller_profile_photo(seller_id)
@@ -622,7 +607,7 @@ def delete_seller_profile_photo(seller_id):
     db.session.commit()
     return jsonify({'message': 'Profile photo deleted successfully'}), 204
 
-@app.route('/items/<int:item_id>/images', methods=['POST'])
+@app.route('/api/v1/items/<int:item_id>/images', methods=['POST'])
 def upload_item_images(item_id):
     item = Item.query.get(item_id)
     if not item:
@@ -652,7 +637,7 @@ def upload_item_images(item_id):
     return make_response(item.to_dict(), 201)
 
 @jwt_required()
-@app.route('/users/<int:user_id>/orders', methods=['GET'])
+@app.route('/api/v1/users/<int:user_id>/orders', methods=['GET'])
 def get_user_orders(user_id):
     user = User.query.get(user_id)
     if user:
@@ -681,7 +666,7 @@ class ItemFormItems(Resource):
         return {'error':'Could Not Find Form Items'},404
 
 
-@app.route('/refresh_token', methods=['POST'])
+@app.route('/api/v1/refresh_token', methods=['POST'])
 @jwt_required(refresh=True)
 def refresh_token():
     id_ = get_jwt_identity()
@@ -695,12 +680,14 @@ def refresh_token():
     set_access_cookies(response, new_access_token)
     return response
 
-@app.route("/me", methods=["GET"])
+@app.route("/api/v1/me", methods=["GET"])
 @jwt_required()
 def me():
     if id_ := get_jwt_identity():
         if user := db.session.get(User, id_):
             return make_response(user.to_dict(), 200)
+        if seller := db.session.get(Seller, id_):
+            return make_response(seller.to_dict(), 200)
     return make_response({"error": "Unauthorized"}, 401)
 
 api.add_resource(ItemFormItems, '/items/<int:item_id>/form_items')
