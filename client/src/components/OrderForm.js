@@ -1,9 +1,9 @@
 import React, { useState, useContext, useEffect } from 'react';
-import { Box, Typography, TextField, Button, CircularProgress, Alert } from '@mui/material';
+import { TextField, Button, Alert } from '@mui/material';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
 import { AuthContext } from '../contexts/AuthContext';
-import { useHistory, Link, useParams } from 'react-router-dom';
+import { useHistory, useParams } from 'react-router-dom';
 
 const validationSchema = Yup.object().shape({
     responses: Yup.array()

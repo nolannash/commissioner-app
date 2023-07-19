@@ -87,16 +87,4 @@ const SellerPage = () => {
   );
 };
 
-
-
-
-const Orders = () => {
-  return (
-    <div>
-      <Typography variant="h6">Orders</Typography>
-      {/* Render orders */}
-    </div>
-
-  );
-};
 export default SellerPage;

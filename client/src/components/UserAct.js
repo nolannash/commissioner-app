@@ -59,7 +59,6 @@ const UserAccountInfo = () => {
             }
         } catch (error) {
             console.error('Email Notifications Error:', error);
-            // Handle the error, show a notification, etc.
         }
     };
 
