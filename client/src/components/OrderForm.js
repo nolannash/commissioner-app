@@ -12,7 +12,7 @@ const validationSchema = Yup.object().shape({
 });
 
 const OrderForm = () => {
-    const { user, csrfToken } = useContext(AuthContext);
+    const { user, csrfToken, refreshUser } = useContext(AuthContext);
     const history = useHistory();
     const [item, setItem] = useState([]);
     const [formItems, setFormItems] = useState([]);
@@ -54,7 +54,7 @@ const OrderForm = () => {
     };
     fetchItem();
     }, [item_id]);
-
+    console.log(user)
     const handleSubmit = async (values) => {
     try {
         const formData = {
@@ -78,7 +78,9 @@ const OrderForm = () => {
         if (resp.ok) {
 
         alert('Order submitted successfully');
+        
         history.push('/');
+        refreshUser(user.id,'users');
         } else {
 
         alert('There was an issue submitting the order');

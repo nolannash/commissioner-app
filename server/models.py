@@ -22,7 +22,7 @@ class User(db.Model, SerializerMixin):
     favorites = db.relationship('Favorite', back_populates='user', cascade='all, delete-orphan')
     orders = db.relationship('Order', back_populates='user')
 
-    serialize_only = ('id', 'username', 'email', 'profile_photo', 'email_notifications','favorites.user_id', 'orders','favorites','orders.seller.shopname','orders.item.name','orders.item.price')
+    serialize_only = ('id', 'username', 'email', 'profile_photo', 'email_notifications','favorites.user_id', 'orders','favorites','orders.seller.shopname','orders.item.name','orders.item.price','orders.created_at')
     serialize_rules = ( '-orders.user', '-orders.user_id')
 
     @validates("username")
@@ -143,7 +143,7 @@ class Item(db.Model, SerializerMixin):
     
     def rollover_logic(self):
         if self.rollover_period is not None:
-            now = datetime.now(timezone.utc)
+            now = datetime.now()
 
             if self.last_rollover is None:
                 self.last_rollover = now

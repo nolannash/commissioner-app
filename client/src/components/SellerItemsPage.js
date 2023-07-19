@@ -320,6 +320,7 @@ const SellerItemsPage = () => {
                   <Typography variant="body1">Price: ${item.price}</Typography>
                   <Typography variant="body1">Batch Size: {item.batch_size} Per Rollover</Typography>
                   <Typography variant="body1">Rollover Period: {item.rollover_period} days</Typography>
+                  <Typography variant='body1'>Total orders: {item.order_count}</Typography>
                   {item.form_items && item.form_items.length > 0 && (
                 <CardContent>
                   <Typography variant="h6">Customization Questions</Typography>
@@ -350,7 +351,6 @@ const SellerItemsPage = () => {
                     >
                       <Delete />
                     </IconButton>
-                    {/* Add Commission Option Button */}
                     <IconButton
                       color="primary"
                       aria-label="add commission option"
@@ -363,7 +363,6 @@ const SellerItemsPage = () => {
                 )}
               </CardActions>
 
-              {/* Commission Option Input Box */}
               {openCommissionItemId === item.id && (
                 <CardContent>
                   <TextField
@@ -377,7 +376,6 @@ const SellerItemsPage = () => {
                 </CardContent>
               )}
 
-              {/* Commission Options List */}
               {item.commissionOptions && (
                 <CardContent>
                   <Typography variant="h6">Commission Options:</Typography>

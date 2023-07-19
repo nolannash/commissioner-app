@@ -160,15 +160,12 @@ class Orders(Resource):
         if not form_responses:
             return {'message': 'Form responses are required'}, 400
 
-        order = Order(seller=seller, user=user, item=item)
+        user_response = ','.join(response_data.get('response') for response_data in form_responses)
+
+        order = Order(seller=seller, user=user, item=item, user_response=user_response)
         try:
             db.session.add(order)
             db.session.commit()
-
-            for response_data in form_responses:
-                form_item_id = response_data.get('form_item_id')
-                response_text = response_data.get('response')
-            # this is where im lost
 
             db.session.commit()
 
@@ -683,27 +680,6 @@ class ItemFormItems(Resource):
             return make_response([fi.to_dict() for fi in form_items],200)
         return {'error':'Could Not Find Form Items'},404
 
-# class UserOrders(Resource):
-#     @jwt_required()
-#     def get(self, user_id=None):
-#         user = User.query.get(user_id)
-
-#         if user:
-#             orders = user.orders
-#             return make_response([order.to_dict() for order in orders])
-
-# api.add_resource(UserOrders, '/UserOrders/<int:user_id>')
-
-# class SellerOrders(Resource):
-#     @jwt_required()
-#     def get(self, seller_id=None):
-
-#         seller = Seller.query.get(seller_id)
-#         if seller:
-#             orders = seller.orders
-#             return make_response([order.to_dict() for order in orders])
-
-# api.add_resource(UserOrders, '/SellerOrders/<int:seller_id>')
 
 @app.route('/refresh_token', methods=['POST'])
 @jwt_required(refresh=True)
