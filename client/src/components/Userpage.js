@@ -16,7 +16,7 @@ import UserOrders from './UserOrders';
 import { useHistory } from 'react-router-dom/cjs/react-router-dom.min';
 
 const UserPage = () => {
-  const { user, logout,csrfToken } = useContext(AuthContext);
+  const { user, logout } = useContext(AuthContext);
   const [activeSection, setActiveSection] = useState(0);
   const history = useHistory();
 

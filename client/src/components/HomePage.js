@@ -27,7 +27,7 @@ const HomePage = () => {
     fetchUserFavorites();
     }, []);
 
-    const { user, logout, csrfToken, refreshUser } = useContext(AuthContext);
+    const { user, logout, csrfToken } = useContext(AuthContext);
 
 
     const fetchItems = async () => {

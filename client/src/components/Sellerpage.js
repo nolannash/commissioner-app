@@ -17,14 +17,14 @@ import {
 import { AuthContext } from '../contexts/AuthContext';
 import SellerItems from './SellerItemsPage';
 import SellerAccountInfo from './SellerAct';
-import { useHistory } from 'react-router-dom';
+
 import OrderListSellers from './SellerOrders';
 
 const SellerPage = () => {
 
   const { user, logout } = useContext(AuthContext);
   const [activeSection, setActiveSection] = useState(0);
-  const history = useHistory();
+
 
   console.log(user);
 
