@@ -1,7 +1,7 @@
 # Commissioner
 --
 A project by: Nolan Nash -- @nolannash
-## Introduction
+## Introduction - Main ReadMe page
 
 Hello and welcome to my application/website/project, Comissioner. The  intention of this project was twofold, first it was intended to act as a demonstration of the development of my skills as a software developer. Secondly it was created with the intention of streamlining the complicated process of managing comissions as a commission based artist. I spoke with several commision based artists in my community to create the project and hope that as I implement further improvements it can act as a helpful tool.
 

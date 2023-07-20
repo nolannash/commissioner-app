@@ -59,32 +59,61 @@ const OrderForm = () => {
 
     const handleSubmit = async (values) => {
         try {
-            const formData = {
-                seller_id: item.seller_id,
-                user_id: user.id,
-                item_id: item.id,
-                form_responses: formResponses.map((response, index) => ({
-                    form_item_id: formItems[index].id,
-                    response: response,
-                })),
-            };
-            const resp = await fetch('/api/v1/orders', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-Token': csrfToken,
-                },
-                body: JSON.stringify(formData),
-            });
+            if (formItems.length > 0) {
+                // Form items are present, submit the form responses as usual
+                const formData = {
+                    seller_id: item.seller_id,
+                    user_id: user.id,
+                    item_id: item.id,
+                    form_responses: formResponses.map((response, index) => ({
+                        form_item_id: formItems[index].id,
+                        response: response,
+                    })),
+                };
+                const resp = await fetch('/api/v1/orders', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-Token': csrfToken,
+                    },
+                    body: JSON.stringify(formData),
+                });
 
-            if (resp.ok) {
-                setAlertType('success');
-                setAlertMessage('Order submitted successfully');
-                history.push('/');
-                refreshUser(user.id, 'users');
+                if (resp.ok) {
+                    setAlertType('success');
+                    setAlertMessage('Order submitted successfully');
+                    history.push('/');
+                    refreshUser(user.id, 'users');
+                } else {
+                    setAlertType('error');
+                    setAlertMessage('There was an issue submitting the order');
+                }
             } else {
-                setAlertType('error');
-                setAlertMessage('There was an issue submitting the order');
+                const note = values.responses[0];
+                const formData = {
+                    seller_id: item.seller_id,
+                    user_id: user.id,
+                    item_id: item.id,
+                    form_responses: note,
+                };
+                const resp = await fetch('/api/v1/orders', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-Token': csrfToken,
+                    },
+                    body: JSON.stringify(formData),
+                });
+
+                if (resp.ok) {
+                    setAlertType('success');
+                    setAlertMessage('Order submitted successfully');
+                    history.push('/');
+                    refreshUser(user.id, 'users');
+                } else {
+                    setAlertType('error');
+                    setAlertMessage('There was an issue submitting the order');
+                }
             }
         } catch (error) {
             setAlertType('error');
@@ -146,7 +175,7 @@ const OrderForm = () => {
                             </div>
                         )}
                         <Button type="submit" variant="contained" color="primary">
-                            Submit
+                            Commission Item
                         </Button>
                     </Form>
                 )}

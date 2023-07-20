@@ -119,7 +119,7 @@ const ItemPage = () => {
                 <Box mt={2}>
                     <Link to ={`/NewOrder/${id}`}>
                     <Button variant='outlined' color='success'
-                    disabled={isCommissionDisabled}
+                    // disabled={isCommissionDisabled}
                     >Commission </Button></Link>
                 </Box>
             ) : (

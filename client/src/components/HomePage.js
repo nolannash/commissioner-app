@@ -163,7 +163,7 @@ const HomePage = () => {
                 <ItemList items={userFavorites} />
             </Grid>
             ) : (
-            <Grid item xs={12} sm={4}>
+            <Grid item xs={12} sm={4} >
                 <Typography variant="h5">User Favorites</Typography>
                 <Typography variant="body1">You Don't Have Any Favorites Yet</Typography>
             </Grid>

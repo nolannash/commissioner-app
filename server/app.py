@@ -145,8 +145,11 @@ class Orders(Resource):
         if not form_responses:
             return {'message': 'Form responses are required'}, 400
 
-        user_response = ','.join(response_data.get('response') for response_data in form_responses)
-
+        if 2 <= len(form_responses):
+            user_response = ','.join(response_data for response_data in form_responses)
+        else:
+            user_response = form_responses[0]
+            
         order = Order(seller=seller, user=user, item=item, user_response=user_response)
         try:
             db.session.add(order)
