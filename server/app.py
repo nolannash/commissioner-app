@@ -1,4 +1,4 @@
-from flask import request, make_response, jsonify, send_from_directory
+from flask import request, make_response, jsonify, send_from_directory, send_file
 from flask_restful import Resource
 from flask_jwt_extended import jwt_required, create_access_token, get_jwt_identity, set_access_cookies,  unset_jwt_cookies
 from werkzeug.utils import secure_filename
@@ -502,8 +502,11 @@ def login_seller():
         return make_response({'error': 'User not found'}, 404)
 
 @app.route('/uploads/<path:filename>', methods=['GET'])
+
 def serve_uploaded_file(filename):
-    return send_from_directory(app.config['UPLOAD_FOLDER'], secure_filename(filename))
+    s3_client = boto3.client('s3')
+    response = s3_client.generate_presigned_url('get_object', Params={'Bucket': app.config['S3_BUCKET_NAME'], 'Key': filename})
+    return send_file(response, as_attachment=True)
 
 @app.route('/users/<int:user_id>/profile-photo', methods=['PATCH','DELETE'])
 def handle_user_profile_photo(user_id):
@@ -513,9 +516,10 @@ def handle_user_profile_photo(user_id):
             return delete_user_profile_photo(user_id)
     else:
             return jsonify({'message': 'Method not allowed'}), 405
+
 def upload_user_profile_photo(user_id):
     data = request.form
-    user = db.session.query(User).get(data.get('userId'))
+    user = User.query.get(user_id)
     if not user:
         return {'message': 'User not found'}, 404
     file = request.files.get('profilePhoto')
@@ -527,7 +531,7 @@ def upload_user_profile_photo(user_id):
     return jsonify({'message': 'Profile Photo successfully'}), 204
 
 def delete_user_profile_photo(user_id):
-    user = db.session.query(User).get(user_id)
+    user = db.session.query(User).get('userId')
     if not user:
         return {'message': 'User not found'}, 404
     if not user.profile_photo:
@@ -731,6 +735,4 @@ if __name__ == '__main__':
     app.run(port=5555, debug=True, use_debugger=True,use_reloader=False)
 else:
     app.config['IMAGE_STORAGE'] = "s3"
-    app.config['S3_BUCKET_NAME'] = "commissioner-bucket"
-    app.config['AWS_ACCESS_KEY'] = os.environ.get('AWS_ACCESS_KEY','default')
-    app.config['AWS_SECRET_KEY'] = os.environ.get('AWS_SECRET_KEY','default')
+    

@@ -9,19 +9,28 @@ from flask_mail import Mail
 from werkzeug.utils import secure_filename
 from flask_jwt_extended import JWTManager
 from datetime import timedelta
-
-import boto3
-import time
 import uuid
+import time
 import os
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///app.db'
 
+
+app.config['IMAGE_STORAGE'] = 'local'  
+
+app.config['UPLOAD_FOLDER'] = os.path.join(app.root_path, 'UPLOAD_FOLDER')
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
+
+
+app.config['S3_BUCKET_NAME'] = "commissioner-bucket"
+app.config['AWS_ACCESS_KEY'] = os.environ.get('AWS_ACCESS_KEY', 'default')
+app.config['AWS_SECRET_KEY'] = os.environ.get('AWS_SECRET_KEY', 'default')
+
+
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///app.db'
 app.secret_key = os.environ.get('JWT_SECRET_KEY', 'dev')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.json.compact = False
-
 
 metadata = MetaData(naming_convention={
     "fk": "fk_%(table_name)s_%(column_0_name)s_%(referred_table_name)s",
@@ -34,44 +43,51 @@ bcrypt = Bcrypt(app)
 
 api = Api(app)
 
+CORS(app)
 
-UPLOAD_FOLDER = os.path.join(app.root_path, 'UPLOAD_FOLDER')
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+app.config['MAIL_SERVER'] = 'sandbox.smtp.mailtrap.io'
+app.config['MAIL_PORT'] = 2525
+app.config['MAIL_USERNAME'] = 'f22dbad3accd07'
+app.config['MAIL_PASSWORD'] = '3591becb36a522'
+app.config['MAIL_USE_TLS'] = True
+app.config['MAIL_USE_SSL'] = False
+mail = Mail(app)
 
-ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
+app.config['JWT_SECRET_KEY'] = os.environ.get('JWT_SECRET_KEY', 'dev')
+app.config["JWT_TOKEN_LOCATION"] = ["headers", "cookies"]
+app.config['JWT_ACCESS_COOKIE_SAMESITE'] = 'None'
+app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(hours=1)
 
+jwt = JWTManager(app)
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-
-def save_file(file):
+def save_file_local(file):
     if file and allowed_file(file.filename):
         filename = secure_filename(file.filename)
         unique_filename = f"{uuid.uuid4().hex}_{int(time.time())}_{filename}"
         file_path = os.path.join(app.config['UPLOAD_FOLDER'], unique_filename)
         file.save(file_path)
-        return unique_filename
+        return file_path
     return None
 
-CORS(app)
+def save_file_s3(file):
+    if file and allowed_file(file.filename):
+        filename = secure_filename(file.filename)
+        unique_filename = f"{uuid.uuid4().hex}_{int(time.time())}_{filename}"
 
-jwt = JWTManager(app)
-app.config['JWT_SECRET_KEY'] = os.environ.get('JWT_SECRET_KEY', 'dev')
+        s3_client = boto3.client('s3')
+        response = s3_client.upload_file(unique_filename, app.config['S3_BUCKET_NAME'], unique_filename)
 
-app.config["JWT_TOKEN_LOCATION"] = ["headers", "cookies"]
-app.config['JWT_ACCESS_COOKIE_SAMESITE'] = 'None'
-app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(hours=1)
+        return response
+    return None
 
 
-app.config['MAIL_SERVER']='sandbox.smtp.mailtrap.io'
-app.config['MAIL_PORT'] = 2525
-app.config['MAIL_USERNAME'] = 'f22dbad3accd07'
-app.config['MAIL_PASSWORD'] = '3591becb36a522'
-
-app.config['MAIL_USE_TLS'] = True
-app.config['MAIL_USE_SSL'] = False
-mail = Mail(app)
-
-BUCKET = "commissioner-bucket"
-app.config['S3_BUCKET_NAME'] = BUCKET
+def save_file(file):
+    if app.config['IMAGE_STORAGE'] == 'local':
+        return save_file_local(file)
+    elif app.config['IMAGE_STORAGE'] == 's3':
+        return save_file_s3(file)
+    else:
+        raise ValueError("Invalid IMAGE_STORAGE setting")

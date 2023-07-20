@@ -83,7 +83,7 @@ const UserAccountInfo = () => {
     const handleUploadProfilePhoto = async () => {
         if (profilePhoto) {
             const formData = new FormData();
-            formData.append('userId', user.id);
+            formData.append('user_id', user.id);
             formData.append('profilePhoto', profilePhoto);
 
             try {
