@@ -334,7 +334,7 @@ const UserAccountInfo = () => {
                         </Popover>
 
                         <Box display="flex" alignItems="flex-start" justifyContent="flex-start" mb={2}>
-                            <Avatar src={`/uploads/${user.profile_photo}`} alt="Profile Photo">
+                            <Avatar src={`api/v1/uploads/${user.profile_photo}`} alt="Profile Photo">
                                 {!user.profile_photo && <Person />}
                             </Avatar>
                             <Typography variant="h6">{user.username}</Typography>

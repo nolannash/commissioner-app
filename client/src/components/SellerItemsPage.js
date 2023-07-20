@@ -265,12 +265,12 @@ const SellerItemsPage = () => {
             <Card key={item.id} sx={{ margin: '8px', width: '400px' }}>
               <CardHeader title={item.name} />
               {item.images && item.images.length > 0 ? (
-                <CardMedia sx={{ height: 100, paddingTop: '56.25%' }} title={`Item ${item.id}`}>
+                <CardMedia sx={{ height: 100, paddingTop: '5%' , paddingBottom:'10%'}} title={`Item ${item.id}`}>
                   {item.images && item.images.length > 0 ? (
                     <CardMedia
                       component="img"
                       height="150"
-                      src={`/uploads/${item.images[0].image_path}`}
+                      src={`/api/v1/uploads/${item.images[0].image_path}`}
                       alt={`Item ${item.id}`}
                     />
                   ) : (

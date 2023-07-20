@@ -408,7 +408,7 @@ const SellerAccountInfo = () => {
               <CardMedia
                 component="img"
                 height="150"
-                image={`/uploads/${user.logo_banner}`}
+                image={`api/v1/uploads/${user.logo_banner}`}
                 alt="Logo Banner"
               />
             ) : (
@@ -419,7 +419,7 @@ const SellerAccountInfo = () => {
               <Grid container spacing={2}>
                 <Grid item xs={12} md={8}>
                   <Box display="flex" alignItems="flex-start" justifyContent="flex-start" mb={2}>
-                    <Avatar src={`/uploads/${user.profile_photo}`} alt="Profile Photo">
+                    <Avatar src={`api/v1/uploads/${user.profile_photo}`} alt="Profile Photo">
                       {!user.profile_photo && <Person />}
                     </Avatar>
                     <Typography variant="h6">{user.shopname}</Typography>

@@ -120,7 +120,7 @@ const ItemList = ({ items }) => {
               <CardMedia
                 component="img"
                 height={100}
-                image={`/uploads/${item.images[0].image_path}`}
+                image={`/api/v1/uploads/${item.images[0].image_path}`}
                 alt={`Item ${item.id}`}
               />
             ) : (

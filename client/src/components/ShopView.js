@@ -50,7 +50,7 @@ const ShopView = () => {
             {seller && (
                 <Box my={2}>
                     <Box display="flex" alignItems="flex-start" justifyContent="flex-start">
-                        <Avatar src={`/uploads/${seller.profile_photo}`} alt="Profile Photo" />
+                        <Avatar src={`api/v1/uploads/${seller.profile_photo}`} alt="Profile Photo" />
                         <Box ml={2}>
                             <Typography variant="h5">{seller.shopname}</Typography>
                             <Typography variant="body1">{seller.email}</Typography>
@@ -60,7 +60,7 @@ const ShopView = () => {
                     {seller.logo_banner && (
                         <Box mt={2}>
                             <img
-                                src={`/uploads/${seller.logo_banner}`}
+                                src={`api/v1/uploads/${seller.logo_banner}`}
                                 alt="Logo Banner"
                                 style={{ width: '100%' }}
                             />
