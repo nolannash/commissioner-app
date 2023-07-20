@@ -37,7 +37,9 @@ const UserPage = () => {
         return <UserAccountInfo></UserAccountInfo>;
     }
   };
-
+  if (!user) {
+    return <Typography>Loading...</Typography>
+  }
 
   return (
     <AppBar position="static">

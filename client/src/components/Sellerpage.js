@@ -47,6 +47,9 @@ const SellerPage = () => {
         return <SellerAccountInfo />;
     }
   };
+  if (!user) {
+    return <Typography>Loading...</Typography>
+  }
 
   return (
 

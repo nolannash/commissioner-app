@@ -197,6 +197,9 @@ const UserAccountInfo = () => {
             setAlertMessage('Failed to delete profile. Please try again.');
         }
     };
+    if (!user) {
+        return <Typography>Loading...</Typography>
+    }
 
     return (
         <Card>

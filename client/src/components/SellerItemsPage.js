@@ -248,6 +248,9 @@ const SellerItemsPage = () => {
       </Box>
     );
   }
+  if (!user) {
+    return <Typography>Loading...</Typography>
+  }
 
   return (
     <div>
