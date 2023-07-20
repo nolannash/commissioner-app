@@ -9,6 +9,8 @@ from flask_mail import Mail
 from werkzeug.utils import secure_filename
 from flask_jwt_extended import JWTManager
 from datetime import timedelta
+
+import boto3
 import time
 import uuid
 import os
@@ -19,7 +21,6 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///app.db'
 app.secret_key = os.environ.get('JWT_SECRET_KEY', 'dev')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.json.compact = False
-
 
 
 metadata = MetaData(naming_convention={
@@ -71,3 +72,6 @@ app.config['MAIL_PASSWORD'] = '3591becb36a522'
 app.config['MAIL_USE_TLS'] = True
 app.config['MAIL_USE_SSL'] = False
 mail = Mail(app)
+
+BUCKET = "commissioner-bucket"
+app.config['S3_BUCKET_NAME'] = BUCKET
