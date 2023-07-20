@@ -248,7 +248,9 @@ const SellerItemsPage = () => {
       </Box>
     );
   }
-
+  if (!user) {
+    return <Typography>Loading...</Typography>
+  }
   return (
     <div>
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>

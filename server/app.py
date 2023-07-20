@@ -4,6 +4,8 @@ from flask_jwt_extended import jwt_required, create_access_token, get_jwt_identi
 from werkzeug.utils import secure_filename
 from config import app, db, api,save_file, allowed_file
 from models import User, Seller, Item, Order, Favorite, FormItem, ItemImage
+
+import boto3
 import os
 
 class Users(Resource):
@@ -710,4 +712,12 @@ api.add_resource(FormItems, '/form-items', '/form-items/<int:item_id>',)
 
 
 if __name__ == '__main__':
+    UPLOAD_FOLDER = os.path.join(app.root_path, 'UPLOAD_FOLDER')
+    app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+    
     app.run(port=5555, debug=True, use_debugger=True,use_reloader=False)
+else:
+    app.config['IMAGE_STORAGE'] = "s3"
+    app.config['S3_BUCKET_NAME'] = "commissioner-bucket"
+    app.config['AWS_ACCESS_KEY'] = os.environ.get('AWS_ACCESS_KEY','default')
+    app.config['AWS_SECRET_KEY'] = os.environ.get('AWS_SECRET_KEY','default')
