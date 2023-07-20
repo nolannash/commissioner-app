@@ -723,4 +723,7 @@ api.add_resource(FormItems, '/form-items', '/form-items/<int:item_id>',)
 
 
 if __name__ == '__main__':
+    UPLOAD_FOLDER = os.path.join(app.root_path, 'UPLOAD_FOLDER')
+    app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+    
     app.run(port=5555, debug=True, use_debugger=True,use_reloader=False)

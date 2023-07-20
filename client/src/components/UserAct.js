@@ -198,6 +198,10 @@ const UserAccountInfo = () => {
         }
     };
 
+    if (!user) {
+        return <Typography>Loading...</Typography>
+    }
+
     return (
         <Card>
             <CardContent>

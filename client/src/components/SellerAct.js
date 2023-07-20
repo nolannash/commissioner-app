@@ -228,7 +228,9 @@ const SellerAccountInfo = () => {
       console.error('Profile Edit Error:', error);
     }
   };
-
+  if (!user) {
+    return <Typography>Loading...</Typography>
+  }
   return (
     <Card>
       <CardContent>
