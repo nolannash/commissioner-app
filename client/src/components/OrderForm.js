@@ -24,7 +24,7 @@ const OrderForm = () => {
     useEffect(() => {
         const fetchFormItems = async () => {
             try {
-                const resp = await fetch(`/items/${item_id}/form_items`);
+                const resp = await fetch(`/api/v1/items/${item_id}/form_items`);
                 if (resp.ok) {
                     const data = await resp.json();
                     console.log(data);
@@ -42,7 +42,7 @@ const OrderForm = () => {
     useEffect(() => {
         const fetchItem = async () => {
             try {
-                const resp = await fetch(`/items/${item_id}`);
+                const resp = await fetch(`/api/v1/items/${item_id}`);
 
                 if (resp.ok) {
                     const data = await resp.json();
@@ -68,7 +68,7 @@ const OrderForm = () => {
                     response: response,
                 })),
             };
-            const resp = await fetch('/orders', {
+            const resp = await fetch('/api/v1/orders', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -102,30 +102,49 @@ const OrderForm = () => {
                 </Alert>
             )}
             <Formik
-                initialValues={{ responses: Array(formItems.length).fill('') }}
+                initialValues={{ responses: formItems.length ? Array(formItems.length).fill('') : [''] }}
                 validationSchema={validationSchema}
                 onSubmit={handleSubmit}
             >
                 {({ values, handleChange, handleSubmit, errors }) => (
                     <Form onSubmit={handleSubmit}>
-                        {formItems.map((formItem, index) => (
-                            <div key={formItem.id}>
-                                <p>{formItem.seller_question}</p>
+                        {formItems.length ? (
+                            formItems.map((formItem, index) => (
+                                <div key={formItem.id}>
+                                    <p>{formItem.seller_question}</p>
+                                    <Field
+                                        as={TextField}
+                                        name={`responses[${index}]`}
+                                        value={values.responses[index]}
+                                        onChange={(e) => {
+                                            handleChange(e);
+                                            const newResponses = [...values.responses];
+                                            newResponses[index] = e.target.value;
+                                            setFormResponses(newResponses);
+                                        }}
+                                        error={Boolean(errors.responses) && Boolean(errors.responses[index])}
+                                        helperText={errors.responses && errors.responses[index] ? errors.responses[index] : ''}
+                                    />
+                                </div>
+                            ))
+                        ) : (
+                            <div>
+                                <p>Please leave a note for the seller:</p>
                                 <Field
                                     as={TextField}
-                                    name={`responses[${index}]`}
-                                    value={values.responses[index]}
+                                    name="responses[0]"
+                                    value={values.responses[0]}
                                     onChange={(e) => {
                                         handleChange(e);
                                         const newResponses = [...values.responses];
-                                        newResponses[index] = e.target.value;
+                                        newResponses[0] = e.target.value;
                                         setFormResponses(newResponses);
                                     }}
-                                    error={Boolean(errors.responses) && Boolean(errors.responses[index])}
-                                    helperText={errors.responses && errors.responses[index] ? errors.responses[index] : ''}
+                                    error={Boolean(errors.responses) && Boolean(errors.responses[0])}
+                                    helperText={errors.responses && errors.responses[0] ? errors.responses[0] : ''}
                                 />
                             </div>
-                        ))}
+                        )}
                         <Button type="submit" variant="contained" color="primary">
                             Submit
                         </Button>

@@ -21,7 +21,7 @@ const ShopList = ({ shops }) => {
           <CardMedia
             component="img"
             height={100}
-            image={`/uploads/${shop.logo_banner}`}
+            image={`api/v1/uploads/${shop.logo_banner}`}
             alt={`Shop ${shop.id}`}
           />
           <CardContent>

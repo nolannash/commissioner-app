@@ -40,7 +40,7 @@ const ItemList = ({ items }) => {
   };
 
   const addToFavorites = (itemId) => {
-    fetch(`/favorites`, {
+    fetch(`/api/v1/favorites`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -68,7 +68,7 @@ const ItemList = ({ items }) => {
   };
 
   const removeFromFavorites = (itemId) => {
-    fetch(`/favorites/${itemId}`, {
+    fetch(`/api/v1/favorites/${itemId}`, {
       method: 'DELETE',
       headers: {
         'X-CSRF-Token': csrfToken,
@@ -120,7 +120,7 @@ const ItemList = ({ items }) => {
               <CardMedia
                 component="img"
                 height={100}
-                image={`/uploads/${item.images[0].image_path}`}
+                image={`/api/v1/uploads/${item.images[0].image_path}`}
                 alt={`Item ${item.id}`}
               />
             ) : (

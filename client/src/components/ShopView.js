@@ -20,9 +20,8 @@ const ShopView = () => {
     useEffect(() => {
         (async () => {
             try {
-                const resp = await fetch(`/sellers/${id}`);
+                const resp = await fetch(`/api/v1/sellers/${id}`);
                 if (!resp.ok) {
-                    // throw new Error('Unable to fetch Seller\'s Items');
                     setAlertType('error');
                     setAlertMessage('Failed to fetch Seller\'s Items. Please try again.');
                 }
@@ -35,9 +34,6 @@ const ShopView = () => {
             }
         })();
     }, [id]);
-
-    console.log(seller);
-    console.log(seller.items);
 
     return (
         <Container maxWidth="md">
@@ -54,7 +50,7 @@ const ShopView = () => {
             {seller && (
                 <Box my={2}>
                     <Box display="flex" alignItems="flex-start" justifyContent="flex-start">
-                        <Avatar src={`/uploads/${seller.profile_photo}`} alt="Profile Photo" />
+                        <Avatar src={`api/v1/uploads/${seller.profile_photo}`} alt="Profile Photo" />
                         <Box ml={2}>
                             <Typography variant="h5">{seller.shopname}</Typography>
                             <Typography variant="body1">{seller.email}</Typography>
@@ -64,7 +60,7 @@ const ShopView = () => {
                     {seller.logo_banner && (
                         <Box mt={2}>
                             <img
-                                src={`/uploads/${seller.logo_banner}`}
+                                src={`api/v1/uploads/${seller.logo_banner}`}
                                 alt="Logo Banner"
                                 style={{ width: '100%' }}
                             />

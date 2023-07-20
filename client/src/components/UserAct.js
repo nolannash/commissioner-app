@@ -47,7 +47,7 @@ const UserAccountInfo = () => {
         setEmailNotifications(checked);
 
         try {
-            const response = await fetch(`/users/${user.id}`, {
+            const response = await fetch(`/api/v1/users/${user.id}`, {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',
@@ -87,7 +87,7 @@ const UserAccountInfo = () => {
             formData.append('profilePhoto', profilePhoto);
 
             try {
-                const response = await fetch(`/users/${user.id}/profile-photo`, {
+                const response = await fetch(`/api/v1/users/${user.id}/profile-photo`, {
                     method: 'PATCH',
                     headers: {
                         'X-CSRF-Token': csrfToken,
@@ -115,7 +115,7 @@ const UserAccountInfo = () => {
 
     const handleDeleteProfilePhoto = async () => {
         try {
-            const response = await fetch(`/users/${user.id}/profile_photo`, {
+            const response = await fetch(`/api/v1/users/${user.id}/profile_photo`, {
                 method: 'DELETE',
                 headers: {
                     'X-CSRF-Token': csrfToken,
@@ -147,7 +147,7 @@ const UserAccountInfo = () => {
         try {
             const { username, email } = values;
 
-            const response = await fetch(`/users/${user.id}`, {
+            const response = await fetch(`/api/v1/users/${user.id}`, {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',
@@ -174,7 +174,7 @@ const UserAccountInfo = () => {
 
     const handleDeleteProfile = async () => {
         try {
-            const response = await fetch(`/users/${user.id}`, {
+            const response = await fetch(`/api/v1/users/${user.id}`, {
                 method: 'DELETE',
                 headers: {
                     'X-CSRF-Token': csrfToken,
@@ -334,7 +334,7 @@ const UserAccountInfo = () => {
                         </Popover>
 
                         <Box display="flex" alignItems="flex-start" justifyContent="flex-start" mb={2}>
-                            <Avatar src={`/uploads/${user.profile_photo}`} alt="Profile Photo">
+                            <Avatar src={`api/v1/uploads/${user.profile_photo}`} alt="Profile Photo">
                                 {!user.profile_photo && <Person />}
                             </Avatar>
                             <Typography variant="h6">{user.username}</Typography>

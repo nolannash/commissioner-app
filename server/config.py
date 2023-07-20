@@ -31,7 +31,7 @@ migrate = Migrate(app, db, render_as_batch=True)
 db.init_app(app)
 bcrypt = Bcrypt(app)
 
-api = Api(app)
+api = Api(app, prefix='/api/v1')
 
 
 UPLOAD_FOLDER = os.path.join(app.root_path, 'UPLOAD_FOLDER')

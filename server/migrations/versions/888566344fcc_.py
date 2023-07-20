@@ -1,8 +1,8 @@
-"""reset db
+"""empty message
 
-Revision ID: 0dc49fa35ed1
+Revision ID: 888566344fcc
 Revises: 
-Create Date: 2023-07-14 10:55:30.952162
+Create Date: 2023-07-19 16:40:32.296232
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '0dc49fa35ed1'
+revision = '888566344fcc'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -60,19 +60,16 @@ def upgrade():
     op.create_table('favorites',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('user_id', sa.Integer(), nullable=True),
-    sa.Column('shop_id', sa.Integer(), nullable=True),
     sa.Column('item_id', sa.Integer(), nullable=True),
     sa.Column('created_at', sa.DateTime(), nullable=True),
     sa.ForeignKeyConstraint(['item_id'], ['items.id'], name=op.f('fk_favorites_item_id_items')),
-    sa.ForeignKeyConstraint(['shop_id'], ['sellers.id'], name=op.f('fk_favorites_shop_id_sellers')),
     sa.ForeignKeyConstraint(['user_id'], ['users.id'], name=op.f('fk_favorites_user_id_users')),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('form_items',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('item_id', sa.Integer(), nullable=True),
-    sa.Column('component_type', sa.String(), nullable=False),
-    sa.Column('options', sa.String(), nullable=True),
+    sa.Column('seller_question', sa.String(), nullable=True),
     sa.ForeignKeyConstraint(['item_id'], ['items.id'], name=op.f('fk_form_items_item_id_items')),
     sa.PrimaryKeyConstraint('id')
     )
@@ -88,6 +85,7 @@ def upgrade():
     sa.Column('seller_id', sa.INTEGER(), nullable=True),
     sa.Column('user_id', sa.INTEGER(), nullable=True),
     sa.Column('item_id', sa.INTEGER(), nullable=True),
+    sa.Column('user_response', sa.String(), nullable=True),
     sa.Column('created_at', sa.DateTime(), nullable=False),
     sa.ForeignKeyConstraint(['item_id'], ['items.id'], name=op.f('fk_orders_item_id_items')),
     sa.ForeignKeyConstraint(['seller_id'], ['sellers.id'], name=op.f('fk_orders_seller_id_sellers')),

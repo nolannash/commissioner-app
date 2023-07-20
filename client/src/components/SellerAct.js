@@ -49,7 +49,7 @@ const SellerAccountInfo = () => {
     setEmailNotifications(checked);
 
     try {
-      const response = await fetch(`/sellers/${user.id}`, {
+      const response = await fetch(`/api/v1/sellers/${user.id}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -89,7 +89,7 @@ const SellerAccountInfo = () => {
       formData.append('logoBanner', logoBanner);
 
       try {
-        const response = await fetch(`/sellers/${user.id}/logo_banner`, {
+        const response = await fetch(`/api/v1/sellers/${user.id}/logo_banner`, {
           method: 'PATCH',
           headers: {
             'X-CSRF-Token': csrfToken,
@@ -111,7 +111,7 @@ const SellerAccountInfo = () => {
 
   const handleDeleteBanner = async () => {
     try {
-      const response = await fetch(`/sellers/${user.id}/logo_banner`, {
+      const response = await fetch(`/api/v1/sellers/${user.id}/logo_banner`, {
         method: 'DELETE',
         headers: {
           'X-CSRF-Token': csrfToken,
@@ -141,7 +141,7 @@ const SellerAccountInfo = () => {
       formData.append('profilePhoto', profilePhoto);
 
       try {
-        const response = await fetch(`/sellers/${user.id}/profile_photo`, {
+        const response = await fetch(`/api/v1/sellers/${user.id}/profile_photo`, {
           method: 'PATCH',
           headers: {
             'X-CSRF-Token': csrfToken,
@@ -163,7 +163,7 @@ const SellerAccountInfo = () => {
 
   const handleDeleteProfile = async () =>{
     try{
-      const response = await fetch(`/sellers/${user.id}`,{
+      const response = await fetch(`/api/v1/sellers/${user.id}`,{
         method:'DELETE',
         headers:{
           'X-CSRF-Token':csrfToken,
@@ -182,7 +182,7 @@ const SellerAccountInfo = () => {
 
   const handleDeleteProfilePhoto = async () => {
     try {
-      const response = await fetch(`/sellers/${user.id}/profile_photo`, {
+      const response = await fetch(`/api/v1/sellers/${user.id}/profile_photo`, {
         method: 'DELETE',
         headers: {
           'X-CSRF-Token': csrfToken,
@@ -208,7 +208,7 @@ const SellerAccountInfo = () => {
     try {
       const { shopname, email, bio } = values;
 
-      const response = await fetch(`/sellers/${user.id}`, {
+      const response = await fetch(`/api/v1/sellers/${user.id}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -408,7 +408,7 @@ const SellerAccountInfo = () => {
               <CardMedia
                 component="img"
                 height="150"
-                image={`/uploads/${user.logo_banner}`}
+                image={`api/v1/uploads/${user.logo_banner}`}
                 alt="Logo Banner"
               />
             ) : (
@@ -419,7 +419,7 @@ const SellerAccountInfo = () => {
               <Grid container spacing={2}>
                 <Grid item xs={12} md={8}>
                   <Box display="flex" alignItems="flex-start" justifyContent="flex-start" mb={2}>
-                    <Avatar src={`/uploads/${user.profile_photo}`} alt="Profile Photo">
+                    <Avatar src={`api/v1/uploads/${user.profile_photo}`} alt="Profile Photo">
                       {!user.profile_photo && <Person />}
                     </Avatar>
                     <Typography variant="h6">{user.shopname}</Typography>

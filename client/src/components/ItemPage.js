@@ -18,11 +18,11 @@ const ItemPage = () => {
     const [item, setItem] = useState(null);
     const [error, setError] = useState(null);
     const { id } = useParams();
-
+    const isCommissionDisabled = item && item.batch_size - item.order_count === 0;
     useEffect(() => {
         const fetchItem = async () => {
             try {
-                const resp = await fetch(`/items/${id}`);
+                const resp = await fetch(`/api/v1/items/${id}`);
                 if (resp.ok) {
                     const data = await resp.json();
                     setItem(data);
@@ -38,7 +38,7 @@ const ItemPage = () => {
 
         fetchItem();
     }, [id]);
-
+    console.log(item)
     return (
         <Container maxWidth="md">
             <Box my={4}>
@@ -63,7 +63,7 @@ const ItemPage = () => {
                         justifyContent="flex-start"
                     >
                         <Avatar
-                            src={`/uploads/${item.seller.profile_photo}`}
+                            src={`/api/v1/uploads/${item.seller.profile_photo}`}
                             alt="Profile Photo"
                         />
                         <Box ml={2}>
@@ -82,7 +82,7 @@ const ItemPage = () => {
                     {item.seller.logo_banner && (
                         <Box mt={2} sx={{ padding: 100 }}>
                             <img
-                                src={`/uploads/${item.seller.logo_banner}`}
+                                src={`api/v1/uploads/${item.seller.logo_banner}`}
                                 alt="Logo Banner"
                                 style={{ width: '100%' }}
                             />
@@ -93,6 +93,13 @@ const ItemPage = () => {
             <Divider></Divider>
             {item && (
                 <Box my={2}>
+                    <Box>
+                        <img
+                        src={`/api/v1/uploads/${item.images[0].image_path}`} 
+                        alt ={'item image'}
+                        />
+                        
+                    </Box>
                     <Typography variant="h6" component="h2" gutterBottom>
                         <strong>Item Details</strong>
                         <strong>
@@ -112,6 +119,7 @@ const ItemPage = () => {
                 <Box mt={2}>
                     <Link to ={`/NewOrder/${id}`}>
                     <Button variant='outlined' color='success'
+                    disabled={isCommissionDisabled}
                     >Commission </Button></Link>
                 </Box>
             ) : (

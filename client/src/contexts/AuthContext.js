@@ -21,7 +21,7 @@ const AuthProvider = ({ children }) => {
 
   const handleSignUp = async (userType, userData) => {
     try {
-      const response = await fetch(`/signup/${userType}`, {
+      const response = await fetch(`/api/v1/signup/${userType}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -47,7 +47,7 @@ const AuthProvider = ({ children }) => {
 
   const handleLogin = async (userType, credentials) => {
     try {
-      const response = await fetch(`/login/${userType}`, {
+      const response = await fetch(`/api/v1/login/${userType}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -72,7 +72,7 @@ const AuthProvider = ({ children }) => {
 
   const handleLogout = async () => {
     try {
-      const response = await fetch('/logout', {
+      const response = await fetch('/api/v1/logout', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -97,7 +97,7 @@ const AuthProvider = ({ children }) => {
 
   const refreshUser = async (id, userType) => {
     try {
-      const response = await fetch(`/${userType}/${id}`, {
+      const response = await fetch(`/api/v1/${userType}/${id}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -126,13 +126,13 @@ const AuthProvider = ({ children }) => {
             'X-CSRF-TOKEN': getCookie('csrf_access_token'),
           },
         };
-        const resp = await fetch("/me", options)
+        const resp = await fetch("/api/v1/me", options)
         if (resp.ok) {
           const data = await resp.json()
           updateUser(data)
         } else {
           (async () => {
-              const resp = await fetch("/refresh_token", {
+              const resp = await fetch("/api/v1/refresh_token", {
                 method: "POST",
                 credentials: 'same-origin',
                 headers: {

@@ -87,7 +87,7 @@ const ItemForm = () => {
         formData.append('seller_id', user.id);
 
 
-        const response = await fetch(`/sellers/${user.id}/items`, {
+        const response = await fetch(`/api/v1/sellers/${user.id}/items`, {
           method: 'POST',
           headers: {
             'X-CSRF-Token': csrfToken,
