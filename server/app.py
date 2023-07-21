@@ -502,7 +502,6 @@ def login_seller():
         return make_response({'error': 'User not found'}, 404)
 
 @app.route('/uploads/<path:filename>', methods=['GET'])
-
 def serve_uploaded_file(filename):
     s3_client = boto3.client('s3')
     response = s3_client.generate_presigned_url('get_object', Params={'Bucket': app.config['S3_BUCKET_NAME'], 'Key': filename})

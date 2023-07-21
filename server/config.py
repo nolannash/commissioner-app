@@ -9,6 +9,7 @@ from flask_mail import Mail
 from werkzeug.utils import secure_filename
 from flask_jwt_extended import JWTManager
 from datetime import timedelta
+import boto3
 import uuid
 import time
 import os
