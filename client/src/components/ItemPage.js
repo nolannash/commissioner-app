@@ -18,7 +18,7 @@ const ItemPage = () => {
     const [item, setItem] = useState(null);
     const [error, setError] = useState(null);
     const { id } = useParams();
-    const isCommissionDisabled = item && item.batch_size - item.order_count === 0;
+    // const isCommissionDisabled = item && item.batch_size - item.order_count === 0;
     useEffect(() => {
         const fetchItem = async () => {
             try {

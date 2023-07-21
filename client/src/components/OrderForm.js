@@ -60,7 +60,6 @@ const OrderForm = () => {
     const handleSubmit = async (values) => {
         try {
             if (formItems.length > 0) {
-                // Form items are present, submit the form responses as usual
                 const formData = {
                     seller_id: item.seller_id,
                     user_id: user.id,
