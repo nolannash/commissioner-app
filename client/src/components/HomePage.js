@@ -27,61 +27,43 @@ const HomePage = () => {
     fetchUserFavorites();
     }, []);
 
-    const { user, logout, csrfToken, refreshUser } = useContext(AuthContext);
-
+    const { user, logout, csrfToken } = useContext(AuthContext);
 
     const fetchItems = async () => {
     try {
-        const response = await fetch('/api/v1/items', {
+        const response = await fetch('/items', {
         method: 'GET',
         headers: {
             'X-CSRF-TOKEN': csrfToken,
         },
         });
         if (response.ok) {
-
         const data = await response.json();
         setMainItems(data);
-
         } else {
-
         setError('Failed to fetch items');
-
         }
-
     } catch (error) {
-
         setError('Failed to fetch items');
-        
     }
     };
 
     const fetchNewItems = async () => {
-
     try {
-
-        const response = await fetch('/api/v1/recent', {
+        const response = await fetch('/recent', {
         method: 'GET',
         headers: {
             'X-CSRF-TOKEN': csrfToken,
         },
-
         });
         if (response.ok) {
-
         const data = await response.json();
         setNewItems(data.recent_items);
-
-
         setNewShops(data.recent_shops);
-
         } else {
-
         setError('Failed to fetch new items');
-
         }
     } catch (error) {
-        
         setError('Failed to fetch new items');
     }
     };
@@ -90,9 +72,8 @@ const HomePage = () => {
     if (!user) {
         return;
     }
-
     try {
-        const response = await fetch(`/api/v1/favorites`, {
+        const response = await fetch(`/favorites`, {
         method: 'GET',
         headers: {
             'X-CSRF-TOKEN': csrfToken,
@@ -100,10 +81,9 @@ const HomePage = () => {
         });
         if (response.ok) {
         const data = await response.json();
-
         setUserFavorites(data.items);
         } else {
-        setError('Something went wrong')
+        setError('Something went wrong');
         }
     } catch (error) {
         console.error('Failed to fetch user favorites');
@@ -118,7 +98,7 @@ const HomePage = () => {
             Commissioner
             </Typography>
             <Link to={'/search'}>
-            <IconButton color="inherit" variant="contained" sx={{text_align: "centered"}}>
+            <IconButton color="inherit" variant="contained" sx={{ text_align: 'centered' }}>
                 <SearchIcon />Browse
             </IconButton>
             </Link>
@@ -151,7 +131,7 @@ const HomePage = () => {
             {error}
             </Alert>
         )}
-        <Grid container spacing={3}>
+        <Grid container spacing={3} justifyContent="space-between" alignItems="stretch" flexWrap="wrap">
             {!user ? (
             <Grid item xs={12} sm={4}>
                 <Typography variant="h5">Generic Item List</Typography>
@@ -163,7 +143,7 @@ const HomePage = () => {
                 <ItemList items={userFavorites} />
             </Grid>
             ) : (
-            <Grid item xs={12} sm={4} >
+            <Grid item xs={12} sm={4}>
                 <Typography variant="h5">User Favorites</Typography>
                 <Typography variant="body1">You Don't Have Any Favorites Yet</Typography>
             </Grid>
