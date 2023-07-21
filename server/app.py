@@ -4,7 +4,7 @@ from flask_jwt_extended import jwt_required, create_access_token, get_jwt_identi
 from werkzeug.utils import secure_filename
 from config import app, db, api,save_file, allowed_file
 from models import User, Seller, Item, Order, Favorite, FormItem, ItemImage
-
+import urllib.parse
 import boto3
 import os
 
@@ -634,27 +634,24 @@ def upload_item_images(item_id):
         return jsonify(message='Item not found'), 404
 
     images = request.files.getlist('images')
-    saved_image_paths = []
+    saved_image_urls = []
 
     for image in images:
         if allowed_file(image.filename):
-            file_path = save_file(image)
-            if file_path:
-                saved_image_paths.append(file_path)
+            image_url = save_file_s3(image)
+            if image_url:
+                saved_image_urls.append(image_url)
             else:
-                return jsonify(message='Failed to save file'), 400
+                return jsonify(message='Failed to save file to S3'), 500
         else:
             return jsonify(message='Invalid file'), 400
 
-    for image_path in saved_image_paths:
-        item_image = ItemImage(item_id=item_id, image_path=image_path)
-        db.session.add(item_image)
-    db.session.commit()
-    item_images = ItemImage.query.filter_by(item_id=item_id).all()
-    item.images = item_images
+    item_images = [ItemImage(item_id=item_id, image_url=url) for url in saved_image_urls]
+    db.session.bulk_save_objects(item_images)
     db.session.commit()
 
     return make_response(item.to_dict(), 201)
+
 
 @jwt_required()
 @app.route('/users/<int:user_id>/orders', methods=['GET'])

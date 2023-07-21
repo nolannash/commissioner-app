@@ -100,7 +100,7 @@ const ItemForm = () => {
         if (response.ok) {
           history.push('/sellerPage');
         } else {
-          setAlertMessage('Form submission failed.');
+          setAlertMessage('Item Creation failed.');
           setAlertSeverity('error');
           console.error(
             'Form submission failed:',
