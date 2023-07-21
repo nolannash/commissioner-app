@@ -12,6 +12,8 @@ import {
   Button,
   Popover,
   TextField,
+  Alert,
+  Snackbar,
 } from '@mui/material';
 import { Delete, Edit, AddCircle } from '@mui/icons-material';
 import { AuthContext } from '../contexts/AuthContext';
@@ -38,6 +40,24 @@ const SellerItemsPage = () => {
 
   const [openCommissionItemId, setOpenCommissionItemId] = useState(null);
   const [commissionOption, setCommissionOption] = useState('');
+
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarSeverity, setSnackbarSeverity] = useState('success');
+  const [snackbarMessage, setSnackbarMessage] = useState('');
+
+
+  const showSuccessSnackbar = (message) => {
+    setSnackbarSeverity('success');
+    setSnackbarMessage(message);
+    setSnackbarOpen(true);
+  };
+
+
+  const showErrorSnackbar = (message) => {
+    setSnackbarSeverity('error');
+    setSnackbarMessage(message);
+    setSnackbarOpen(true);
+  };
 
   useEffect(() => {
     const fetchItems = async () => {
@@ -87,14 +107,17 @@ const SellerItemsPage = () => {
       });
 
       if (response.ok) {
-        console.log('Item deleted successfully');
+
         setItems((prevItems) => prevItems.filter((item) => item.id !== deleteItemId));
         setIsDeletePopoverOpen(false);
+        showSuccessSnackbar('Item deleted successfully');
       } else {
-        console.error('Failed to delete item');
+
+        showErrorSnackbar('Failed to delete item');
       }
     } catch (error) {
-      console.error('Delete Item Error:', error);
+
+      showErrorSnackbar('An error occurred while deleting the item');
     }
   };
 
@@ -151,21 +174,22 @@ const SellerItemsPage = () => {
       });
 
       if (response.ok) {
-        console.log('Item updated successfully');
+
         setIsEditPopoverOpen(false);
         setItems((prevItems) =>
           prevItems.map((item) => (item.id === editItemData.id ? { ...item, ...editItemData } : item))
         );
         setEditItemId(null);
+        showSuccessSnackbar('Item updated successfully');
       } else {
-        console.error('Failed to update item');
+
+        showErrorSnackbar('Failed to update item');
       }
     } catch (error) {
-      console.error('Edit Item Error:', error);
+
+      showErrorSnackbar('An error occurred while editing the item');
     }
   };
-
-  
 
   const handleOpenCommissionOption = (itemId) => {
     setOpenCommissionItemId(itemId);
@@ -177,7 +201,6 @@ const SellerItemsPage = () => {
       const commissionOptionData = {
         item_id: openCommissionItemId,
         seller_question: commissionOption,
-        
       };
 
       const response = await fetch(`/api/v1/form-items/${item_id}`, {
@@ -189,7 +212,6 @@ const SellerItemsPage = () => {
       });
 
       if (response.ok) {
-        console.log('Commission option added successfully');
         const updatedItems = items.map((item) => {
           if (item.id === openCommissionItemId) {
             return {
@@ -202,11 +224,14 @@ const SellerItemsPage = () => {
         setItems(updatedItems);
         setCommissionOption('');
         setOpenCommissionItemId(null);
+        showSuccessSnackbar('Commission option added successfully');
       } else {
-        console.error('Failed to add commission option');
+
+        showErrorSnackbar('Failed to add commission option');
       }
     } catch (error) {
-      console.error('Add Commission Option Error:', error);
+
+      showErrorSnackbar('An error occurred while adding the commission option');
     }
   };
 
@@ -241,6 +266,10 @@ const SellerItemsPage = () => {
     setItems(updatedItems);
   };
 
+  const handleSnackbarClose = () => {
+    setSnackbarOpen(false);
+  };
+
   if (loading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
@@ -249,7 +278,7 @@ const SellerItemsPage = () => {
     );
   }
   if (!user) {
-    return <Typography>Loading...</Typography>
+    return <Typography>Loading...</Typography>;
   }
 
   return (
@@ -268,7 +297,7 @@ const SellerItemsPage = () => {
             <Card key={item.id} sx={{ margin: '8px', width: '400px' }}>
               <CardHeader title={item.name} />
               {item.images && item.images.length > 0 ? (
-                <CardMedia sx={{ height: 100, paddingTop: '5%' , paddingBottom:'10%'}} title={`Item ${item.id}`}>
+                <CardMedia sx={{ height: 100, paddingTop: '5%', paddingBottom: '10%' }} title={`Item ${item.id}`}>
                   {item.images && item.images.length > 0 ? (
                     <CardMedia
                       component="img"
@@ -323,19 +352,19 @@ const SellerItemsPage = () => {
                   <Typography variant="body1">Price: ${item.price}</Typography>
                   <Typography variant="body1">Batch Size: {item.batch_size} Per Rollover</Typography>
                   <Typography variant="body1">Rollover Period: {item.rollover_period} days</Typography>
-                  <Typography variant='body1'>Total orders: {item.order_count}</Typography>
+                  <Typography variant="body1">Total orders: {item.order_count}</Typography>
                   {item.form_items && item.form_items.length > 0 && (
-                <CardContent>
-                  <Typography variant="h6">Customization Questions</Typography>
-                  <ul>
-                    {item.form_items.map((formItem) => (
-                      <li key={formItem.id}>{formItem.seller_question}</li>
-                    ))}
-                  </ul>
+                    <CardContent>
+                      <Typography variant="h6">Customization Questions</Typography>
+                      <ul>
+                        {item.form_items.map((formItem) => (
+                          <li key={formItem.id}>{formItem.seller_question}</li>
+                        ))}
+                      </ul>
+                    </CardContent>
+                  )}
                 </CardContent>
               )}
-            </CardContent>
-          )}
 
               <CardActions>
                 {!editItemId && (
@@ -373,7 +402,7 @@ const SellerItemsPage = () => {
                     value={commissionOption}
                     onChange={(e) => setCommissionOption(e.target.value)}
                   />
-                  <Button variant="contained" color="primary" onClick={()=>handleAddCommissionOption(item.id)}>
+                  <Button variant="contained" color="primary" onClick={() => handleAddCommissionOption(item.id)}>
                     Submit
                   </Button>
                 </CardContent>
@@ -433,6 +462,17 @@ const SellerItemsPage = () => {
           </Box>
         </Box>
       </Popover>
+
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={6000}
+        onClose={handleSnackbarClose}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
+      >
+        <Alert onClose={handleSnackbarClose} severity={snackbarSeverity}>
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
     </div>
   );
 };

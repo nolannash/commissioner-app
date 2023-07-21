@@ -25,7 +25,7 @@ const ShopList = ({ shops }) => {
             alt={`Shop ${shop.id}`}
           />
           <CardContent>
-            <Typography variant="body1">{shop.bio}</Typography>
+            <Typography variant="body1"><strong>Bio:</strong>{shop.bio}</Typography>
 
             <Link to={`/shops/${shop.id}`}>
               <Button variant="contained" color="primary">

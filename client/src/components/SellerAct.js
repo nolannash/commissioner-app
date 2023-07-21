@@ -14,13 +14,14 @@ import {
   IconButton,
   TextField,
   Grid,
+  Alert,
+  Snackbar,
 } from '@mui/material';
 import { DeleteSharp, Person, AddPhotoAlternate } from '@mui/icons-material';
 import { AuthContext } from '../contexts/AuthContext';
 import { Formik, Field, Form, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
 import { useHistory } from 'react-router-dom';
-
 
 const validationSchema = Yup.object().shape({
   email: Yup.string().email('Invalid email address').required('Email is required'),
@@ -33,16 +34,25 @@ const validationSchema = Yup.object().shape({
 
 const SellerAccountInfo = () => {
   const history = useHistory();
-  const { user, csrfToken, refreshUser,logout } = useContext(AuthContext);
+  const { user, csrfToken, refreshUser, logout } = useContext(AuthContext);
   const [emailNotifications, setEmailNotifications] = useState(user.email_notifications);
   const [popoverAnchorEl, setPopoverAnchorEl] = useState(null);
   const [logoBanner, setLogoBanner] = useState(null);
   const [editMode, setEditMode] = useState(false);
   const [profilePhoto, setProfilePhoto] = useState(null);
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarSeverity, setSnackbarSeverity] = useState('success');
+  const [snackbarMessage, setSnackbarMessage] = useState('');
 
   useEffect(() => {
     setEmailNotifications(user.email_notifications);
   }, [user.email_notifications]);
+
+  const handleSnackbarOpen = (severity, message) => {
+    setSnackbarSeverity(severity);
+    setSnackbarMessage(message);
+    setSnackbarOpen(true);
+  };
 
   const handleEmailNotificationsChange = async (event) => {
     const checked = event.target.checked;
@@ -98,13 +108,16 @@ const SellerAccountInfo = () => {
         });
 
         if (response.ok) {
-          console.log('Logo Banner uploaded successfully');
+
+          handleSnackbarOpen('success', 'Logo Banner uploaded successfully');
           refreshUser(user.id, 'sellers');
         } else {
           console.error('Failed to upload logo banner');
+          handleSnackbarOpen('error', 'Failed to upload logo banner');
         }
       } catch (error) {
         console.error('Upload Logo Banner Error:', error);
+        handleSnackbarOpen('error', 'Failed to upload logo banner');
       }
     }
   };
@@ -119,13 +132,16 @@ const SellerAccountInfo = () => {
       });
 
       if (response.ok) {
-        console.log('Logo Banner deleted successfully');
+
+        handleSnackbarOpen('success', 'Logo Banner deleted successfully');
         refreshUser(user.id, 'sellers');
       } else {
         console.error('Failed to delete logo banner');
+        handleSnackbarOpen('error', 'Failed to delete logo banner');
       }
     } catch (error) {
       console.error('Delete Logo Banner Error:', error);
+      handleSnackbarOpen('error', 'Failed to delete logo banner');
     }
   };
 
@@ -150,35 +166,19 @@ const SellerAccountInfo = () => {
         });
 
         if (response.ok) {
-          console.log('Profile photo uploaded successfully');
+
+          handleSnackbarOpen('success', 'Profile photo uploaded successfully');
           refreshUser(user.id, 'sellers');
         } else {
           console.error('Failed to upload profile photo');
+          handleSnackbarOpen('error', 'Failed to upload profile photo');
         }
       } catch (error) {
         console.error('Upload Profile Photo Error:', error);
+        handleSnackbarOpen('error', 'Failed to upload profile photo');
       }
     }
   };
-
-  const handleDeleteProfile = async () =>{
-    try{
-      const response = await fetch(`/api/v1/sellers/${user.id}`,{
-        method:'DELETE',
-        headers:{
-          'X-CSRF-Token':csrfToken,
-        },
-      });
-      if (response.ok){
-        history.replace('/')
-        logout()
-      }else{
-        console.error('Failed To Delete Profile')
-      }
-    }catch (error){
-      console.error('Error Deleting Profile')
-    }
-  }
 
   const handleDeleteProfilePhoto = async () => {
     try {
@@ -190,13 +190,16 @@ const SellerAccountInfo = () => {
       });
 
       if (response.ok) {
-        console.log('Profile photo deleted successfully');
+
+        handleSnackbarOpen('success', 'Profile photo deleted successfully');
         refreshUser(user.id, 'sellers');
       } else {
         console.error('Failed to delete profile photo');
+        handleSnackbarOpen('error', 'Failed to delete profile photo');
       }
     } catch (error) {
       console.error('Delete Profile Photo Error:', error);
+      handleSnackbarOpen('error', 'Failed to delete profile photo');
     }
   };
 
@@ -219,6 +222,7 @@ const SellerAccountInfo = () => {
 
       if (response.ok) {
         toggleEditMode();
+        handleSnackbarOpen('success', 'Profile information updated successfully');
         refreshUser(user.id, 'sellers');
       } else {
         const errorData = await response.json();
@@ -226,11 +230,33 @@ const SellerAccountInfo = () => {
       }
     } catch (error) {
       console.error('Profile Edit Error:', error);
+      handleSnackbarOpen('error', 'Failed to update profile information');
     }
   };
-  if (!user) {
-    return <Typography>Loading...</Typography>
-  }
+
+  const handleDeleteProfile = async () => {
+    try {
+      const response = await fetch(`/api/v1/sellers/${user.id}`, {
+        method: 'DELETE',
+        headers: {
+          'X-CSRF-Token': csrfToken,
+        },
+      });
+      if (response.ok) {
+
+        handleSnackbarOpen('success', 'Profile deleted successfully');
+        history.replace('/');
+        logout();
+      } else {
+        console.error('Failed To Delete Profile');
+        handleSnackbarOpen('error', 'Failed to delete profile');
+      }
+    } catch (error) {
+      console.error('Error Deleting Profile');
+      handleSnackbarOpen('error', 'Failed to delete profile');
+    }
+  };
+
   return (
     <Card>
       <CardContent>
@@ -238,8 +264,7 @@ const SellerAccountInfo = () => {
           <Button variant="contained" size="medium" color="secondary" onClick={toggleEditMode}>
             {editMode ? 'Cancel' : 'Edit Profile'}
           </Button>
-          <Button variant="contained" color="error" size="medium" startIcon={<DeleteSharp 
-          onClick={()=>handleDeleteProfile}/>}>
+          <Button variant="contained" color="error" size="medium" startIcon={<DeleteSharp />} onClick={handleDeleteProfile}>
             Delete Profile
           </Button>
         </Box>
@@ -444,39 +469,39 @@ const SellerAccountInfo = () => {
                 </Grid>
               </Grid>
               <Box>
-              {user.logo_banner ? (
-                <Box mt={2}>
-                  <Button variant="contained" color="error" onClick={handleDeleteBanner}>
-                    Delete Logo Banner
-                  </Button>
-                </Box>
-              ) : (
-                <Box mt={2}>
-                  <input
-                    accept="image/*"
-                    style={{ display: 'none' }}
-                    id="logo-banner-upload"
-                    type="file"
-                    onChange={handleLogoBannerChange}
-                  />
-                  <label htmlFor="logo-banner-upload">
-                    <IconButton
-                      size="small"
-                      color="primary"
-                      aria-label="upload logo banner"
-                      component="span"
-                      startIcon={<AddPhotoAlternate />}
-                    >
-                      Click Here to Select Logo Banner
-                    </IconButton>
-                  </label>
-                  {logoBanner && <Typography variant="body2">{logoBanner.name}</Typography>}
-                  <Button variant="contained" color="primary" onClick={handleUploadBanner}>
-                    Submit Banner
-                  </Button>
-                </Box>
-              )}
-          </Box>
+                {user.logo_banner ? (
+                  <Box mt={2}>
+                    <Button variant="contained" color="error" onClick={handleDeleteBanner}>
+                      Delete Logo Banner
+                    </Button>
+                  </Box>
+                ) : (
+                  <Box mt={2}>
+                    <input
+                      accept="image/*"
+                      style={{ display: 'none' }}
+                      id="logo-banner-upload"
+                      type="file"
+                      onChange={handleLogoBannerChange}
+                    />
+                    <label htmlFor="logo-banner-upload">
+                      <IconButton
+                        size="small"
+                        color="primary"
+                        aria-label="upload logo banner"
+                        component="span"
+                        startIcon={<AddPhotoAlternate />}
+                      >
+                        Click Here to Select Logo Banner
+                      </IconButton>
+                    </label>
+                    {logoBanner && <Typography variant="body2">{logoBanner.name}</Typography>}
+                    <Button variant="contained" color="primary" onClick={handleUploadBanner}>
+                      Submit Banner
+                    </Button>
+                  </Box>
+                )}
+              </Box>
               {user.profile_photo ? (
                 <Box mt={2}>
                   <Button variant="contained" color="error" onClick={handleDeleteProfilePhoto}>
@@ -513,6 +538,11 @@ const SellerAccountInfo = () => {
           </div>
         )}
       </CardContent>
+      <Snackbar open={snackbarOpen} autoHideDuration={3000} onClose={() => setSnackbarOpen(false)}>
+        <Alert onClose={() => setSnackbarOpen(false)} severity={snackbarSeverity} sx={{ width: '100%' }}>
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
     </Card>
   );
 };

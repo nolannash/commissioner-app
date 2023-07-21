@@ -27,10 +27,10 @@ const OrderForm = () => {
                 const resp = await fetch(`/api/v1/items/${item_id}/form_items`);
                 if (resp.ok) {
                     const data = await resp.json();
-                    console.log(data);
+
                     setFormItems(data);
                 } else {
-                    console.log('There was an issue');
+                    console.error('There was an issue - means the code is broken');
                 }
             } catch (error) {
                 console.error(error.message);
@@ -48,7 +48,7 @@ const OrderForm = () => {
                     const data = await resp.json();
                     setItem(data);
                 } else {
-                    console.log('There was an issue');
+                    console.log('There was an issue not one the user is supposed to see');
                 }
             } catch (error) {
                 console.error(error.message);

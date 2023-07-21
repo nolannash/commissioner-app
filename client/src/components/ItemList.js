@@ -104,7 +104,7 @@ const ItemList = ({ items }) => {
     <div style={{ display: 'flex' }}>
       {items.map((item) => (
         <div key={item.id} style={{ width: 600, margin: 8 }}>
-          <Card sx={{ height: 400 }}>
+          <Card sx={{ height: 400, textAlign:"center" }}>
             <CardHeader
               title={item.name}
               subheader={`${item.seller.shopname} - $${item.price}`}
@@ -129,7 +129,10 @@ const ItemList = ({ items }) => {
               </CardContent>
             )}
             <CardContent>
-              <Typography variant="body1">{item.description}</Typography>
+              <Typography variant="body1"><strong>Description: </strong>{item.description}</Typography>
+            </CardContent>
+            <CardContent>
+              <Typography variant="body1"><strong>Price:</strong> ${item.price}</Typography>
             </CardContent>
             <CardContent>
               <Link to={`/items/${item.id}`}>

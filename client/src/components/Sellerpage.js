@@ -26,7 +26,6 @@ const SellerPage = () => {
   const [activeSection, setActiveSection] = useState(0);
   const history = useHistory();
 
-  console.log(user);
 
   const handleTabChange = (event, newValue) => {
     setActiveSection(newValue);

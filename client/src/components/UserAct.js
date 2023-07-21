@@ -59,8 +59,13 @@ const UserAccountInfo = () => {
             if (!response.ok) {
                 throw new Error('Failed to update email notifications');
             }
+
+            setAlertType('success');
+            setAlertMessage('Email notifications updated successfully!');
         } catch (error) {
             console.error('Email Notifications Error:', error);
+            setAlertType('error');
+            setAlertMessage('Failed to update email notifications. Please try again.');
         }
     };
 
@@ -71,6 +76,8 @@ const UserAccountInfo = () => {
     const handleConfirmToggleNotifications = async (confirm) => {
         if (confirm) {
             setEmailNotifications(false);
+            setAlertType('success');
+            setAlertMessage('Email notifications disabled successfully!');
         }
         setPopoverAnchorEl(null);
     };
@@ -197,8 +204,9 @@ const UserAccountInfo = () => {
             setAlertMessage('Failed to delete profile. Please try again.');
         }
     };
+
     if (!user) {
-        return <Typography>Loading...</Typography>
+        return <Typography>Loading...</Typography>;
     }
 
     return (

@@ -28,7 +28,7 @@ const ShopView = () => {
                 const data = await resp.json();
                 setSeller(data);
             } catch (error) {
-                console.error(error.message);
+
                 setAlertType('error');
                 setAlertMessage('Failed to fetch Seller\'s Items. Please try again.');
             }

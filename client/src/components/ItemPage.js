@@ -38,7 +38,7 @@ const ItemPage = () => {
 
         fetchItem();
     }, [id]);
-    console.log(item)
+
     return (
         <Container maxWidth="md">
             <Box my={4}>

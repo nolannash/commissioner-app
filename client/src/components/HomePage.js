@@ -6,8 +6,9 @@ import {
     Button,
     IconButton,
     Grid,
+    Divider,
     Alert,
-} from '@mui/material';
+    } from '@mui/material';
 import { Search as SearchIcon } from '@mui/icons-material';
 import { Link } from 'react-router-dom';
 import { AuthContext } from '../contexts/AuthContext';
@@ -131,34 +132,42 @@ const HomePage = () => {
             {error}
             </Alert>
         )}
-        <Grid container spacing={3} justifyContent="space-between" alignItems="stretch" flexWrap="wrap">
+
+        <div style={{ marginBottom: '16px' }}>
+
             {!user ? (
-            <Grid item xs={12} sm={4}>
-                <Typography variant="h5">Generic Item List</Typography>
+            <div>
+                <Divider></Divider>
+                <Typography variant="h5">Available Items </Typography>
                 <ItemList items={mainItems} />
-            </Grid>
+            </div>
             ) : userFavorites ? (
-            <Grid item xs={12} sm={4}>
+            <div>
+                <Divider></Divider>
                 <Typography variant="h5">User Favorites</Typography>
                 <ItemList items={userFavorites} />
-            </Grid>
+            </div>
             ) : (
-            <Grid item xs={12} sm={4}>
+            <div>
+                <Divider></Divider>
                 <Typography variant="h5">User Favorites</Typography>
                 <Typography variant="body1">You Don't Have Any Favorites Yet</Typography>
-            </Grid>
+            </div>
             )}
-
-            <Grid item xs={12} sm={4}>
+        </div>
+            <Divider></Divider>
+        <div style={{ marginBottom: '16px' }}>
+            <Divider></Divider>
             <Typography variant="h5">New Shops</Typography>
             <ShopList shops={newShops} />
-            </Grid>
+        </div>
+        <Divider></Divider>
+        <div>
 
-            <Grid item xs={12} sm={4}>
             <Typography variant="h5">New Items</Typography>
+            <Divider></Divider>
             <ItemList items={newItems} />
-            </Grid>
-        </Grid>
+        </div>
         </div>
     </div>
     );

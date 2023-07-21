@@ -39,7 +39,7 @@ const Search = ({ tabs }) => {
     };
 
     const handleSearch = () => {
-        console.log('Performing search...');
+        setAlertMessage('Searching...');
         if (searchType === 'items') {
             const filteredItems = items.filter(
                 (item) =>

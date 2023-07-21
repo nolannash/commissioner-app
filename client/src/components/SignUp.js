@@ -32,7 +32,7 @@ export default function SignUpPage() {
             setAlertMessage('Sign Up successful!');
             determineUserType() === 'user' ? history.push('/') : history.push('/sellerPage');
         } catch (error) {
-            console.error(error);
+
             setAlertType('error');
             setAlertMessage('Sign Up failed. Please check your information and try again.');
         }
