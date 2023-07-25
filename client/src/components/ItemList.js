@@ -107,7 +107,7 @@ const ItemList = ({ items }) => {
           <Card sx={{ height: 400, textAlign:"center" }}>
             <CardHeader
               title={item.name}
-              subheader={`${item.seller.shopname} - $${item.price}`}
+              subheader={`${item.seller.shopname}`}
               action={
                 user ? (
                   <IconButton onClick={() => handleFavoriteClick(item.id)}>

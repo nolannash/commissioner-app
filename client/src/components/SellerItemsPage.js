@@ -24,15 +24,6 @@ const SellerItemsPage = () => {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [editItemId, setEditItemId] = useState(null);
-
-  const [editItemData, setEditItemData] = useState({
-    id: '',
-    name: '',
-    description: '',
-    price: '',
-    batchSize: '',
-    rolloverPeriod: '',
-  });
   const [isEditPopoverOpen, setIsEditPopoverOpen] = useState(false);
   const [deleteItemId, setDeleteItemId] = useState(null);
   const [isDeletePopoverOpen, setIsDeletePopoverOpen] = useState(false);
@@ -45,6 +36,14 @@ const SellerItemsPage = () => {
   const [snackbarSeverity, setSnackbarSeverity] = useState('success');
   const [snackbarMessage, setSnackbarMessage] = useState('');
 
+  const [editItemData, setEditItemData] = useState({
+    id: '',
+    name: '',
+    description: '',
+    price: '',
+    batchSize: '',
+    rolloverPeriod: '',
+  });
 
   const showSuccessSnackbar = (message) => {
     setSnackbarSeverity('success');

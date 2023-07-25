@@ -109,7 +109,6 @@ class Items(Resource):
         else:
             return {'message': 'Item not found'}, 404
 
-
 class Orders(Resource):
     @jwt_required()
     def get(self, order_id=None):
@@ -269,7 +268,6 @@ class Favorites(Resource):
         db.session.delete(favorite)
         db.session.commit()
         return {'message': 'Removed from Favorites'}, 204
-
 
 class FormItems(Resource):
     def get(self, form_item_id=None):

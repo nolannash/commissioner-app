@@ -132,7 +132,7 @@ const AuthProvider = ({ children }) => {
           updateUser(data)
         } else {
           (async () => {
-              const resp = await fetch("/api/v1/refresh_token", {
+              const resp = await fetch("/api/v1 /refresh_token", {
                 method: "POST",
                 credentials: 'same-origin',
                 headers: {
