@@ -104,7 +104,9 @@ def save_file_s3(file):
         filename = secure_filename(file.filename)
         unique_filename = f"{uuid.uuid4().hex}_{int(time.time())}_{filename}"
         s3_bucket_name = app.config['S3_BUCKET_NAME']
-        s3_client = boto3.client('s3')
+        s3_client = boto3.client('s3',
+                                aws_access_key_id=app.config['AWS_ACCESS_KEY'],
+                                aws_secret_access_key=app.config['AWS_SECRET_KEY'])
 
         try:
             s3_client.upload_fileobj(file, s3_bucket_name, unique_filename)
